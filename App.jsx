@@ -234,10 +234,32 @@ function TableView() {
       </div>
     </div>
   );
+  const LiveTeaser = () => (
+    <div style={{
+        borderRadius: 14, padding: "14px 16px", marginBottom: 22,
+        background: "linear-gradient(120deg, rgba(61,220,132,0.08), rgba(255,182,39,0.06)), rgba(240,255,245,0.02)",
+        border: "1px solid rgba(61,220,132,0.25)",
+        display: "flex", alignItems: "center", gap: 12,
+      }}>
+        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#3DDC84", flexShrink: 0, animation: "livePulse 1.4s infinite" }} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+            <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 15, letterSpacing: "0.08em", color: chalk, textTransform: "uppercase" }}>Live scores</span>
+            <span style={{ fontSize: 9, fontWeight: 800, color: "#0B1512", background: "#FFB627", borderRadius: 99, padding: "2px 8px", letterSpacing: "0.06em" }}>COMING SOON</span>
+          </div>
+          <div style={{ fontSize: 11, color: dim, lineHeight: 1.5 }}>
+            In-play Premiership scores, refreshed every two minutes. The data feed costs real money — it switches on
+            the moment supporters cover it. One Season Ticket does it. ♥
+          </div>
+        </div>
+      </div>
+  );
   if (FULL_TABLE && !live) {
     const noteL = noteLabel, noteC = noteColor;
     return (
       <div style={{ animation: "riseIn 0.4s ease-out" }}>
+        <LiveBlock />
+        <LiveTeaser />
         <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
           Sports Direct Premiership · Final 2025/26
         </div>
@@ -302,25 +324,7 @@ function TableView() {
   return (
     <div style={{ animation: "riseIn 0.4s ease-out" }}>
       <LiveBlock />
-
-      <div style={{
-        borderRadius: 14, padding: "14px 16px", marginBottom: 22,
-        background: "linear-gradient(120deg, rgba(61,220,132,0.08), rgba(255,182,39,0.06)), rgba(240,255,245,0.02)",
-        border: "1px solid rgba(61,220,132,0.25)",
-        display: "flex", alignItems: "center", gap: 12,
-      }}>
-        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#3DDC84", flexShrink: 0, animation: "livePulse 1.4s infinite" }} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-            <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 15, letterSpacing: "0.08em", color: chalk, textTransform: "uppercase" }}>Live scores</span>
-            <span style={{ fontSize: 9, fontWeight: 800, color: "#0B1512", background: "#FFB627", borderRadius: 99, padding: "2px 8px", letterSpacing: "0.06em" }}>COMING SOON</span>
-          </div>
-          <div style={{ fontSize: 11, color: dim, lineHeight: 1.5 }}>
-            In-play Premiership scores, refreshed every two minutes. The data feed costs real money — it switches on
-            the moment supporters cover it. One Season Ticket does it. ♥
-          </div>
-        </div>
-      </div>
+      <LiveTeaser />
       <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
         Sports Direct Premiership · Final 2025/26
       </div>
@@ -1876,7 +1880,7 @@ export default function App() {
         {tab === "support" && <SupportView />}
         </GibsonBoundary>
         <div style={{ textAlign: "center", padding: "26px 0 10px", fontSize: 9.5, color: "rgba(143,166,155,0.55)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
-          GIBSON 1.01 · build 11 JUL · 🏆
+          GIBSON 1.01 · build 11 JUL · B2 🏆
         </div>
       </main>
     </div>
