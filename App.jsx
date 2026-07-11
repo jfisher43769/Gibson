@@ -1875,6 +1875,9 @@ export default function App() {
         {tab === "history" && <HistoryView />}
         {tab === "support" && <SupportView />}
         </GibsonBoundary>
+        <div style={{ textAlign: "center", padding: "26px 0 10px", fontSize: 9.5, color: "rgba(143,166,155,0.55)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
+          GIBSON 1.01 · build 11 JUL · 🏆
+        </div>
       </main>
     </div>
   );
