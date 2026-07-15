@@ -553,19 +553,19 @@ const EURO = [
 // 26/27 domestic fixtures not yet released — Europe fills the schedule for now
 export const CLUB_FIXTURES = {
   LAR: [
-    { date: "FT 0–1", opp: "Tre Fiori (a) — Lusty 45'", comp: "UCL Q1 · 1st leg · WON" },
-    { date: "FT 2–1", opp: "Tre Fiori (h)", comp: "UCL Q1 · 2nd leg · WON 3–1 agg" },
+    { date: "8 Jul", res: "0–1 W", opp: "Tre Fiori (a) — Lusty 45'", comp: "UCL Q1 · 1st leg" },
+    { date: "14 Jul", res: "2–1 W", opp: "Tre Fiori (h)", comp: "UCL Q1 · 2nd leg · 3–1 agg" },
     { date: "21/22 Jul", opp: "Red Star Belgrade", comp: "UCL Q2 · 1st leg" },
     { date: "28/29 Jul", opp: "Red Star Belgrade", comp: "UCL Q2 · 2nd leg" },
   ],
   GLE: [
-    { date: "FT 1–2", opp: "RFS (h) — Ibsen Rossi 38'", comp: "UECL Q1 · 1st leg · LOST" },
+    { date: "9 Jul", res: "1–2 L", opp: "RFS (h) — Ibsen Rossi 38'", comp: "UECL Q1 · 1st leg" },
     { date: "Thu 16 Jul", opp: "RFS (a)", comp: "UECL Q1 · 2nd leg · Riga" },
     { date: "23 Jul", opp: "Qarabağ / Vestri*", comp: "UECL Q2 · if through" },
     { date: "30 Jul", opp: "Qarabağ / Vestri*", comp: "UECL Q2 · if through" },
   ],
   LIN: [
-    { date: "FT 0–1", opp: "Nõmme Kalju (a)", comp: "UECL Q1 · 1st leg · LOST" },
+    { date: "9 Jul", res: "0–1 L", opp: "Nõmme Kalju (a)", comp: "UECL Q1 · 1st leg" },
     { date: "Thu 16 Jul", opp: "Nõmme Kalju (h)", comp: "UECL Q1 · 2nd leg · Windsor Park" },
     { date: "23 Jul", opp: "Shelbourne*", comp: "UECL Q2 · if through" },
     { date: "30 Jul", opp: "Shelbourne*", comp: "UECL Q2 · if through" },

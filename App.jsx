@@ -927,7 +927,7 @@ function FixturesView() {
                 borderBottom: i < euro.length - 1 ? `1px solid ${faint}` : "none",
                 opacity: f.opp.includes("*") ? 0.6 : 1,
               }}>
-                <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#5EC8F2", width: 74, flexShrink: 0, lineHeight: 1.2 }}>{f.date}</div>
+                <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#5EC8F2", width: 74, flexShrink: 0, lineHeight: 1.2 }}>{f.date}{f.res && <span style={{ color: "#FFB627" }}> {f.res}</span>}</div>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 13.5, fontWeight: 600, color: chalk }}>{f.opp.replace("*", "")}{f.opp.includes("*") && <span style={{ fontSize: 10, color: dim }}> (provisional)</span>}</div>
                   <div style={{ fontSize: 11, color: dim, marginTop: 2 }}>{f.comp}</div>
