@@ -279,7 +279,7 @@ export const PREDICTOR_GW = {
   name: "Euro Week 2 · Second Legs",
   deadline: "Larne tonight 8pm · Glens & Blues Thursday",
   fixtures: [
-    { id: "f1", home: { club: "LAR" }, away: { external: "Tre Fiori" }, comp: "UCL Q1 · 2nd leg · Inver Park · lead 1-0", result: null, odds: { home: 1.1, draw: 8.0, away: 15.0 } },
+    { id: "f1", home: { club: "LAR" }, away: { external: "Tre Fiori" }, comp: "UCL Q1 · 2nd leg · Inver Park · lead 1-0", result: [2, 1], odds: { home: 1.1, draw: 8.0, away: 15.0 } },
     { id: "f2", home: { external: "RFS" }, away: { club: "GLE" }, comp: "UECL Q1 · 2nd leg · Riga · Glens trail 1-2", result: null, odds: { home: 1.7, draw: 3.8, away: 4.5 } },
     { id: "f3", home: { club: "LIN" }, away: { external: "Nõmme Kalju" }, comp: "UECL Q1 · 2nd leg · Windsor · Blues trail 0-1", result: null, odds: { home: 1.75, draw: 3.5, away: 4.3 } },
   ],
@@ -516,7 +516,7 @@ const EURO = [
       { label: "2nd leg · home", date: "Tue 14 Jul · 20:00", venue: "Inver Park" },
     ],
     prize: "Winner faces Red Star Belgrade in Q2 (21/22 & 28/29 Jul)",
-    note: "TONIGHT, 8PM, INVER PARK: Larne defend a 1-0 lead from San Marino — Lusty's strike on the stroke of half-time. Finish the job and the prize is enormous: Crvena Zvezda — Red Star Belgrade — in Q2. Even defeat overall isn't the end: the loser drops into Conference League Q3.",
+    note: "THROUGH: Larne 2-1 Tre Fiori at Inver Park, 3-1 on aggregate. The prize is enormous and it's real now — Crvena Zvezda, Red Star Belgrade, in Q2 (21/22 & 28/29 Jul). Even defeat there isn't the end: the loser drops into Conference League Q3.",
   },
   {
     club: "GLE", comp: "Conference League", round: "First qualifying round",
