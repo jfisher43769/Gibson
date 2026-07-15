@@ -554,9 +554,9 @@ const EURO = [
 export const CLUB_FIXTURES = {
   LAR: [
     { date: "FT 0–1", opp: "Tre Fiori (a) — Lusty 45'", comp: "UCL Q1 · 1st leg · WON" },
-    { date: "14/15 Jul", opp: "Tre Fiori (h)", comp: "UCL Q1 · 2nd leg · Windsor Park" },
-    { date: "21/22 Jul", opp: "Red Star Belgrade*", comp: "UCL Q2 · if through" },
-    { date: "28/29 Jul", opp: "Red Star Belgrade*", comp: "UCL Q2 · if through" },
+    { date: "FT 2–1", opp: "Tre Fiori (h)", comp: "UCL Q1 · 2nd leg · WON 3–1 agg" },
+    { date: "21/22 Jul", opp: "Red Star Belgrade", comp: "UCL Q2 · 1st leg" },
+    { date: "28/29 Jul", opp: "Red Star Belgrade", comp: "UCL Q2 · 2nd leg" },
   ],
   GLE: [
     { date: "FT 1–2", opp: "RFS (h) — Ibsen Rossi 38'", comp: "UECL Q1 · 1st leg · LOST" },
