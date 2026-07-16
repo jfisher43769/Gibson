@@ -280,8 +280,8 @@ export const PREDICTOR_GW = {
   deadline: "Larne tonight 8pm · Glens & Blues Thursday",
   fixtures: [
     { id: "f1", home: { club: "LAR" }, away: { external: "Tre Fiori" }, comp: "UCL Q1 · 2nd leg · Inver Park · lead 1-0", result: [2, 1], odds: { home: 1.1, draw: 8.0, away: 15.0 } },
-    { id: "f2", home: { external: "RFS" }, away: { club: "GLE" }, comp: "UECL Q1 · 2nd leg · Riga · Glens trail 1-2", result: null, odds: { home: 1.7, draw: 3.8, away: 4.5 } },
-    { id: "f3", home: { club: "LIN" }, away: { external: "Nõmme Kalju" }, comp: "UECL Q1 · 2nd leg · Windsor · Blues trail 0-1", result: null, odds: { home: 1.75, draw: 3.5, away: 4.3 } },
+    { id: "f2", home: { external: "RFS" }, away: { club: "GLE" }, comp: "UECL Q1 · 2nd leg · Riga · Glens trail 1-2", result: [2, 0], odds: { home: 1.7, draw: 3.8, away: 4.5 } },
+    { id: "f3", home: { club: "LIN" }, away: { external: "Nõmme Kalju" }, comp: "UECL Q1 · 2nd leg · Windsor · Blues trail 0-1", result: [2, 2], odds: { home: 1.75, draw: 3.5, away: 4.3 } },
   ],
 };
 
@@ -526,7 +526,7 @@ const EURO = [
       { label: "2nd leg · away", date: "Thu 16 Jul · 18:30", venue: "Riga" },
     ],
     prize: "Winner faces Qarabağ or Vestri in Q2",
-    note: "FIRST LEG: Glens trail 1-2. Ibsen Rossi headed them ahead at the Oval, but super-sub Kigurs — on for the injured Diomande after half an hour — levelled on the stroke of half-time and struck again on 70. An away goal in Riga would flip the tie.",
+    note: "ELIMINATED: Beaten 2-0 in Riga, 1-4 on aggregate. Ibsen Rossi's header at the Oval was as good as it got — the Glens' European summer is over at the first hurdle.",
   },
   {
     club: "LIN", comp: "Conference League", round: "First qualifying round",
@@ -536,7 +536,7 @@ const EURO = [
       { label: "2nd leg · home", date: "Thu 16 Jul · 20:45", venue: "Windsor Park" },
     ],
     prize: "Winner faces Shelbourne in Q2 — an all-Ireland tie",
-    note: "FIRST LEG: Blues trail 0-1 after Vukusic struck straight after half-time in Tallinn — despite Linfield winning the corner count 12-2 and the shot count 10-8. All to do at Windsor, where one goal levels the tie.",
+    note: "ELIMINATED: 2-2 at Windsor, out 2-3 on aggregate — and it's the cruellest kind. Needing one more goal, the Blues were caught by a last-minute Kalju equaliser instead.",
   },
   {
     club: "COL", comp: "Conference League", round: "Second qualifying round",
@@ -560,15 +560,11 @@ export const CLUB_FIXTURES = {
   ],
   GLE: [
     { date: "9 Jul", res: "1–2 L", opp: "RFS (h) — Ibsen Rossi 38'", comp: "UECL Q1 · 1st leg" },
-    { date: "Thu 16 Jul", opp: "RFS (a)", comp: "UECL Q1 · 2nd leg · Riga" },
-    { date: "23 Jul", opp: "Qarabağ / Vestri*", comp: "UECL Q2 · if through" },
-    { date: "30 Jul", opp: "Qarabağ / Vestri*", comp: "UECL Q2 · if through" },
+    { date: "16 Jul", res: "2–0 L", opp: "RFS (a)", comp: "UECL Q1 · 2nd leg · 1–4 agg · eliminated" },
   ],
   LIN: [
     { date: "9 Jul", res: "0–1 L", opp: "Nõmme Kalju (a)", comp: "UECL Q1 · 1st leg" },
-    { date: "Thu 16 Jul", opp: "Nõmme Kalju (h)", comp: "UECL Q1 · 2nd leg · Windsor Park" },
-    { date: "23 Jul", opp: "Shelbourne*", comp: "UECL Q2 · if through" },
-    { date: "30 Jul", opp: "Shelbourne*", comp: "UECL Q2 · if through" },
+    { date: "16 Jul", res: "2–2 D", opp: "Nõmme Kalju (h)", comp: "UECL Q1 · 2nd leg · 2–3 agg · eliminated" },
   ],
   COL: [
     { date: "23/24 Jul", opp: "HJK Helsinki (a)", comp: "UECL Q2 · 1st leg" },
