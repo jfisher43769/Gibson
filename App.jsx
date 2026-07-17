@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef, useLayoutEffect } from "react";
 import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   ResponsiveContainer,
@@ -18,6 +18,7 @@ const GlobalStyle = () => (
     @keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
     @keyframes pop { 0% { transform: scale(0.5); opacity: 0; } 70% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
     @keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+    @keyframes boardFlicker { 0% { opacity: 0; } 18% { opacity: 1; } 30% { opacity: 0.45; } 48% { opacity: 1; } 62% { opacity: 0.75; } 100% { opacity: 1; } }
     button { transition: transform 0.12s ease, opacity 0.15s ease; }
     button:active { transform: scale(0.96); }
     .gb-skel { background: linear-gradient(90deg, rgba(240,255,245,0.05) 25%, rgba(240,255,245,0.12) 50%, rgba(240,255,245,0.05) 75%); background-size: 400px 100%; animation: shimmer 1.3s infinite linear; border-radius: 8px; }
@@ -36,6 +37,44 @@ import {
 const chalk = "#EDF5EF";
 const dim = "rgba(237,245,239,0.7)";
 const faint = "rgba(237,245,239,0.08)";
+
+// The only three surface treatments in the app: flat (bordered list), card, hero (highlighted card)
+const SURFACE = {
+  flat: { background: "transparent", border: `1px solid ${faint}` },
+  card: { ...SURFACE.card },
+  hero: { background: "linear-gradient(120deg, rgba(255,182,39,0.12), transparent 60%), rgba(240,255,245,0.03)", border: `1px solid ${faint}` },
+};
+
+// Staggered list entrance: ~30ms per row, capped at row 10. The global
+// prefers-reduced-motion rule disables all animation, so no check needed here.
+const rise = (i) => ({ animation: `riseIn 0.35s ease-out ${Math.min(i, 10) * 0.03}s backwards` });
+
+const reducedMotion = () => {
+  try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; }
+};
+
+function useCountUp(target, duration = 600) {
+  const [v, setV] = useState(target);
+  useEffect(() => {
+    if (reducedMotion() || !Number.isFinite(target)) { setV(target); return; }
+    let raf;
+    const t0 = performance.now();
+    const tick = (t) => {
+      const p = Math.min((t - t0) / duration, 1);
+      setV(target * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    setV(0);
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return v;
+}
+
+function CountUp({ value, decimals = 0 }) {
+  const v = useCountUp(value);
+  return <>{v.toFixed(decimals)}</>;
+}
 
 const ratingColor = (r) => (r >= 8 ? "#3DDC84" : r >= 7.3 ? "#FFB627" : "#8FA69B");
 const formColor = (f) => (f === "W" ? "#3DDC84" : f === "D" ? "#FFB627" : "#E05252");
@@ -182,9 +221,9 @@ function TableView() {
         {live.rows.map((row, i) => (
           <div key={row.club} style={{
             display: "flex", alignItems: "center", gap: 12,
-            background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`,
+            ...SURFACE.card,
             borderRadius: 12, padding: "10px 14px 10px 11px",
-            animation: `riseIn 0.35s ease-out ${i * 0.03}s backwards`,
+            ...rise(i),
           }}>
             <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, color: dim, width: 24, textAlign: "center", fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>{i + 1}</div>
             <Crest club={row.club} size={26} />
@@ -217,10 +256,10 @@ function TableView() {
   const Row = ({ pos, club, note, tag, i }) => (
     <div style={{
       display: "flex", alignItems: "center", gap: 12,
-      background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`,
+      ...SURFACE.card,
       borderLeft: `3px solid ${note ? noteColor[note] : "transparent"}`,
       borderRadius: 12, padding: "11px 14px 11px 11px",
-      animation: `riseIn 0.35s ease-out ${i * 0.04}s backwards`,
+      ...rise(i),
     }}>
       <div style={{
         fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 18,
@@ -237,8 +276,7 @@ function TableView() {
   const LiveTeaser = () => (
     <div style={{
         borderRadius: 14, padding: "14px 16px", marginBottom: 22,
-        background: "linear-gradient(120deg, rgba(61,220,132,0.08), rgba(255,182,39,0.06)), rgba(240,255,245,0.02)",
-        border: "1px solid rgba(61,220,132,0.25)",
+        ...SURFACE.hero,
         display: "flex", alignItems: "center", gap: 12,
       }}>
         <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#3DDC84", flexShrink: 0, animation: "livePulse 1.4s infinite" }} />
@@ -267,10 +305,10 @@ function TableView() {
           {FULL_TABLE.map((row, i) => (
             <div key={row.club} style={{
               display: "flex", alignItems: "center", gap: 12,
-              background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`,
+              ...SURFACE.card,
               borderLeft: `3px solid ${row.note ? noteC[row.note] : "transparent"}`,
               borderRadius: 12, padding: "10px 14px 10px 11px",
-              animation: `riseIn 0.35s ease-out ${i * 0.03}s backwards`,
+              ...rise(i),
             }}>
               <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, color: row.note ? noteC[row.note] : dim, width: 24, textAlign: "center", fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>{i + 1}</div>
               <Crest club={row.club} size={26} />
@@ -299,7 +337,7 @@ function TableView() {
           </div>
           <div style={{ display: "grid", gap: 7 }}>
             {MARKET_VALUES.map((m, i) => (
-              <div key={m.club} style={{ display: "flex", alignItems: "center", gap: 10, animation: `riseIn 0.35s ease-out ${i * 0.04}s backwards` }}>
+              <div key={m.club} style={{ display: "flex", alignItems: "center", gap: 10, ...rise(i) }}>
                 <Crest club={m.club} size={20} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
@@ -354,7 +392,7 @@ function TableView() {
         </div>
         <div style={{ display: "grid", gap: 7 }}>
           {MARKET_VALUES.map((m, i) => (
-            <div key={m.club} style={{ display: "flex", alignItems: "center", gap: 10, animation: `riseIn 0.35s ease-out ${i * 0.04}s backwards` }}>
+            <div key={m.club} style={{ display: "flex", alignItems: "center", gap: 10, ...rise(i) }}>
               <Crest club={m.club} size={20} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
@@ -384,7 +422,7 @@ function PlayerDetail({ player }) {
   const accent = player.club === "GLE" ? "#3DDC84" : darkAccent ? "#FFB627" : c.colors[0];
   const radarData = AXES.map((a, i) => ({ axis: a, v: player.radar[i] }));
   const stat = (label, value, sub) => (
-    <div style={{ background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`, borderRadius: 10, padding: "10px 12px" }}>
+    <div style={{ ...SURFACE.card, borderRadius: 10, padding: "10px 12px" }}>
       <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, color: chalk, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{value}</div>
       <div style={{ fontSize: 12, color: dim, marginTop: 3 }}>{label}{sub && <span style={{ color: accent }}> · {sub}</span>}</div>
     </div>
@@ -393,8 +431,7 @@ function PlayerDetail({ player }) {
     <div style={{ animation: "riseIn 0.4s ease-out" }}>
       <div style={{
         display: "flex", alignItems: "center", gap: 14, padding: "18px 16px", borderRadius: 14,
-        background: `linear-gradient(120deg, ${c.colors[0]}26, transparent 55%), rgba(240,255,245,0.03)`,
-        border: `1px solid ${faint}`, marginBottom: 14, position: "relative", overflow: "hidden",
+        ...SURFACE.hero, marginBottom: 14, position: "relative", overflow: "hidden",
       }}>
         <div style={{ position: "absolute", right: -10, top: -30, fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 120, color: "rgba(237,245,239,0.05)", lineHeight: 1 }}>{player.num}</div>
         <Avatar player={player} size={64} />
@@ -418,7 +455,7 @@ function PlayerDetail({ player }) {
         {stat("Shots /90", player.per90.shots)}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`, borderRadius: 10, padding: "10px 14px", marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", ...SURFACE.card, borderRadius: 10, padding: "10px 14px", marginBottom: 14 }}>
         <div>
           <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 2 }}>Form DNA — last 6</div>
           <div style={{ fontSize: 12, color: chalk, fontVariantNumeric: "tabular-nums" }}>{player.form.join("  ·  ")}</div>
@@ -427,7 +464,7 @@ function PlayerDetail({ player }) {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 14 }}>
-        <div style={{ background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`, borderRadius: 12, padding: 8 }}>
+        <div style={{ ...SURFACE.card, borderRadius: 12, padding: 8 }}>
           <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", padding: "6px 8px" }}>Skill Radar · GIBSON Index beta</div>
           <div style={{ height: 240 }}>
             <ResponsiveContainer>
@@ -491,7 +528,7 @@ function DuelView() {
         </div>
       </div>
 
-      <div style={{ background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`, borderRadius: 12, marginBottom: 14 }}>
+      <div style={{ ...SURFACE.card, borderRadius: 12, marginBottom: 14 }}>
         <div style={{ height: 260 }}>
           <ResponsiveContainer>
             <RadarChart data={data} outerRadius="72%">
@@ -548,7 +585,7 @@ function ClubLedger() {
   const [club, setClub] = useState("LAR");
   const w = WINDOW.find((x) => x.club === club);
   const List = ({ title, items, color }) => (
-    <div style={{ border: `1px solid ${faint}`, borderRadius: 12, padding: "10px 12px" }}>
+    <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "10px 12px" }}>
       <div style={{ fontSize: 12, color, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>{title}</div>
       {items.length === 0 && <div style={{ fontSize: 12, color: dim, fontStyle: "italic" }}>None recorded yet</div>}
       {items.map(([p, c]) => (
@@ -621,9 +658,9 @@ function TransfersView() {
           const isReleaseOnly = !t.to && !t.toExternal;
           return (
             <div key={t.id} style={{
-              background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`,
+              ...SURFACE.card,
               borderLeft: `3px solid ${meta.color}`, borderRadius: 12, padding: "12px 14px",
-              animation: `riseIn 0.4s ease-out ${i * 0.06}s backwards`,
+              ...rise(i),
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 8 }}>
                 <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 17, color: chalk }}>{t.player}</span>
@@ -677,9 +714,9 @@ function OddsStrip({ odds, homeLabel, awayLabel }) {
     );
   }
   const cell = (label, val) => (
-    <div style={{ flex: 1, textAlign: "center", background: "rgba(240,255,245,0.04)", border: `1px solid ${faint}`, borderRadius: 8, padding: "7px 4px" }}>
+    <div style={{ flex: 1, textAlign: "center", ...SURFACE.card, borderRadius: 8, padding: "7px 4px" }}>
       <div style={{ fontSize: 12, color: dim, textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</div>
-      <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 16, color: chalk, marginTop: 2 }}>{val.toFixed(2)}</div>
+      <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 16, color: chalk, marginTop: 2, fontVariantNumeric: "tabular-nums" }}>{val.toFixed(2)}</div>
     </div>
   );
   return (
@@ -722,9 +759,8 @@ function EuropeView() {
           const c = CLUBS[e.club];
           return (
             <div key={e.club} style={{
-              background: `linear-gradient(120deg, ${c.colors[0]}1F, transparent 55%), rgba(240,255,245,0.03)`,
-              border: `1px solid ${faint}`, borderRadius: 14, padding: "14px",
-              animation: `riseIn 0.4s ease-out ${i * 0.08}s backwards`,
+              ...SURFACE.card, borderRadius: 14, padding: "14px",
+              ...rise(i),
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
                 <Crest club={e.club} size={26} />
@@ -743,7 +779,7 @@ function EuropeView() {
               <div style={{ fontSize: 12, color: dim, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>{e.round}</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
                 {e.legs.map((l) => (
-                  <div key={l.label} style={{ background: "rgba(11,21,18,0.5)", border: `1px solid ${faint}`, borderRadius: 10, padding: "9px 11px" }}>
+                  <div key={l.label} style={{ ...SURFACE.card, borderRadius: 10, padding: "9px 11px" }}>
                     <div style={{ fontSize: 12, color: dim, letterSpacing: "0.08em", textTransform: "uppercase" }}>{l.label}</div>
                     <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 16, color: chalk, marginTop: 2 }}>{l.date}</div>
                     <div style={{ fontSize: 12, color: dim }}>{l.venue}</div>
@@ -834,7 +870,7 @@ function FixturesView() {
                 fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 16,
               }} aria-label="Next round">›</button>
             </div>
-            <div key={r.round} style={{ border: `1px solid ${faint}`, borderRadius: 14, overflow: "hidden", marginBottom: 10, animation: "riseIn 0.28s ease-out" }}>
+            <div key={r.round} style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden", marginBottom: 10, animation: "riseIn 0.28s ease-out" }}>
               {r.matches.map((m, i) => (
                 <div key={i} style={{
                   display: "flex", alignItems: "center", padding: "12px 14px",
@@ -884,7 +920,7 @@ function FixturesView() {
             <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#3DDC84", display: "inline-block" }} />
             <span style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>Latest results · auto-updated</span>
           </div>
-          <div style={{ border: `1px solid ${faint}`, borderRadius: 14, overflow: "hidden" }}>
+          <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden" }}>
             {liveEv.results.slice(0, 6).map((m, i) => (
               <div key={m.h + m.a + m.date} style={{
                 display: "flex", alignItems: "center", gap: 8, padding: "9px 13px",
@@ -920,7 +956,7 @@ function FixturesView() {
       {euro && (
         <>
           <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 }}>In Europe first</div>
-          <div style={{ border: `1px solid ${faint}`, borderRadius: 14, overflow: "hidden", marginBottom: 14 }}>
+          <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden", marginBottom: 14 }}>
             {euro.map((f, i) => (
               <div key={i} style={{
                 display: "flex", alignItems: "center", gap: 12, padding: "11px 13px",
@@ -940,7 +976,7 @@ function FixturesView() {
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 }}>
         Premiership · {showAll ? "full 33-round schedule" : "opening five"}
       </div>
-      <div style={{ border: `1px solid ${faint}`, borderRadius: 14, overflow: "hidden" }}>
+      <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden" }}>
         {nextLeague.map((f, i) => (
           <div key={i} style={{
             display: "flex", alignItems: "center", gap: 12, padding: "11px 13px",
@@ -1154,8 +1190,7 @@ function PredictorView() {
     <div style={{ animation: "riseIn 0.4s ease-out" }}>
       <div style={{
         borderRadius: 14, padding: "16px", marginBottom: 14,
-        background: "linear-gradient(120deg, rgba(255,182,39,0.12), transparent 60%), rgba(240,255,245,0.03)",
-        border: `1px solid ${faint}`,
+        ...SURFACE.hero,
         display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap",
       }}>
         <div>
@@ -1175,7 +1210,7 @@ function PredictorView() {
         </div>
         {resultsIn && (
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 30, color: "#3DDC84", lineHeight: 1, animation: "pop 0.45s ease-out" }}>{totalPts}</div>
+            <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 30, color: "#3DDC84", lineHeight: 1, fontVariantNumeric: "tabular-nums", animation: "pop 0.45s ease-out" }}>{totalPts}</div>
             <div style={{ fontSize: 12, color: dim, marginTop: 4 }}>
               {totalPts === 0 ? "Blanked. Even the bookies get weeks like this." : totalPts >= 7 ? "Scenes. Frame this one." : totalPts >= 4 ? "Solid week's work." : "Points on the board — momentum builds."}
             </div>
@@ -1189,9 +1224,9 @@ function PredictorView() {
           const pts = scoreFor(f);
           return (
             <div key={f.id} style={{
-              background: "rgba(240,255,245,0.03)", border: `1px solid ${pts === 3 ? "#3DDC84" : pts === 1 ? "#FFB627" : faint}`,
+              ...SURFACE.card, border: `1px solid ${pts === 3 ? "#3DDC84" : pts === 1 ? "#FFB627" : faint}`,
               borderRadius: 14, padding: "14px 10px 12px",
-              animation: `riseIn 0.4s ease-out ${i * 0.07}s backwards`,
+              ...rise(i),
             }}>
               <div style={{ textAlign: "center", fontSize: 12, color: dim, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>{f.comp}</div>
               <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 10 }}>
@@ -1204,7 +1239,7 @@ function PredictorView() {
               {f.result && (
                 <div style={{ textAlign: "center", marginTop: 10, fontSize: 12 }}>
                   <span style={{ color: dim }}>Result: </span>
-                  <span style={{ color: chalk, fontWeight: 700 }}>{f.result[0]}–{f.result[1]}</span>
+                  <span style={{ color: chalk, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{f.result[0]}–{f.result[1]}</span>
                   {pts !== null && <span style={{ color: pts === 3 ? "#3DDC84" : pts === 1 ? "#FFB627" : "#E05252", fontWeight: 700 }}> · +{pts} pts</span>}
                 </div>
               )}
@@ -1242,7 +1277,7 @@ function PredictorView() {
       </div>
 
       {copied && (
-        <div style={{ background: "rgba(11,21,18,0.6)", border: `1px solid ${faint}`, borderRadius: 10, padding: "10px 12px", fontSize: 12, color: dim, whiteSpace: "pre-line", marginBottom: 12 }}>
+        <div style={{ ...SURFACE.card, borderRadius: 10, padding: "10px 12px", fontSize: 12, color: dim, whiteSpace: "pre-line", marginBottom: 12 }}>
           {shareText()}
         </div>
       )}
@@ -1263,8 +1298,7 @@ function HistoryView() {
     <div style={{ animation: "riseIn 0.4s ease-out" }}>
       <div style={{
         borderRadius: 14, padding: "18px 16px", marginBottom: 16,
-        background: "linear-gradient(120deg, rgba(255,182,39,0.12), transparent 60%), rgba(240,255,245,0.03)",
-        border: `1px solid ${faint}`,
+        ...SURFACE.hero,
       }}>
         <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 24, textTransform: "uppercase", color: chalk, lineHeight: 1.1 }}>
           The Gibson Cup
@@ -1277,7 +1311,7 @@ function HistoryView() {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8, marginBottom: 20 }}>
         {RECORDS.map((r) => (
-          <div key={r.label} style={{ background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`, borderRadius: 12, padding: "12px 13px" }}>
+          <div key={r.label} style={{ ...SURFACE.card, borderRadius: 12, padding: "12px 13px" }}>
             <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 30, color: "#FFB627", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{r.big}</div>
             <div style={{ fontSize: 12, fontWeight: 700, color: chalk, marginTop: 5 }}>{r.label}</div>
             <div style={{ fontSize: 12, color: dim, marginTop: 3, lineHeight: 1.4 }}>{r.sub}</div>
@@ -1290,7 +1324,7 @@ function HistoryView() {
         {ALL_TIME_TITLES.map((t, i) => {
           const c = CLUBS[t.club];
           return (
-            <div key={t.club} style={{ display: "flex", alignItems: "center", gap: 10, animation: `riseIn 0.4s ease-out ${i * 0.05}s backwards` }}>
+            <div key={t.club} style={{ display: "flex", alignItems: "center", gap: 10, ...rise(i) }}>
               <Crest club={t.club} size={20} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
@@ -1313,7 +1347,7 @@ function HistoryView() {
       </div>
 
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Roll of honour · last 12 seasons</div>
-      <div style={{ border: `1px solid ${faint}`, borderRadius: 14, overflow: "hidden" }}>
+      <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden" }}>
         {ROLL_OF_HONOUR.map((r, i) => (
           <div key={r.season} style={{
             display: "flex", alignItems: "center", gap: 12, padding: "10px 13px",
@@ -1339,7 +1373,7 @@ function HistoryView() {
             {SEASON_ARCHIVE.map((s) => <option key={s.season} value={s.season}>{s.season}</option>)}
           </select>
         </div>
-        <div style={{ background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`, borderRadius: 14, padding: "14px 15px", animation: "riseIn 0.35s ease-out" }} key={arch.season}>
+        <div style={{ ...SURFACE.card, borderRadius: 14, padding: "14px 15px", animation: "riseIn 0.35s ease-out" }} key={arch.season}>
           <div style={{ display: "grid", gap: 9 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
               <span style={{ fontSize: 12, color: dim, textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0 }}>Champions 🏆</span>
@@ -1396,8 +1430,7 @@ function StatsView() {
     <div style={{ animation: "riseIn 0.4s ease-out" }}>
       <div style={{
         borderRadius: 14, padding: "16px", marginBottom: 16,
-        background: "linear-gradient(120deg, rgba(255,182,39,0.12), rgba(94,200,242,0.10)), rgba(240,255,245,0.03)",
-        border: "1px solid rgba(94,200,242,0.3)",
+        ...SURFACE.hero,
       }}>
         <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 22, textTransform: "uppercase", color: chalk, lineHeight: 1.1 }}>
           The Stats Lab ⚡
@@ -1410,7 +1443,7 @@ function StatsView() {
       </div>
       <div style={{ display: "grid", gap: 7, marginBottom: 8 }}>
         {GOALS_STATS.map((t, i) => (
-          <div key={t.club} style={{ display: "flex", alignItems: "center", gap: 10, animation: `riseIn 0.35s ease-out ${i * 0.03}s backwards` }}>
+          <div key={t.club} style={{ display: "flex", alignItems: "center", gap: 10, ...rise(i) }}>
             <Crest club={t.club} size={20} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
@@ -1432,22 +1465,22 @@ function StatsView() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
-        <div style={{ border: `1px solid ${faint}`, borderRadius: 12, padding: "12px" }}>
+        <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "12px" }}>
           <div style={{ fontSize: 12, color: "#3DDC84", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>🧤 Clean sheet kings</div>
           {csSorted.map((t) => (
             <div key={t.club} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
               <Crest club={t.club} size={15} />
               <span style={{ fontSize: 12, color: chalk, flex: 1 }}>{CLUBS[t.club].name}</span>
-              <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#3DDC84" }}>{t.cs}%</span>
+              <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#3DDC84", fontVariantNumeric: "tabular-nums" }}>{t.cs}%</span>
             </div>
           ))}
           <div style={{ fontSize: 12, color: dim, marginTop: 4 }}>% of games without conceding</div>
         </div>
-        <div style={{ border: `1px solid ${faint}`, borderRadius: 12, padding: "12px" }}>
+        <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "12px" }}>
           <div style={{ fontSize: 12, color: "#5EC8F2", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>⏱️ Half-time watch</div>
-          <div style={{ fontSize: 26, fontFamily: "'Barlow Condensed'", fontWeight: 800, color: chalk, lineHeight: 1 }}>1.66</div>
+          <div style={{ fontSize: 26, fontFamily: "'Barlow Condensed'", fontWeight: 800, color: chalk, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}><CountUp value={1.66} decimals={2} /></div>
           <div style={{ fontSize: 12, color: dim, marginBottom: 8 }}>HT goals avg in Carrick games — the league's fastest starters</div>
-          <div style={{ fontSize: 26, fontFamily: "'Barlow Condensed'", fontWeight: 800, color: chalk, lineHeight: 1 }}>0.95</div>
+          <div style={{ fontSize: 26, fontFamily: "'Barlow Condensed'", fontWeight: 800, color: chalk, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}><CountUp value={0.95} decimals={2} /></div>
           <div style={{ fontSize: 12, color: dim }}>in Linfield games — bring a coffee for the first half</div>
         </div>
       </div>
@@ -1457,7 +1490,7 @@ function StatsView() {
       </div>
       <div style={{ display: "grid", gap: 7, marginBottom: 8 }}>
         {XG_TEAMS.map((t, i) => (
-          <div key={t.club} style={{ display: "flex", alignItems: "center", gap: 10, animation: `riseIn 0.35s ease-out ${i * 0.03}s backwards` }}>
+          <div key={t.club} style={{ display: "flex", alignItems: "center", gap: 10, ...rise(i) }}>
             <Crest club={t.club} size={20} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
@@ -1495,7 +1528,7 @@ function StatsView() {
         {XG_PLAYERS.map((p, i) => {
           const diff = p.goals - p.xg;
           return (
-            <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 9, animation: `riseIn 0.35s ease-out ${i * 0.03}s backwards` }}>
+            <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 9, ...rise(i) }}>
               <Crest club={p.club} size={17} />
               <span style={{ fontSize: 12, fontWeight: 600, color: chalk, flex: 1 }}>{p.name}</span>
               <span style={{ fontSize: 12, color: dim, fontVariantNumeric: "tabular-nums" }}>{p.goals}g / {p.xg.toFixed(1)} xG</span>
@@ -1518,7 +1551,7 @@ function StatsView() {
       </div>
       <div style={{ display: "grid", gap: 7 }}>
         {TEAM_STATS_2526.map((t, i) => (
-          <div key={t.club} style={{ display: "flex", alignItems: "center", gap: 10, animation: `riseIn 0.35s ease-out ${i * 0.03}s backwards` }}>
+          <div key={t.club} style={{ display: "flex", alignItems: "center", gap: 10, ...rise(i) }}>
             <Crest club={t.club} size={20} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
@@ -1545,8 +1578,7 @@ function SupportView() {
     <div style={{ animation: "riseIn 0.4s ease-out" }}>
       <div style={{
         borderRadius: 14, padding: "20px 16px", marginBottom: 16,
-        background: "linear-gradient(120deg, rgba(255,182,39,0.12), transparent 60%), rgba(240,255,245,0.03)",
-        border: `1px solid ${faint}`,
+        ...SURFACE.hero,
       }}>
         <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 24, textTransform: "uppercase", color: chalk, lineHeight: 1.1 }}>
           Back GIBSON
@@ -1564,7 +1596,7 @@ function SupportView() {
             background: t.featured ? "rgba(255,182,39,0.06)" : "rgba(240,255,245,0.03)",
             border: `1px solid ${t.featured ? "rgba(255,182,39,0.4)" : faint}`,
             borderRadius: 14, padding: "16px",
-            animation: `riseIn 0.4s ease-out ${i * 0.08}s backwards`,
+            ...rise(i),
           }}>
             {t.featured && (
               <div style={{
@@ -1669,7 +1701,10 @@ function LogoMark({ size = 42 }) {
 
 function SubNav({ items, value, onChange }) {
   return (
-    <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+    <div style={{
+      display: "flex", gap: 8, position: "sticky", top: 0, zIndex: 5,
+      background: "#0B1512", margin: "0 -18px 14px", padding: "10px 18px",
+    }}>
       {items.map(([id, label]) => (
         <button key={id} onClick={() => onChange(id)} style={{
           flex: 1, padding: "9px", borderRadius: 10, cursor: "pointer",
@@ -1695,13 +1730,39 @@ function HomeView({ goTo }) {
   const resultsIn = PREDICTOR_GW.fixtures.every((f) => f.result);
   const feed = TRANSFERS.slice(0, 3);
   const label = { fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 };
+  // Stadium scoreboard hero for the very next fixture; external opponents get a
+  // derived code (already-uppercase first word, else initials — RSB, TF, HJK)
+  const heroFix = nextEuro[0] || null;
+  const restEuro = nextEuro.slice(heroFix ? 1 : 0);
+  const oppCode = (name) => {
+    const first = name.split(" ")[0];
+    return first === first.toUpperCase() && first.length <= 4
+      ? first
+      : name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 3);
+  };
+  const heroDate = heroFix ? heroFix.date.match(/^(\d+)(\S*)(.*)$/) : null;
   return (
     <div style={{ animation: "riseIn 0.4s ease-out" }}>
+      {heroFix && (
+        <div style={{ ...SURFACE.hero, borderRadius: 14, padding: "18px 16px 14px", marginBottom: 14, textAlign: "center", animation: "boardFlicker 0.4s ease-out" }}>
+          <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>Next match</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 18 }}>
+            <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, letterSpacing: "0.2em", color: chalk, marginRight: "-0.2em" }}>{heroFix.club}</span>
+            <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 48, lineHeight: 1, color: "#FFB627", fontVariantNumeric: "tabular-nums" }}>
+              {heroDate ? <><CountUp value={parseInt(heroDate[1], 10)} />{heroDate[2]}</> : heroFix.date}
+              {heroDate && heroDate[3] && <span style={{ fontSize: 20, letterSpacing: "0.12em", color: dim }}>{heroDate[3].toUpperCase()}</span>}
+            </span>
+            <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, letterSpacing: "0.2em", color: chalk, marginRight: "-0.2em" }}>{oppCode(heroFix.opp)}</span>
+          </div>
+          <div style={{ height: 2, width: 130, margin: "12px auto 9px", background: "#FFB627", opacity: 0.7, borderRadius: 1 }} />
+          <div style={{ fontSize: 12, color: dim }}>{CLUBS[heroFix.club].name} v {heroFix.opp} · {heroFix.comp}</div>
+        </div>
+      )}
       <div style={label}>Next up</div>
-      <div style={{ border: `1px solid ${faint}`, borderRadius: 14, overflow: "hidden", marginBottom: 18 }}>
-        {nextEuro.map((f) => (
+      <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden", marginBottom: 18 }}>
+        {restEuro.map((f) => (
           <div key={f.club + f.date} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 13px", borderBottom: `1px solid ${faint}` }}>
-            <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#5EC8F2", width: 74, flexShrink: 0, lineHeight: 1.2 }}>{f.date}</div>
+            <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#5EC8F2", width: 74, flexShrink: 0, lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>{f.date}</div>
             <Crest club={f.club} size={22} />
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ fontSize: 13.5, fontWeight: 600, color: chalk }}>{CLUBS[f.club].name} v {f.opp}</div>
@@ -1724,7 +1785,7 @@ function HomeView({ goTo }) {
         {nextEuro.map((f) => (
           <button key={f.club} className="gb-row" onClick={() => goTo("matches", "europe")} style={{
             display: "flex", alignItems: "center", gap: 10, width: "100%", textAlign: "left", cursor: "pointer",
-            background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`, borderRadius: 12, padding: "10px 13px",
+            ...SURFACE.card, borderRadius: 12, padding: "10px 13px",
           }}>
             <Crest club={f.club} size={22} />
             <span style={{ fontSize: 13, fontWeight: 600, color: chalk, flex: 1, minWidth: 0 }}>
@@ -1737,8 +1798,7 @@ function HomeView({ goTo }) {
 
       <div style={{
         borderRadius: 14, padding: "16px", marginBottom: 18,
-        background: "linear-gradient(120deg, rgba(255,182,39,0.12), transparent 60%), rgba(240,255,245,0.03)",
-        border: `1px solid ${faint}`,
+        ...SURFACE.hero,
       }}>
         <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 20, textTransform: "uppercase", color: chalk, lineHeight: 1.1 }}>
           The Predictor · {PREDICTOR_GW.name} 🎯
@@ -1764,7 +1824,7 @@ function HomeView({ goTo }) {
           const meta = STATUS_META[t.status];
           return (
             <div key={t.id} style={{
-              background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`,
+              ...SURFACE.card,
               borderLeft: `3px solid ${meta.color}`, borderRadius: 12, padding: "10px 13px",
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
@@ -1806,7 +1866,7 @@ function PlayersView() {
             ))}
           </div>
         </div>
-        <div style={{ border: `1px solid ${faint}`, borderRadius: 14, overflow: "hidden" }}>
+        <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden" }}>
           {sorted.map((p, i) => (
             <button key={p.id} className="gb-row" onClick={() => setSelected(p.id)} style={{
               display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left",
@@ -1837,7 +1897,7 @@ function PlayersView() {
       <PlayerDetail player={player} />
       <div>
         <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Treatment Table · current injuries</div>
-        <div style={{ border: `1px solid ${faint}`, borderRadius: 14, overflow: "hidden" }}>
+        <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden" }}>
           {INJURIES.length === 0 && (
             <div style={{ padding: "16px", fontSize: 12, color: dim, textAlign: "center" }}>
               🟢 Treatment room's empty — every squad at full strength. Enjoy it while it lasts.
@@ -1859,23 +1919,23 @@ function PlayersView() {
       <div>
         <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Discipline · 25/26 card leaders</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <div style={{ border: `1px solid ${faint}`, borderRadius: 12, padding: "10px 12px" }}>
+          <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "10px 12px" }}>
             <div style={{ fontSize: 12, color: "#FFB627", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>🟨 Most yellows</div>
             {DISCIPLINE.yellows.map((p) => (
               <div key={p.player} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
                 <Crest club={p.club} size={15} />
                 <span style={{ fontSize: 12, color: chalk, flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.player}</span>
-                <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#FFB627" }}>{p.n}</span>
+                <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#FFB627", fontVariantNumeric: "tabular-nums" }}>{p.n}</span>
               </div>
             ))}
           </div>
-          <div style={{ border: `1px solid ${faint}`, borderRadius: 12, padding: "10px 12px" }}>
+          <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "10px 12px" }}>
             <div style={{ fontSize: 12, color: "#E05252", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>🟥 Most reds</div>
             {DISCIPLINE.reds.map((p) => (
               <div key={p.player} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
                 <Crest club={p.club} size={15} />
                 <span style={{ fontSize: 12, color: chalk, flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.player}</span>
-                <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#E05252" }}>{p.n}</span>
+                <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#E05252", fontVariantNumeric: "tabular-nums" }}>{p.n}</span>
               </div>
             ))}
           </div>
@@ -1933,6 +1993,19 @@ export default function App() {
     { id: "more", label: "More" },
   ];
 
+  // Sliding active-tab pill: measured from the active button, animated via transform
+  const tabRefs = useRef({});
+  const [pill, setPill] = useState({ x: 0, y: 0, w: 0, h: 0 });
+  useLayoutEffect(() => {
+    const measure = () => {
+      const b = tabRefs.current[tab];
+      if (b) setPill({ x: b.offsetLeft, y: b.offsetTop, w: b.offsetWidth, h: b.offsetHeight });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [tab]);
+
   return (
     <div style={{
       minHeight: "100vh", background: "radial-gradient(1200px 500px at 50% -10%, rgba(255,182,39,0.07), transparent), #0B1512",
@@ -1971,18 +2044,20 @@ export default function App() {
             </a>
           </div>
         </div>
-        <nav style={{ display: "flex", gap: 6, marginTop: 16, flexWrap: "wrap" }} aria-label="Views">
+        <nav style={{ display: "flex", gap: 6, marginTop: 16, flexWrap: "wrap", position: "relative" }} aria-label="Views">
+          <div aria-hidden="true" style={{
+            position: "absolute", top: 0, left: 0, borderRadius: 999, background: "#FFB627",
+            width: pill.w, height: pill.h, transform: `translate(${pill.x}px, ${pill.y}px)`,
+            transition: "transform 0.25s ease, width 0.25s ease", opacity: pill.w ? 1 : 0,
+          }} />
           {tabs.map((t) => (
-            <button key={t.id} className="gb-tab" onClick={() => setTab(t.id)} style={{
-              padding: "8px 18px", borderRadius: 999, cursor: "pointer",
+            <button key={t.id} ref={(el) => (tabRefs.current[t.id] = el)} className="gb-tab" onClick={() => setTab(t.id)} style={{
+              position: "relative", padding: "8px 18px", borderRadius: 999, cursor: "pointer",
               fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 15, letterSpacing: "0.08em", textTransform: "uppercase",
-              background: t.id === "stats"
-                ? (tab === "stats" ? "linear-gradient(90deg, #FFB627, #5EC8F2)" : "linear-gradient(90deg, rgba(255,182,39,0.14), rgba(94,200,242,0.14))")
-                : tab === t.id ? "#FFB627" : "rgba(240,255,245,0.05)",
-              color: t.id === "stats" ? (tab === "stats" ? "#0B1512" : chalk) : tab === t.id ? "#0B1512" : dim,
-              border: t.id === "stats" ? "1px solid rgba(94,200,242,0.55)" : `1px solid ${tab === t.id ? "#FFB627" : faint}`,
-              boxShadow: t.id === "stats" && tab !== "stats" ? "0 0 12px rgba(94,200,242,0.15)" : "none",
-              transition: "all 0.2s ease",
+              background: "transparent",
+              color: tab === t.id ? "#0B1512" : dim,
+              border: `1px solid ${tab === t.id ? "transparent" : faint}`,
+              transition: "color 0.2s ease",
             }}>{t.label}</button>
           ))}
         </nav>
@@ -2012,7 +2087,7 @@ export default function App() {
         </>)}
         </GibsonBoundary>
         <div style={{ textAlign: "center", padding: "26px 0 10px", fontSize: 12, color: "rgba(143,166,155,0.55)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
-          GIBSON 1.05 · build 17 JUL · 🏆
+          GIBSON 1.06 · build 17 JUL · 🏆
         </div>
         <div style={{ textAlign: "center", padding: "0 0 24px", fontSize: 12, color: "rgba(143,166,155,0.55)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
           Unofficial fan project — not affiliated with the NIFL or any club · <a href="/privacy.html" style={{ color: "rgba(143,166,155,0.55)", textDecoration: "underline" }}>Privacy</a>
