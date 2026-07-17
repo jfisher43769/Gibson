@@ -25,6 +25,26 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Last-resort crash screen: runs before the app module, so it catches errors
+      // React can never see (module-evaluation crashes, chunk load failures).
+      // Only takes over while #root is empty — a mounted app is never replaced.
+      (function () {
+        function gibsonCrashScreen() {
+          var r = document.getElementById("root");
+          if (!r || r.childElementCount > 0) return;
+          r.innerHTML =
+            '<div style="min-height:100vh;background:#0B1512;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:sans-serif">' +
+            '<div style="font-size:44px;margin-bottom:12px">🏆</div>' +
+            '<div style="font-weight:800;font-size:24px;color:#EDF5EF;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">GIBSON hit a post</div>' +
+            '<div style="font-size:13px;color:#8FA69B;line-height:1.6;max-width:340px;margin-bottom:18px">Refresh to retry — if it keeps happening, a fix is usually live within the hour.</div>' +
+            '<button onclick="window.location.reload()" style="padding:12px 28px;border-radius:12px;border:none;cursor:pointer;background:#FFB627;color:#0B1512;font-weight:800;font-size:15px;letter-spacing:0.08em;text-transform:uppercase">Refresh to retry</button>' +
+            '</div>';
+        }
+        window.onerror = function () { gibsonCrashScreen(); };
+        window.addEventListener("unhandledrejection", gibsonCrashScreen);
+      })();
+    </script>
     <script type="module" src="/main.jsx"></script>
     <script>
       if ("serviceWorker" in navigator) {

@@ -41,7 +41,7 @@ const faint = "rgba(237,245,239,0.08)";
 // The only three surface treatments in the app: flat (bordered list), card, hero (highlighted card)
 const SURFACE = {
   flat: { background: "transparent", border: `1px solid ${faint}` },
-  card: { ...SURFACE.card },
+  card: { background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}` },
   hero: { background: "linear-gradient(120deg, rgba(255,182,39,0.12), transparent 60%), rgba(240,255,245,0.03)", border: `1px solid ${faint}` },
 };
 
@@ -1949,6 +1949,34 @@ function PlayersView() {
 }
 
 /* ================= APP ================= */
+// Full-app crash screen — mirrored by the pre-React window.onerror fallback in index.html
+function CrashScreen() {
+  return (
+    <div style={{ minHeight: "100vh", background: "#0B1512", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center", fontFamily: "'Barlow', sans-serif" }}>
+      <div style={{ fontSize: 44, marginBottom: 12 }}>🏆</div>
+      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 26, color: "#EDF5EF", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 8 }}>GIBSON hit a post</div>
+      <div style={{ fontSize: 13, color: "#8FA69B", lineHeight: 1.6, maxWidth: 340, marginBottom: 18 }}>
+        Refresh to retry — if it keeps happening, a fix is usually live within the hour.
+      </div>
+      <button onClick={() => window.location.reload()} style={{
+        padding: "12px 28px", borderRadius: 12, border: "none", cursor: "pointer",
+        background: "#FFB627", color: "#0B1512", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 15, letterSpacing: "0.08em", textTransform: "uppercase",
+      }}>Refresh to retry</button>
+    </div>
+  );
+}
+
+// Top-level boundary around the whole app — catches render crashes the per-tab
+// GibsonBoundary can't (header, nav, footer, the boundary machinery itself)
+class TopBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { err: null }; }
+  static getDerivedStateFromError(err) { return { err }; }
+  render() {
+    if (this.state.err) return <CrashScreen />;
+    return this.props.children;
+  }
+}
+
 class GibsonBoundary extends React.Component {
   constructor(props) { super(props); this.state = { err: null }; }
   static getDerivedStateFromError(err) { return { err }; }
@@ -1973,6 +2001,14 @@ class GibsonBoundary extends React.Component {
 }
 
 export default function App() {
+  return (
+    <TopBoundary>
+      <AppShell />
+    </TopBoundary>
+  );
+}
+
+function AppShell() {
   const [tab, setTab] = useState("home");
   const [matchesSub, setMatchesSub] = useState("table");
   const [statsSub, setStatsSub] = useState("lab");
