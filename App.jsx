@@ -1742,6 +1742,9 @@ function HomeView({ goTo }) {
   const openMatch = opener.matches[0];
   const resultsIn = PREDICTOR_GW.fixtures.every((f) => f.result);
   const feed = TRANSFERS.slice(0, 3);
+  // One lore entry per day, rotating by day of year
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+  const lore = LEAGUE_LORE[dayOfYear % LEAGUE_LORE.length];
   const label = { fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 };
   // Stadium scoreboard hero for the very next fixture; external opponents get a
   // derived code (already-uppercase first word, else initials — RSB, TF, HJK)
@@ -1848,6 +1851,16 @@ function HomeView({ goTo }) {
             </div>
           );
         })}
+      </div>
+
+      <div style={{ ...SURFACE.card, borderRadius: 14, padding: "14px", marginTop: 18 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 8 }}>
+          <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>Did you know? · Only in the Irish League</div>
+          <button onClick={() => goTo("more", "history")} style={{ fontSize: 12, fontWeight: 700, color: "#FFB627", background: "transparent", border: "none", cursor: "pointer", flexShrink: 0 }}>more in History →</button>
+        </div>
+        <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, textTransform: "uppercase", color: "#FFB627", lineHeight: 1.15 }}>{lore.title}</div>
+        <div style={{ fontSize: 12.5, color: chalk, marginTop: 6, lineHeight: 1.55 }}>{lore.fact}</div>
+        <div style={{ fontSize: 12, color: dim, marginTop: 6 }}>{lore.source}</div>
       </div>
     </div>
   );
