@@ -29,7 +29,7 @@ const GlobalStyle = () => (
 );
 
 import {
-  CLUBS, FINAL_PLACINGS, MID_TABLE, FULL_TABLE, PLAYERS, AXES, TRANSFERS, STATUS_META, ROLL_OF_HONOUR, ALL_TIME_TITLES, RECORDS, PREDICTOR_GW, store, KOFI_URL, EURO, CLUB_FIXTURES, FIXTURES_2627, POST_SPLIT_DATES, SUPPORT_TIERS, SOCIALS, SEASON_ARCHIVE, MARKET_VALUES, LEAGUE_FACTS, INJURIES, TEAM_STATS_2526, DISCIPLINE, WINDOW, GOALS_STATS, GOALS_LEAGUE_AVG, XG_TEAMS, XG_PLAYERS,
+  CLUBS, FINAL_PLACINGS, MID_TABLE, FULL_TABLE, PLAYERS, AXES, TRANSFERS, STATUS_META, ROLL_OF_HONOUR, ALL_TIME_TITLES, RECORDS, PREDICTOR_GW, store, KOFI_URL, EURO, CLUB_FIXTURES, FIXTURES_2627, POST_SPLIT_DATES, SUPPORT_TIERS, SOCIALS, SEASON_ARCHIVE, MARKET_VALUES, LEAGUE_FACTS, LEAGUE_LORE, INJURIES, TEAM_STATS_2526, DISCIPLINE, WINDOW, GOALS_STATS, GOALS_LEAGUE_AVG, XG_TEAMS, XG_PLAYERS,
 } from "./data.js";
 
 
@@ -1361,6 +1361,19 @@ function HistoryView() {
             {i === 0 && <span style={{ fontSize: 12 }}>🏆</span>}
           </div>
         ))}
+      </div>
+
+      <div style={{ marginTop: 22 }}>
+        <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>League Lore · six true stories</div>
+        <div style={{ display: "grid", gap: 10 }}>
+          {LEAGUE_LORE.map((l, i) => (
+            <div key={l.id} style={{ ...SURFACE.card, borderRadius: 12, padding: "13px 14px", ...rise(i) }}>
+              <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, textTransform: "uppercase", color: "#FFB627", lineHeight: 1.15 }}>{l.title}</div>
+              <div style={{ fontSize: 12.5, color: chalk, marginTop: 6, lineHeight: 1.55 }}>{l.fact}</div>
+              <div style={{ fontSize: 12, color: dim, marginTop: 6 }}>{l.source}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div style={{ marginTop: 22 }}>
