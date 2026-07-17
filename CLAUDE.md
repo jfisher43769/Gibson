@@ -50,6 +50,13 @@ their own work. Follow it strictly.
 3. Add any confirmed transfers/injuries the owner supplies.
 4. Run verification steps above, commit with message "Weekly update: round N".
 
+## Merge policy
+
+Work on a branch, then: routine updates (data.js edits, small fixes, copy tweaks) merge
+straight to main once verification passes — do not wait for the owner. Big changes
+(App.jsx restructures, new features, anything visual or structural) stay on the branch
+with a PR and wait for the owner's explicit "merge". Vercel deploys main automatically.
+
 ## Stop criteria for agent sessions
 
 Task complete when: requested data blocks updated + verification passes + commit made.
