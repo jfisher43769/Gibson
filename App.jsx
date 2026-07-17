@@ -1678,23 +1678,23 @@ function SupportView() {
 }
 
 function LogoMark({ size = 42 }) {
+  // The Gibson Cup on terrace steps — same geometry as the app icons and og-card
   return (
-    <svg width={size} height={size} viewBox="0 0 200 200" aria-label="GIBSON logo" style={{ flexShrink: 0 }}>
+    <svg width={size} height={size} viewBox="0 0 200 200" aria-label="GIBSON logo — the Gibson Cup on terrace steps" style={{ flexShrink: 0 }}>
       <defs>
         <linearGradient id="lg-amber" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#FFD873" /><stop offset="1" stopColor="#FFA51F" />
         </linearGradient>
       </defs>
-      <path d="M100 8 L180 34 V112 C180 156 144 182 100 194 C56 182 20 156 20 112 V34 Z"
-        fill="#10241B" stroke="url(#lg-amber)" strokeWidth="8" />
       <g fill="url(#lg-amber)">
-        <path d="M64 56 H136 V76 C136 100 120 114 100 114 C80 114 64 100 64 76 Z" />
-        <path d="M64 60 C44 60 40 86 58 94 L63 85 C53 80 55 68 64 68 Z" />
-        <path d="M136 60 C156 60 160 86 142 94 L137 85 C147 80 145 68 136 68 Z" />
-        <rect x="93" y="114" width="14" height="16" rx="3" />
-        <path d="M74 130 H126 L133 148 H67 Z" />
+        <path d="M54 38 L146 38 L138 76 C133 101 118 114 100 114 C82 114 67 101 62 76 Z" />
+        <path d="M56 46 C30 46 26 78 49 88 L54 78 C40 71 44 55 56 55 Z" />
+        <path d="M144 46 C170 46 174 78 151 88 L146 78 C160 71 156 55 144 55 Z" />
+        <rect x="92" y="114" width="16" height="15" rx="3" />
+        <rect x="70" y="132" width="60" height="10" rx="2" />
+        <rect x="57" y="145" width="86" height="10" rx="2" />
+        <rect x="43" y="158" width="114" height="10" rx="2" />
       </g>
-      <line x1="48" y1="166" x2="152" y2="166" stroke="#EDF5EF" strokeOpacity="0.4" strokeWidth="5" strokeLinecap="round" />
     </svg>
   );
 }
