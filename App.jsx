@@ -1882,6 +1882,9 @@ export default function App() {
         <div style={{ textAlign: "center", padding: "26px 0 10px", fontSize: 9.5, color: "rgba(143,166,155,0.55)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
           GIBSON 1.01 · build 11 JUL · B2 🏆
         </div>
+        <div style={{ textAlign: "center", padding: "0 0 24px", fontSize: 9.5, color: "rgba(143,166,155,0.55)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
+          Unofficial fan project — not affiliated with the NIFL or any club · <a href="/privacy.html" style={{ color: "rgba(143,166,155,0.55)", textDecoration: "underline" }}>Privacy</a>
+        </div>
       </main>
     </div>
   );
