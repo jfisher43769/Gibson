@@ -515,8 +515,8 @@ const EURO = [
       { label: "1st leg · away", date: "Tue 7/8 Jul", venue: "San Marino" },
       { label: "2nd leg · home", date: "Tue 14 Jul · 20:00", venue: "Inver Park" },
     ],
-    prize: "Winner faces Red Star Belgrade in Q2 (21/22 & 28/29 Jul)",
-    note: "THROUGH: Larne 2-1 Tre Fiori at Inver Park, 3-1 on aggregate. The prize is enormous and it's real now — Crvena Zvezda, Red Star Belgrade, in Q2 (21/22 & 28/29 Jul). Even defeat there isn't the end: the loser drops into Conference League Q3.",
+    prize: "Winner faces Red Star Belgrade in Q2 (21 Jul & 28/29 Jul)",
+    note: "THROUGH: Larne 2-1 Tre Fiori at Inver Park, 3-1 on aggregate. The prize is enormous and it's real now — Crvena Zvezda, Red Star Belgrade, in Q2, first leg 21 July. Even defeat there isn't the end: the loser drops into Conference League Q3.",
   },
   {
     club: "GLE", comp: "Conference League", round: "First qualifying round",
@@ -555,7 +555,7 @@ export const CLUB_FIXTURES = {
   LAR: [
     { date: "8 Jul", res: "0–1 W", opp: "Tre Fiori (a) — Lusty 45'", comp: "UCL Q1 · 1st leg" },
     { date: "14 Jul", res: "2–1 W", opp: "Tre Fiori (h)", comp: "UCL Q1 · 2nd leg · 3–1 agg" },
-    { date: "21/22 Jul", opp: "Red Star Belgrade", comp: "UCL Q2 · 1st leg" },
+    { date: "21 Jul", opp: "Red Star Belgrade", comp: "UCL Q2 · 1st leg" },
     { date: "28/29 Jul", opp: "Red Star Belgrade", comp: "UCL Q2 · 2nd leg" },
   ],
   GLE: [
