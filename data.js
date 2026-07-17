@@ -270,6 +270,46 @@ export const RECORDS = [
   { big: "0-0", label: "Charity Shield 2026", sub: "Larne beat Coleraine on penalties in the curtain-raiser \u2014 the new season's first silverware" },
 ];
 
+// League lore \u2014 verified one-off facts, owner-curated (July 2026)
+export const LEAGUE_LORE = [
+  {
+    id: "split-quirk",
+    title: "Seventh with 53 points",
+    fact: "Carrick Rangers finished 7th in 2025/26 with 53 points \u2014 seven more than 6th-place Dungannon Swifts on 46, and level with 5th-place Cliftonville. The split had locked them into the bottom six, and no points total could get them out.",
+    source: "NIFL Premiership final table, 2025/26",
+  },
+  {
+    id: "penalty-kick",
+    title: "Armagh invented the penalty",
+    fact: "The penalty kick was invented by William McCrum, a goalkeeper for Milford in County Armagh during the Irish League's first season. He proposed it in 1890, and the game's lawmakers passed it into the Laws in 1891 \u2014 every spot kick ever taken traces back to this league.",
+    source: "Irish FA / IFAB historical record",
+  },
+  {
+    id: "away-goals-first",
+    title: "First out on away goals",
+    fact: "Glentoran became the first club in football history eliminated by the away-goals rule, after drawing 1-1 at home and 0-0 away against Benfica in the 1967 European Cup. Benfica went all the way to the final.",
+    source: "European Cup records, 1967/68",
+  },
+  {
+    id: "belfast-celtic",
+    title: "Quit the league, beat Scotland",
+    fact: "Belfast Celtic resigned from the league in April 1949 \u2014 then beat Scotland 2-0 in New York that May, one of the great forgotten results in Irish football. Their old ground, Celtic Park, is now a shopping centre.",
+    source: "Belfast Celtic historical record",
+  },
+  {
+    id: "linfield-57",
+    title: "A world record in blue",
+    fact: "Linfield's 57 league titles are a world record \u2014 no club in any country has won more national championships. Their 1921/22 campaign remains the only seven-trophy season in football history.",
+    source: "Linfield FC honours record",
+  },
+  {
+    id: "founded-1890",
+    title: "Older than Scotland's",
+    fact: "The Irish League was founded in 1890, a week before Scotland's \u2014 making it the second-oldest national league on earth. Only England's Football League predates it.",
+    source: "League historical record, 1890",
+  },
+];
+
 // ===== The Predictor =====
 // Scoring: exact score = 3 pts, correct result = 1 pt.
 // When results are known, fill in `result: [home, away]` on each fixture and redeploy —
