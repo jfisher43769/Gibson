@@ -1364,7 +1364,7 @@ function HistoryView() {
       </div>
 
       <div style={{ marginTop: 22 }}>
-        <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>League Lore · six true stories</div>
+        <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Only in the Irish League · six true stories</div>
         <div style={{ display: "grid", gap: 10 }}>
           {LEAGUE_LORE.map((l, i) => (
             <div key={l.id} style={{ ...SURFACE.card, borderRadius: 12, padding: "13px 14px", ...rise(i) }}>
