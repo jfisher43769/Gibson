@@ -34,7 +34,7 @@ import {
 
 /* ================= SHARED PIECES ================= */
 const chalk = "#EDF5EF";
-const dim = "rgba(237,245,239,0.55)";
+const dim = "rgba(237,245,239,0.7)";
 const faint = "rgba(237,245,239,0.08)";
 
 const ratingColor = (r) => (r >= 8 ? "#3DDC84" : r >= 7.3 ? "#FFB627" : "#8FA69B");
@@ -174,7 +174,7 @@ function TableView() {
     <div style={{ marginBottom: 22, animation: "riseIn 0.4s ease-out" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
         <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#3DDC84", display: "inline-block" }} />
-        <span style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>
+        <span style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>
           Live table · {live.season} · updated {live.updated}
         </span>
       </div>
@@ -191,7 +191,7 @@ function TableView() {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 700, fontSize: 14.5, color: chalk }}>{CLUBS[row.club].name}</div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
-                <span style={{ fontSize: 10.5, color: dim, fontVariantNumeric: "tabular-nums" }}>
+                <span style={{ fontSize: 12, color: dim, fontVariantNumeric: "tabular-nums" }}>
                   P{row.p} · W{row.w} D{row.d} L{row.l} · {row.gd > 0 ? "+" : ""}{row.gd} GD
                 </span>
                 <span style={{ display: "flex", gap: 3 }}>
@@ -203,12 +203,12 @@ function TableView() {
             </div>
             <div style={{ textAlign: "right", flexShrink: 0 }}>
               <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 24, color: chalk, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{row.pts}</div>
-              <div style={{ fontSize: 9, color: dim, letterSpacing: "0.1em", textTransform: "uppercase" }}>pts</div>
+              <div style={{ fontSize: 12, color: dim, letterSpacing: "0.1em", textTransform: "uppercase" }}>pts</div>
             </div>
           </div>
         ))}
       </div>
-      <div style={{ fontSize: 10, color: dim, marginTop: 8 }}>
+      <div style={{ fontSize: 12, color: dim, marginTop: 8 }}>
         Auto-updated via TheSportsDB (community data) — cross-check big calls against official sources.
       </div>
     </div>
@@ -230,7 +230,7 @@ function TableView() {
       <Crest club={club} size={26} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontWeight: 700, fontSize: 14.5, color: chalk }}>{CLUBS[club].name}</div>
-        {(note || tag) && <div style={{ fontSize: 10, color: note ? noteColor[note] : dim, marginTop: 2 }}>{note ? noteLabel[note] : tag}</div>}
+        {(note || tag) && <div style={{ fontSize: 12, color: note ? noteColor[note] : dim, marginTop: 2 }}>{note ? noteLabel[note] : tag}</div>}
       </div>
     </div>
   );
@@ -245,9 +245,9 @@ function TableView() {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
             <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 15, letterSpacing: "0.08em", color: chalk, textTransform: "uppercase" }}>Live scores</span>
-            <span style={{ fontSize: 9, fontWeight: 800, color: "#0B1512", background: "#FFB627", borderRadius: 99, padding: "2px 8px", letterSpacing: "0.06em" }}>COMING SOON</span>
+            <span style={{ fontSize: 12, fontWeight: 800, color: "#0B1512", background: "#FFB627", borderRadius: 99, padding: "2px 8px", letterSpacing: "0.06em" }}>COMING SOON</span>
           </div>
-          <div style={{ fontSize: 11, color: dim, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 12, color: dim, lineHeight: 1.5 }}>
             In-play Premiership scores, refreshed every two minutes. The data feed costs real money — it switches on
             the moment supporters cover it. One Season Ticket does it. ♥
           </div>
@@ -260,7 +260,7 @@ function TableView() {
       <div style={{ animation: "riseIn 0.4s ease-out" }}>
         <LiveBlock />
         <LiveTeaser />
-        <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
+        <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
           Sports Direct Premiership · Final 2025/26
         </div>
         <div style={{ display: "grid", gap: 6 }}>
@@ -276,25 +276,25 @@ function TableView() {
               <Crest club={row.club} size={26} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 700, fontSize: 14.5, color: chalk }}>{CLUBS[row.club].name}</div>
-                <div style={{ fontSize: 10.5, color: dim, marginTop: 2, fontVariantNumeric: "tabular-nums" }}>
+                <div style={{ fontSize: 12, color: dim, marginTop: 2, fontVariantNumeric: "tabular-nums" }}>
                   P{row.p} · W{row.w} D{row.d} L{row.l} · {row.gd > 0 ? "+" : ""}{row.gd} GD
                 </div>
-                {row.note && <div style={{ fontSize: 9.5, color: noteC[row.note], marginTop: 2 }}>{noteL[row.note]}</div>}
+                {row.note && <div style={{ fontSize: 12, color: noteC[row.note], marginTop: 2 }}>{noteL[row.note]}</div>}
               </div>
               <div style={{ textAlign: "right", flexShrink: 0 }}>
                 <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 24, color: chalk, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{row.pts}</div>
-                <div style={{ fontSize: 9, color: dim, letterSpacing: "0.1em", textTransform: "uppercase" }}>pts</div>
+                <div style={{ fontSize: 12, color: dim, letterSpacing: "0.1em", textTransform: "uppercase" }}>pts</div>
               </div>
             </div>
           ))}
         </div>
-        <div style={{ fontSize: 10, color: dim, marginTop: 10, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 12, color: dim, marginTop: 10, lineHeight: 1.5 }}>
           Official final table (split format — Carrick matched Cliftonville's 53 points but finished 7th in the
           bottom-six group). Verified · GIBSON 1.01.
         </div>
 
         <div style={{ marginTop: 22 }}>
-          <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
+          <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
             Squad Market Values 26/27 · Transfermarkt
           </div>
           <div style={{ display: "grid", gap: 7 }}>
@@ -303,7 +303,7 @@ function TableView() {
                 <Crest club={m.club} size={20} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: chalk }}>{CLUBS[m.club].name} <span style={{ color: dim, fontWeight: 400, fontSize: 10.5 }}>· {m.squad} players</span></span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: chalk }}>{CLUBS[m.club].name} <span style={{ color: dim, fontWeight: 400, fontSize: 12 }}>· {m.squad} players</span></span>
                     <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#FFB627", fontVariantNumeric: "tabular-nums" }}>€{m.total.toFixed(2)}m</span>
                   </div>
                   <div style={{ height: 6, borderRadius: 3, background: faint, overflow: "hidden" }}>
@@ -313,7 +313,7 @@ function TableView() {
               </div>
             ))}
           </div>
-          <div style={{ fontSize: 10.5, color: dim, marginTop: 10, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 12, color: dim, marginTop: 10, lineHeight: 1.6 }}>
             League total {LEAGUE_FACTS.totalValue} across {LEAGUE_FACTS.players} players · {LEAGUE_FACTS.foreigners} from outside NI · average age {LEAGUE_FACTS.avgAge}.
             Most valuable player: {LEAGUE_FACTS.mvp}.
           </div>
@@ -325,31 +325,31 @@ function TableView() {
     <div style={{ animation: "riseIn 0.4s ease-out" }}>
       <LiveBlock />
       <LiveTeaser />
-      <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
+      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
         Sports Direct Premiership · Final 2025/26
       </div>
       <div style={{ display: "grid", gap: 6 }}>
         {FINAL_PLACINGS.filter((r) => r.pos <= 4).map((r, i) => <Row key={r.club} {...r} i={i} />)}
       </div>
-      <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", margin: "16px 0 8px" }}>
+      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", margin: "16px 0 8px" }}>
         Mid-table · finished 5th–10th
       </div>
       <div style={{ display: "grid", gap: 6 }}>
         {MID_TABLE.map((r, i) => <Row key={r.club} club={r.club} tag={r.tag} i={i} />)}
       </div>
-      <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", margin: "16px 0 8px" }}>
+      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", margin: "16px 0 8px" }}>
         The bottom
       </div>
       <div style={{ display: "grid", gap: 6 }}>
         {FINAL_PLACINGS.filter((r) => r.pos >= 11).map((r, i) => <Row key={r.club} {...r} i={i} />)}
       </div>
-      <div style={{ fontSize: 10, color: dim, marginTop: 10, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: dim, marginTop: 10, lineHeight: 1.5 }}>
         Confirmed final placings shown. Full verified records now live in the table above —
         the 26/27 live table takes over here in August.
       </div>
 
       <div style={{ marginTop: 22 }}>
-        <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
+        <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
           Squad Market Values 26/27 · Transfermarkt
         </div>
         <div style={{ display: "grid", gap: 7 }}>
@@ -358,7 +358,7 @@ function TableView() {
               <Crest club={m.club} size={20} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: chalk }}>{CLUBS[m.club].name} <span style={{ color: dim, fontWeight: 400, fontSize: 10.5 }}>· {m.squad} players</span></span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: chalk }}>{CLUBS[m.club].name} <span style={{ color: dim, fontWeight: 400, fontSize: 12 }}>· {m.squad} players</span></span>
                   <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#FFB627", fontVariantNumeric: "tabular-nums" }}>€{m.total.toFixed(2)}m</span>
                 </div>
                 <div style={{ height: 6, borderRadius: 3, background: faint, overflow: "hidden" }}>
@@ -368,7 +368,7 @@ function TableView() {
             </div>
           ))}
         </div>
-        <div style={{ fontSize: 10.5, color: dim, marginTop: 10, lineHeight: 1.6 }}>
+        <div style={{ fontSize: 12, color: dim, marginTop: 10, lineHeight: 1.6 }}>
           League total {LEAGUE_FACTS.totalValue} across {LEAGUE_FACTS.players} players · {LEAGUE_FACTS.foreigners} from outside NI · average age {LEAGUE_FACTS.avgAge}.
           Most valuable player: {LEAGUE_FACTS.mvp}.
         </div>
@@ -386,7 +386,7 @@ function PlayerDetail({ player }) {
   const stat = (label, value, sub) => (
     <div style={{ background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`, borderRadius: 10, padding: "10px 12px" }}>
       <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, color: chalk, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{value}</div>
-      <div style={{ fontSize: 11, color: dim, marginTop: 3 }}>{label}{sub && <span style={{ color: accent }}> · {sub}</span>}</div>
+      <div style={{ fontSize: 12, color: dim, marginTop: 3 }}>{label}{sub && <span style={{ color: accent }}> · {sub}</span>}</div>
     </div>
   );
   return (
@@ -407,7 +407,7 @@ function PlayerDetail({ player }) {
         </div>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 34, color: ratingColor(player.rating), lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{player.rating.toFixed(1)}</div>
-          <div style={{ fontSize: 10, color: dim, letterSpacing: "0.12em", textTransform: "uppercase" }}>GIBSON Index</div>
+          <div style={{ fontSize: 12, color: dim, letterSpacing: "0.12em", textTransform: "uppercase" }}>GIBSON Index</div>
         </div>
       </div>
 
@@ -420,7 +420,7 @@ function PlayerDetail({ player }) {
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`, borderRadius: 10, padding: "10px 14px", marginBottom: 14 }}>
         <div>
-          <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 2 }}>Form DNA — last 6</div>
+          <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 2 }}>Form DNA — last 6</div>
           <div style={{ fontSize: 12, color: chalk, fontVariantNumeric: "tabular-nums" }}>{player.form.join("  ·  ")}</div>
         </div>
         <Sparkline data={player.form} color={accent} />
@@ -428,12 +428,12 @@ function PlayerDetail({ player }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 14 }}>
         <div style={{ background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`, borderRadius: 12, padding: 8 }}>
-          <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", padding: "6px 8px" }}>Skill Radar · GIBSON Index beta</div>
+          <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", padding: "6px 8px" }}>Skill Radar · GIBSON Index beta</div>
           <div style={{ height: 240 }}>
             <ResponsiveContainer>
               <RadarChart data={radarData} outerRadius="75%">
                 <PolarGrid stroke={faint} />
-                <PolarAngleAxis dataKey="axis" tick={{ fill: dim, fontSize: 11, fontFamily: "Barlow" }} />
+                <PolarAngleAxis dataKey="axis" tick={{ fill: dim, fontSize: 12, fontFamily: "Barlow" }} />
                 <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
                 <Radar dataKey="v" stroke={accent} fill={accent} fillOpacity={0.35} strokeWidth={2} isAnimationActive />
               </RadarChart>
@@ -441,7 +441,7 @@ function PlayerDetail({ player }) {
           </div>
         </div>
         <div>
-          <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 }}>Shot Map — attacking third</div>
+          <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 }}>Shot Map — attacking third</div>
           <ShotMap player={player} accent={accent} />
         </div>
       </div>
@@ -474,7 +474,7 @@ function DuelView() {
   );
   return (
     <div style={{ animation: "riseIn 0.4s ease-out" }}>
-      <div style={{ fontSize: 11, color: dim, marginBottom: 12, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: dim, marginBottom: 12, lineHeight: 1.5 }}>
         Pick any two, settle the argument. Radar profiles are GIBSON Index estimates — fuel for the debate, not the end of it.
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 10, alignItems: "center", marginBottom: 14 }}>
@@ -496,7 +496,7 @@ function DuelView() {
           <ResponsiveContainer>
             <RadarChart data={data} outerRadius="72%">
               <PolarGrid stroke={faint} />
-              <PolarAngleAxis dataKey="axis" tick={{ fill: dim, fontSize: 11, fontFamily: "Barlow" }} />
+              <PolarAngleAxis dataKey="axis" tick={{ fill: dim, fontSize: 12, fontFamily: "Barlow" }} />
               <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
               <Radar dataKey="A" stroke={colA} fill={colA} fillOpacity={0.28} strokeWidth={2} isAnimationActive />
               <Radar dataKey="B" stroke={colB} fill={colB} fillOpacity={0.28} strokeWidth={2} isAnimationActive />
@@ -509,7 +509,7 @@ function DuelView() {
         </div>
       </div>
 
-      <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Tale of the tape</div>
+      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Tale of the tape</div>
       {rows.map(([label, va, vb]) => {
         const total = va + vb || 1;
         const aWins = va > vb;
@@ -517,7 +517,7 @@ function DuelView() {
           <div key={label} style={{ marginBottom: 10 }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontVariantNumeric: "tabular-nums", marginBottom: 3 }}>
               <span style={{ color: aWins ? colA : dim, fontWeight: aWins ? 700 : 400 }}>{va}</span>
-              <span style={{ color: dim, fontSize: 11 }}>{label}</span>
+              <span style={{ color: dim, fontSize: 12 }}>{label}</span>
               <span style={{ color: !aWins && vb !== va ? colB : dim, fontWeight: !aWins && vb !== va ? 700 : 400 }}>{vb}</span>
             </div>
             <div style={{ display: "flex", height: 5, borderRadius: 3, overflow: "hidden", background: faint }}>
@@ -535,9 +535,9 @@ function ExternalBadge({ name }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
       <div style={{
-        width: 20, height: 22, borderRadius: 4, border: `1px dashed ${dim}`,
+        width: 32, height: 24, borderRadius: 4, border: `1px dashed ${dim}`,
         display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-        fontSize: 8, color: dim, fontFamily: "'Barlow Condensed'", fontWeight: 700,
+        fontSize: 12, color: dim, fontFamily: "'Barlow Condensed'", fontWeight: 700,
       }}>OUT</div>
       <span style={{ fontSize: 12, color: dim }}>{name}</span>
     </div>
@@ -549,19 +549,19 @@ function ClubLedger() {
   const w = WINDOW.find((x) => x.club === club);
   const List = ({ title, items, color }) => (
     <div style={{ border: `1px solid ${faint}`, borderRadius: 12, padding: "10px 12px" }}>
-      <div style={{ fontSize: 10, color, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>{title}</div>
-      {items.length === 0 && <div style={{ fontSize: 11.5, color: dim, fontStyle: "italic" }}>None recorded yet</div>}
+      <div style={{ fontSize: 12, color, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>{title}</div>
+      {items.length === 0 && <div style={{ fontSize: 12, color: dim, fontStyle: "italic" }}>None recorded yet</div>}
       {items.map(([p, c]) => (
         <div key={p + c} style={{ marginBottom: 7 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: chalk, lineHeight: 1.3 }}>{p}</div>
-          <div style={{ fontSize: 10.5, color: dim }}>{c}</div>
+          <div style={{ fontSize: 12, color: dim }}>{c}</div>
         </div>
       ))}
     </div>
   );
   return (
     <div style={{ marginTop: 22 }}>
-      <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
+      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
         Full window · club by club
       </div>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
@@ -579,7 +579,7 @@ function ClubLedger() {
         <List title={`→ In at ${CLUBS[club].name}`} items={w.ins} color="#3DDC84" />
         <List title={`← Out`} items={w.outs} color="#E05252" />
       </div>
-      <div style={{ fontSize: 10, color: dim, marginTop: 8, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: dim, marginTop: 8, lineHeight: 1.5 }}>
         Compiled from Transfermarkt, July 2026 — may not be exhaustive. Loan returns noted where known.
       </div>
     </div>
@@ -597,11 +597,11 @@ function TransfersView() {
   return (
     <div style={{ animation: "riseIn 0.4s ease-out" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
-        <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>Summer window 2026</div>
+        <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>Summer window 2026</div>
         <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
           {["all", "done", "rumour", "contract", "departure"].map((s) => (
             <button key={s} onClick={() => setFilter(s)} style={{
-              fontSize: 11, padding: "4px 10px", borderRadius: 999, cursor: "pointer", textTransform: "capitalize",
+              fontSize: 12, padding: "4px 10px", borderRadius: 999, cursor: "pointer", textTransform: "capitalize",
               background: filter === s ? "rgba(255,182,39,0.15)" : "transparent",
               color: filter === s ? "#FFB627" : dim,
               border: `1px solid ${filter === s ? "rgba(255,182,39,0.4)" : faint}`,
@@ -628,8 +628,8 @@ function TransfersView() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 8 }}>
                 <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 17, color: chalk }}>{t.player}</span>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                  <span style={{ fontSize: 10, color: dim }}>{t.date}</span>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: meta.color, background: `${meta.color}1F`, borderRadius: 999, padding: "3px 9px", letterSpacing: "0.06em", textTransform: "uppercase" }}>{meta.label}</span>
+                  <span style={{ fontSize: 12, color: dim }}>{t.date}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: meta.color, background: `${meta.color}1F`, borderRadius: 999, padding: "3px 9px", letterSpacing: "0.06em", textTransform: "uppercase" }}>{meta.label}</span>
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -658,7 +658,7 @@ function TransfersView() {
           );
         })}
       </div>
-      <div style={{ fontSize: 10, color: dim, marginTop: 10 }}>
+      <div style={{ fontSize: 12, color: dim, marginTop: 10 }}>
         Sourced from Irish League press coverage, early July 2026. "Rumour" means reported but not yet officially confirmed by the club.
       </div>
 
@@ -672,19 +672,19 @@ function OddsStrip({ odds, homeLabel, awayLabel }) {
     return (
       <div style={{
         display: "flex", justifyContent: "center", gap: 6, marginTop: 10,
-        fontSize: 10.5, color: dim, fontStyle: "italic",
+        fontSize: 12, color: dim, fontStyle: "italic",
       }}>GIBSON's still crunching this one — estimate lands closer to kick-off</div>
     );
   }
   const cell = (label, val) => (
     <div style={{ flex: 1, textAlign: "center", background: "rgba(240,255,245,0.04)", border: `1px solid ${faint}`, borderRadius: 8, padding: "7px 4px" }}>
-      <div style={{ fontSize: 9, color: dim, textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</div>
+      <div style={{ fontSize: 12, color: dim, textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</div>
       <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 16, color: chalk, marginTop: 2 }}>{val.toFixed(2)}</div>
     </div>
   );
   return (
     <div style={{ marginTop: 10 }}>
-      <div style={{ fontSize: 8.5, color: dim, letterSpacing: "0.12em", textTransform: "uppercase", textAlign: "center", marginBottom: 4 }}>
+      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.12em", textTransform: "uppercase", textAlign: "center", marginBottom: 4 }}>
         1X2 · GIBSON estimate
       </div>
       <div style={{ display: "flex", gap: 6 }}>
@@ -698,7 +698,7 @@ function OddsStrip({ odds, homeLabel, awayLabel }) {
 
 function OddsDisclaimer() {
   return (
-    <div style={{ fontSize: 10, color: dim, marginTop: 12, lineHeight: 1.5, borderTop: `1px solid ${faint}`, paddingTop: 10 }}>
+    <div style={{ fontSize: 12, color: dim, marginTop: 12, lineHeight: 1.5, borderTop: `1px solid ${faint}`, paddingTop: 10 }}>
       Odds shown are GIBSON's own estimates for context — not bookmaker prices, not a betting offer, and
       GIBSON has no link to any bookmaker. 18+. If gambling stops being fun, free support is available at
       begambleaware.org.
@@ -711,7 +711,7 @@ function EuropeView() {
   const anyOdds = EURO.some((e) => e.odds);
   return (
     <div style={{ animation: "riseIn 0.4s ease-out" }}>
-      <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 4 }}>
+      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 4 }}>
         Euro Watch · Qualifying 2026/27
       </div>
       <div style={{ fontSize: 12, color: dim, marginBottom: 12, lineHeight: 1.5 }}>
@@ -732,26 +732,26 @@ function EuropeView() {
                   <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 19, textTransform: "uppercase", color: chalk, lineHeight: 1 }}>
                     {c.name} <span style={{ color: dim, fontWeight: 600 }}>v</span> {e.opp}
                   </div>
-                  <div style={{ fontSize: 11, color: dim, marginTop: 3 }}>{e.opp} · {e.oppCountry}</div>
+                  <div style={{ fontSize: 12, color: dim, marginTop: 3 }}>{e.opp} · {e.oppCountry}</div>
                 </div>
                 <span style={{
-                  fontSize: 9.5, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase",
+                  fontSize: 12, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase",
                   color: compColor(e.comp), background: `${compColor(e.comp)}1A`,
                   border: `1px solid ${compColor(e.comp)}55`, borderRadius: 999, padding: "3px 10px",
                 }}>{e.comp}</span>
               </div>
-              <div style={{ fontSize: 10, color: dim, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>{e.round}</div>
+              <div style={{ fontSize: 12, color: dim, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>{e.round}</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
                 {e.legs.map((l) => (
                   <div key={l.label} style={{ background: "rgba(11,21,18,0.5)", border: `1px solid ${faint}`, borderRadius: 10, padding: "9px 11px" }}>
-                    <div style={{ fontSize: 9.5, color: dim, letterSpacing: "0.08em", textTransform: "uppercase" }}>{l.label}</div>
+                    <div style={{ fontSize: 12, color: dim, letterSpacing: "0.08em", textTransform: "uppercase" }}>{l.label}</div>
                     <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 16, color: chalk, marginTop: 2 }}>{l.date}</div>
-                    <div style={{ fontSize: 11, color: dim }}>{l.venue}</div>
+                    <div style={{ fontSize: 12, color: dim }}>{l.venue}</div>
                   </div>
                 ))}
               </div>
               <div style={{ fontSize: 12, color: "#FFB627", fontWeight: 600, marginBottom: 5 }}>→ {e.prize}</div>
-              <div style={{ fontSize: 11.5, color: dim, lineHeight: 1.45 }}>{e.note}</div>
+              <div style={{ fontSize: 12, color: dim, lineHeight: 1.45 }}>{e.note}</div>
               <OddsStrip
                 odds={e.odds}
                 homeLabel={e.legs[0].label.includes("home") ? c.name : e.opp}
@@ -826,7 +826,7 @@ function FixturesView() {
               }} aria-label="Previous round">‹</button>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 20, color: chalk, textTransform: "uppercase" }}>Round {r.round} of 33</div>
-                <div style={{ fontSize: 11, color: dim }}>{r.date}</div>
+                <div style={{ fontSize: 12, color: dim }}>{r.date}</div>
               </div>
               <button onClick={() => setRound(Math.min(33, round + 1))} disabled={round === 33} style={{
                 padding: "8px 16px", borderRadius: 10, cursor: round === 33 ? "default" : "pointer", opacity: round === 33 ? 0.3 : 1,
@@ -853,10 +853,10 @@ function FixturesView() {
                 </div>
               ))}
             </div>
-            <div style={{ fontSize: 10.5, color: dim, lineHeight: 1.5, marginBottom: 6 }}>
+            <div style={{ fontSize: 12, color: dim, lineHeight: 1.5, marginBottom: 6 }}>
               {r.matches.some((m) => m.d) ? "Highlighted dates: " + r.matches.filter((m) => m.d).map((m) => `${CLUBS[m.h].name} v ${CLUBS[m.a].name} (${m.d}${m.t ? " · " + m.t : ""})`).join(" · ") + ". Others " + r.date + ", 3pm." : `All matches ${r.date}, 3pm unless rearranged.`}
             </div>
-            <div style={{ fontSize: 10.5, color: dim, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 12, color: dim, lineHeight: 1.5 }}>
               After round 33 the league splits — top six and bottom six play five more rounds against each other. Split fixtures released in March.
             </div>
           </div>
@@ -864,17 +864,17 @@ function FixturesView() {
       })()}
 
       {mode === "club" && (<>
-      <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 4 }}>
+      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 4 }}>
         BoyleSports Premiership 26/27 · pick your club
       </div>
-      <div style={{ fontSize: 11, color: dim, marginBottom: 10, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: dim, marginBottom: 10, lineHeight: 1.5 }}>
         Opening night: Cliftonville v Crusaders under the Friday lights at Solitude, 7 Aug. Big Two derby as early as Round 2.
       </div>
       {evLoading && (
         <div style={{ marginBottom: 14 }}><SkelRows n={2} /></div>
       )}
       {!evLoading && !liveEv && (
-        <div style={{ fontSize: 11, color: dim, marginBottom: 14, lineHeight: 1.5, animation: "riseIn 0.3s ease-out" }}>
+        <div style={{ fontSize: 12, color: dim, marginBottom: 14, lineHeight: 1.5, animation: "riseIn 0.3s ease-out" }}>
           ⚡ The live results feed wakes up when the league does — opening night, Friday 7 August at Solitude.
         </div>
       )}
@@ -882,7 +882,7 @@ function FixturesView() {
         <div style={{ marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
             <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#3DDC84", display: "inline-block" }} />
-            <span style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>Latest results · auto-updated</span>
+            <span style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>Latest results · auto-updated</span>
           </div>
           <div style={{ border: `1px solid ${faint}`, borderRadius: 14, overflow: "hidden" }}>
             {liveEv.results.slice(0, 6).map((m, i) => (
@@ -890,7 +890,7 @@ function FixturesView() {
                 display: "flex", alignItems: "center", gap: 8, padding: "9px 13px",
                 borderBottom: i < Math.min(liveEv.results.length, 6) - 1 ? `1px solid ${faint}` : "none",
               }}>
-                <span style={{ fontSize: 10, color: dim, width: 56, flexShrink: 0 }}>{m.date.slice(5)}</span>
+                <span style={{ fontSize: 12, color: dim, width: 56, flexShrink: 0 }}>{m.date.slice(5)}</span>
                 <Crest club={m.h} size={16} />
                 <span style={{ fontSize: 12, color: chalk, flex: 1, textAlign: "right", fontWeight: m.hs > m.as ? 700 : 400 }}>{CLUBS[m.h].name}</span>
                 <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 15, color: "#FFB627", fontVariantNumeric: "tabular-nums", padding: "0 6px" }}>{m.hs}–{m.as}</span>
@@ -915,11 +915,11 @@ function FixturesView() {
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
         <Crest club={club} size={24} />
         <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 20, textTransform: "uppercase", color: chalk }}>{c.name}</span>
-        <span style={{ fontSize: 11, color: dim }}>· {c.ground}</span>
+        <span style={{ fontSize: 12, color: dim }}>· {c.ground}</span>
       </div>
       {euro && (
         <>
-          <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 }}>In Europe first</div>
+          <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 }}>In Europe first</div>
           <div style={{ border: `1px solid ${faint}`, borderRadius: 14, overflow: "hidden", marginBottom: 14 }}>
             {euro.map((f, i) => (
               <div key={i} style={{
@@ -929,15 +929,15 @@ function FixturesView() {
               }}>
                 <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#5EC8F2", width: 74, flexShrink: 0, lineHeight: 1.2 }}>{f.date}{f.res && <span style={{ color: "#FFB627" }}> {f.res}</span>}</div>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 600, color: chalk }}>{f.opp.replace("*", "")}{f.opp.includes("*") && <span style={{ fontSize: 10, color: dim }}> (provisional)</span>}</div>
-                  <div style={{ fontSize: 11, color: dim, marginTop: 2 }}>{f.comp}</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 600, color: chalk }}>{f.opp.replace("*", "")}{f.opp.includes("*") && <span style={{ fontSize: 12, color: dim }}> (provisional)</span>}</div>
+                  <div style={{ fontSize: 12, color: dim, marginTop: 2 }}>{f.comp}</div>
                 </div>
               </div>
             ))}
           </div>
         </>
       )}
-      <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 }}>
+      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 }}>
         Premiership · {showAll ? "full 33-round schedule" : "opening five"}
       </div>
       <div style={{ border: `1px solid ${faint}`, borderRadius: 14, overflow: "hidden" }}>
@@ -948,14 +948,14 @@ function FixturesView() {
           }}>
             <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#FFB627", width: 74, flexShrink: 0, lineHeight: 1.2 }}>
               {f.date}
-              <div style={{ fontSize: 9.5, color: dim, fontWeight: 600 }}>{f.time}</div>
+              <div style={{ fontSize: 12, color: dim, fontWeight: 600 }}>{f.time}</div>
             </div>
             <Crest club={f.opp} size={22} />
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ fontSize: 13.5, fontWeight: 600, color: chalk }}>
-                {CLUBS[f.opp].name} <span style={{ color: f.home ? "#3DDC84" : dim, fontSize: 11, fontWeight: 700 }}>{f.home ? "(H)" : "(A)"}</span>
+                {CLUBS[f.opp].name} <span style={{ color: f.home ? "#3DDC84" : dim, fontSize: 12, fontWeight: 700 }}>{f.home ? "(H)" : "(A)"}</span>
               </div>
-              <div style={{ fontSize: 11, color: dim, marginTop: 2 }}>Round {f.round} · {f.venue}</div>
+              <div style={{ fontSize: 12, color: dim, marginTop: 2 }}>Round {f.round} · {f.venue}</div>
             </div>
           </div>
         ))}
@@ -965,7 +965,7 @@ function FixturesView() {
         background: "rgba(240,255,245,0.05)", color: chalk, border: `1px solid ${faint}`,
         fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, letterSpacing: "0.08em", textTransform: "uppercase",
       }}>{showAll ? "Show opening five only" : `Show all ${leagueFixtures.length} league fixtures`}</button>
-      <div style={{ fontSize: 10, color: dim, marginTop: 10, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: dim, marginTop: 10, lineHeight: 1.5 }}>
         Official fixture list, July 2026 — subject to change for broadcast picks and European involvement.
         Post-split rounds 34–38: {POST_SPLIT_DATES.join(", ")} (opponents decided by the split).
       </div>
@@ -1145,8 +1145,8 @@ function PredictorView() {
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, width: 84 }}>
       {s.club
         ? <Crest club={s.club} size={30} />
-        : <div style={{ width: 30, height: 34, borderRadius: 6, border: `1px dashed ${dim}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, color: dim, fontFamily: "'Barlow Condensed'", fontWeight: 700 }}>EUR</div>}
-      <span style={{ fontSize: 11, fontWeight: 600, color: chalk, textAlign: "center", lineHeight: 1.25 }}>{sideName(s)}</span>
+        : <div style={{ width: 30, height: 34, borderRadius: 6, border: `1px dashed ${dim}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: dim, fontFamily: "'Barlow Condensed'", fontWeight: 700 }}>EUR</div>}
+      <span style={{ fontSize: 12, fontWeight: 600, color: chalk, textAlign: "center", lineHeight: 1.25 }}>{sideName(s)}</span>
     </div>
   );
 
@@ -1162,11 +1162,11 @@ function PredictorView() {
           <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 22, textTransform: "uppercase", color: chalk, lineHeight: 1.1 }}>
             The Predictor · {PREDICTOR_GW.name}
           </div>
-          <div style={{ fontSize: 11.5, color: dim, marginTop: 4 }}>
+          <div style={{ fontSize: 12, color: dim, marginTop: 4 }}>
             Exact score 3 pts · correct result 1 pt · {PREDICTOR_GW.deadline}
           </div>
           {!resultsIn && Object.keys(picks).length === 0 && (
-            <div style={{ fontSize: 11.5, color: "#FFB627", marginTop: 6, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 12, color: "#FFB627", marginTop: 6, lineHeight: 1.5 }}>
               All 0–0s? Bold strategy. Tap the arrows to call it properly — GIBSON's odds are just an opinion.
             </div>
           )}
@@ -1176,10 +1176,10 @@ function PredictorView() {
         {resultsIn && (
           <div style={{ textAlign: "center" }}>
             <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 30, color: "#3DDC84", lineHeight: 1, animation: "pop 0.45s ease-out" }}>{totalPts}</div>
-            <div style={{ fontSize: 10.5, color: dim, marginTop: 4 }}>
+            <div style={{ fontSize: 12, color: dim, marginTop: 4 }}>
               {totalPts === 0 ? "Blanked. Even the bookies get weeks like this." : totalPts >= 7 ? "Scenes. Frame this one." : totalPts >= 4 ? "Solid week's work." : "Points on the board — momentum builds."}
             </div>
-            <div style={{ fontSize: 9, color: dim, letterSpacing: "0.1em", textTransform: "uppercase" }}>points</div>
+            <div style={{ fontSize: 12, color: dim, letterSpacing: "0.1em", textTransform: "uppercase" }}>points</div>
           </div>
         )}
       </div>
@@ -1193,7 +1193,7 @@ function PredictorView() {
               borderRadius: 14, padding: "14px 10px 12px",
               animation: `riseIn 0.4s ease-out ${i * 0.07}s backwards`,
             }}>
-              <div style={{ textAlign: "center", fontSize: 9.5, color: dim, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>{f.comp}</div>
+              <div style={{ textAlign: "center", fontSize: 12, color: dim, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>{f.comp}</div>
               <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 10 }}>
                 <TeamCell s={f.home} />
                 <Stepper fid={f.id} side={0} />
@@ -1247,7 +1247,7 @@ function PredictorView() {
         </div>
       )}
 
-      <div style={{ fontSize: 11, color: dim, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: dim, lineHeight: 1.5 }}>
         Picks are saved on this device. Points appear here automatically once results are in.
         Global leaderboards arrive with accounts in v2.0 — for now, screenshot your score and settle it in the group chat.
       </div>
@@ -1280,12 +1280,12 @@ function HistoryView() {
           <div key={r.label} style={{ background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`, borderRadius: 12, padding: "12px 13px" }}>
             <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 30, color: "#FFB627", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{r.big}</div>
             <div style={{ fontSize: 12, fontWeight: 700, color: chalk, marginTop: 5 }}>{r.label}</div>
-            <div style={{ fontSize: 10.5, color: dim, marginTop: 3, lineHeight: 1.4 }}>{r.sub}</div>
+            <div style={{ fontSize: 12, color: dim, marginTop: 3, lineHeight: 1.4 }}>{r.sub}</div>
           </div>
         ))}
       </div>
 
-      <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>All-time league titles · current Premiership clubs</div>
+      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>All-time league titles · current Premiership clubs</div>
       <div style={{ display: "grid", gap: 7, marginBottom: 20 }}>
         {ALL_TIME_TITLES.map((t, i) => {
           const c = CLUBS[t.club];
@@ -1308,11 +1308,11 @@ function HistoryView() {
           );
         })}
       </div>
-      <div style={{ fontSize: 10, color: dim, marginBottom: 20, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: dim, marginBottom: 20, lineHeight: 1.5 }}>
         Historic totals also include clubs no longer in the league — most famously Belfast Celtic's 14 titles.
       </div>
 
-      <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Roll of honour · last 12 seasons</div>
+      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Roll of honour · last 12 seasons</div>
       <div style={{ border: `1px solid ${faint}`, borderRadius: 14, overflow: "hidden" }}>
         {ROLL_OF_HONOUR.map((r, i) => (
           <div key={r.season} style={{
@@ -1323,7 +1323,7 @@ function HistoryView() {
             <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 14, color: dim, width: 62, flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>{r.season}</span>
             <Crest club={r.club} size={20} />
             <span style={{ fontSize: 13, fontWeight: 700, color: chalk, flex: 1 }}>{CLUBS[r.club].name}</span>
-            {r.note && <span style={{ fontSize: 10, color: "#FFB627" }}>{r.note}</span>}
+            {r.note && <span style={{ fontSize: 12, color: "#FFB627" }}>{r.note}</span>}
             {i === 0 && <span style={{ fontSize: 12 }}>🏆</span>}
           </div>
         ))}
@@ -1331,7 +1331,7 @@ function HistoryView() {
 
       <div style={{ marginTop: 22 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 10 }}>
-          <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>Season Archive</div>
+          <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>Season Archive</div>
           <select value={archiveSeason} onChange={(e) => setArchiveSeason(e.target.value)} style={{
             background: "#12211B", color: chalk, border: `1px solid ${faint}`, borderRadius: 8,
             padding: "7px 10px", fontFamily: "'Barlow'", fontSize: 13,
@@ -1342,30 +1342,30 @@ function HistoryView() {
         <div style={{ background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`, borderRadius: 14, padding: "14px 15px", animation: "riseIn 0.35s ease-out" }} key={arch.season}>
           <div style={{ display: "grid", gap: 9 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-              <span style={{ fontSize: 11, color: dim, textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0 }}>Champions 🏆</span>
+              <span style={{ fontSize: 12, color: dim, textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0 }}>Champions 🏆</span>
               <span style={{ fontSize: 13, fontWeight: 700, color: "#FFB627", textAlign: "right" }}>{arch.champion}{arch.champNote && <span style={{ color: dim, fontWeight: 400 }}> · {arch.champNote}</span>}</span>
             </div>
             {arch.runnerUp && (
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                <span style={{ fontSize: 11, color: dim, textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0 }}>Runners-up</span>
+                <span style={{ fontSize: 12, color: dim, textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0 }}>Runners-up</span>
                 <span style={{ fontSize: 13, fontWeight: 600, color: chalk }}>{arch.runnerUp}</span>
               </div>
             )}
             {arch.cup && (
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                <span style={{ fontSize: 11, color: dim, textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0 }}>Irish Cup</span>
+                <span style={{ fontSize: 12, color: dim, textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0 }}>Irish Cup</span>
                 <span style={{ fontSize: 13, fontWeight: 600, color: chalk }}>{arch.cup}</span>
               </div>
             )}
             {arch.promotedIn && (
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                <span style={{ fontSize: 11, color: dim, textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0 }}>Promoted in</span>
+                <span style={{ fontSize: 12, color: dim, textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0 }}>Promoted in</span>
                 <span style={{ fontSize: 13, fontWeight: 600, color: chalk }}>{arch.promotedIn}</span>
               </div>
             )}
             {arch.relegated && (
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                <span style={{ fontSize: 11, color: dim, textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0 }}>Relegated</span>
+                <span style={{ fontSize: 12, color: dim, textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0 }}>Relegated</span>
                 <span style={{ fontSize: 13, fontWeight: 600, color: "#E05252" }}>{arch.relegated}</span>
               </div>
             )}
@@ -1373,14 +1373,14 @@ function HistoryView() {
           {arch.facts?.length > 0 && (
             <div style={{ marginTop: 12, borderTop: `1px solid ${faint}`, paddingTop: 10 }}>
               {arch.facts.map((f) => (
-                <div key={f} style={{ fontSize: 11.5, color: dim, lineHeight: 1.5, display: "flex", gap: 7, marginBottom: 5 }}>
+                <div key={f} style={{ fontSize: 12, color: dim, lineHeight: 1.5, display: "flex", gap: 7, marginBottom: 5 }}>
                   <span style={{ color: "#FFB627", flexShrink: 0 }}>›</span>{f}
                 </div>
               ))}
             </div>
           )}
         </div>
-        <div style={{ fontSize: 10, color: dim, marginTop: 8 }}>
+        <div style={{ fontSize: 12, color: dim, marginTop: 8 }}>
           Verified season snapshots — the full 25/26 record lives on the Table tab.
         </div>
       </div>
@@ -1402,10 +1402,10 @@ function StatsView() {
         <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 22, textTransform: "uppercase", color: chalk, lineHeight: 1.1 }}>
           The Stats Lab ⚡
         </div>
-        <div style={{ fontSize: 11.5, color: dim, marginTop: 4 }}>25/26 season · verified team-level numbers</div>
+        <div style={{ fontSize: 12, color: dim, marginTop: 4 }}>25/26 season · verified team-level numbers</div>
       </div>
 
-      <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
+      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
         The Entertainment Index · goals per game in their matches
       </div>
       <div style={{ display: "grid", gap: 7, marginBottom: 8 }}>
@@ -1415,7 +1415,7 @@ function StatsView() {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
                 <span style={{ fontSize: 12, fontWeight: 600, color: chalk }}>{CLUBS[t.club].name}
-                  <span style={{ color: dim, fontWeight: 400, fontSize: 10 }}> · O2.5 {t.o25}% · BTS {t.bts}%</span>
+                  <span style={{ color: dim, fontWeight: 400, fontSize: 12 }}> · O2.5 {t.o25}% · BTS {t.bts}%</span>
                 </span>
                 <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: i === 0 ? "#FFB627" : chalk, fontVariantNumeric: "tabular-nums" }}>{t.avg.toFixed(2)}</span>
               </div>
@@ -1426,33 +1426,33 @@ function StatsView() {
           </div>
         ))}
       </div>
-      <div style={{ fontSize: 10.5, color: dim, marginBottom: 20, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: dim, marginBottom: 20, lineHeight: 1.5 }}>
         Crusaders games were pure chaos (3.39 goals a game); Linfield games were chess (2.47). League average:
         {" "}{GOALS_LEAGUE_AVG.o25}% of matches went over 2.5 goals, both teams scored in {GOALS_LEAGUE_AVG.bts}%.
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
         <div style={{ border: `1px solid ${faint}`, borderRadius: 12, padding: "12px" }}>
-          <div style={{ fontSize: 10, color: "#3DDC84", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>🧤 Clean sheet kings</div>
+          <div style={{ fontSize: 12, color: "#3DDC84", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>🧤 Clean sheet kings</div>
           {csSorted.map((t) => (
             <div key={t.club} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
               <Crest club={t.club} size={15} />
-              <span style={{ fontSize: 11.5, color: chalk, flex: 1 }}>{CLUBS[t.club].name}</span>
+              <span style={{ fontSize: 12, color: chalk, flex: 1 }}>{CLUBS[t.club].name}</span>
               <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#3DDC84" }}>{t.cs}%</span>
             </div>
           ))}
-          <div style={{ fontSize: 9.5, color: dim, marginTop: 4 }}>% of games without conceding</div>
+          <div style={{ fontSize: 12, color: dim, marginTop: 4 }}>% of games without conceding</div>
         </div>
         <div style={{ border: `1px solid ${faint}`, borderRadius: 12, padding: "12px" }}>
-          <div style={{ fontSize: 10, color: "#5EC8F2", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>⏱️ Half-time watch</div>
+          <div style={{ fontSize: 12, color: "#5EC8F2", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>⏱️ Half-time watch</div>
           <div style={{ fontSize: 26, fontFamily: "'Barlow Condensed'", fontWeight: 800, color: chalk, lineHeight: 1 }}>1.66</div>
-          <div style={{ fontSize: 10.5, color: dim, marginBottom: 8 }}>HT goals avg in Carrick games — the league's fastest starters</div>
+          <div style={{ fontSize: 12, color: dim, marginBottom: 8 }}>HT goals avg in Carrick games — the league's fastest starters</div>
           <div style={{ fontSize: 26, fontFamily: "'Barlow Condensed'", fontWeight: 800, color: chalk, lineHeight: 1 }}>0.95</div>
-          <div style={{ fontSize: 10.5, color: dim }}>in Linfield games — bring a coffee for the first half</div>
+          <div style={{ fontSize: 12, color: dim }}>in Linfield games — bring a coffee for the first half</div>
         </div>
       </div>
 
-      <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
+      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
         The xG Lab · expected goals per 90
       </div>
       <div style={{ display: "grid", gap: 7, marginBottom: 8 }}>
@@ -1462,7 +1462,7 @@ function StatsView() {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
                 <span style={{ fontSize: 12, fontWeight: 600, color: chalk }}>{CLUBS[t.club].name}
-                  <span style={{ color: dim, fontWeight: 400, fontSize: 10 }}> · xG {t.xg.toFixed(2)} · xGA {t.xga.toFixed(2)}</span>
+                  <span style={{ color: dim, fontWeight: 400, fontSize: 12 }}> · xG {t.xg.toFixed(2)} · xGA {t.xga.toFixed(2)}</span>
                 </span>
                 <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: t.xgd >= 0 ? "#3DDC84" : "#FF5A5A", fontVariantNumeric: "tabular-nums" }}>
                   {t.xgd >= 0 ? "+" : ""}{t.xgd.toFixed(2)}
@@ -1482,13 +1482,13 @@ function StatsView() {
           </div>
         ))}
       </div>
-      <div style={{ fontSize: 10.5, color: dim, marginBottom: 20, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: dim, marginBottom: 20, lineHeight: 1.5 }}>
         The metric that stings east Belfast: Glentoran had the league's best xG difference (+0.68) and its meanest
         expected defence — and finished third. Larne conceded 0.68 goals per game against an expected 1.10:
         title-winning goalkeeping and game management.
       </div>
 
-      <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
+      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
         Clinical XI · goals vs expected goals
       </div>
       <div style={{ display: "grid", gap: 6, marginBottom: 8 }}>
@@ -1498,7 +1498,7 @@ function StatsView() {
             <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 9, animation: `riseIn 0.35s ease-out ${i * 0.03}s backwards` }}>
               <Crest club={p.club} size={17} />
               <span style={{ fontSize: 12, fontWeight: 600, color: chalk, flex: 1 }}>{p.name}</span>
-              <span style={{ fontSize: 10.5, color: dim, fontVariantNumeric: "tabular-nums" }}>{p.goals}g / {p.xg.toFixed(1)} xG</span>
+              <span style={{ fontSize: 12, color: dim, fontVariantNumeric: "tabular-nums" }}>{p.goals}g / {p.xg.toFixed(1)} xG</span>
               <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13.5, minWidth: 44, textAlign: "right",
                 color: diff >= 2 ? "#3DDC84" : diff <= -1 ? "#FF5A5A" : chalk, fontVariantNumeric: "tabular-nums" }}>
                 {diff >= 0 ? "+" : ""}{diff.toFixed(1)}
@@ -1507,13 +1507,13 @@ function StatsView() {
           );
         })}
       </div>
-      <div style={{ fontSize: 10.5, color: dim, marginBottom: 20, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: dim, marginBottom: 20, lineHeight: 1.5 }}>
         Hoban scored 26 from chances worth 16.8 — over nine goals of pure finishing, the most clinical season the
         league has seen in years. Source: FootyStats, including play-offs; totals may differ slightly from the
         league-only scorer chart above.
       </div>
 
-      <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
+      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
         Goals scored & possession
       </div>
       <div style={{ display: "grid", gap: 7 }}>
@@ -1522,7 +1522,7 @@ function StatsView() {
             <Crest club={t.club} size={20} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: chalk }}>{CLUBS[t.club].name} <span style={{ color: dim, fontWeight: 400, fontSize: 10.5 }}>· {t.poss}% poss.</span></span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: chalk }}>{CLUBS[t.club].name} <span style={{ color: dim, fontWeight: 400, fontSize: 12 }}>· {t.poss}% poss.</span></span>
                 <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#3DDC84", fontVariantNumeric: "tabular-nums" }}>{t.goals} goals</span>
               </div>
               <div style={{ height: 6, borderRadius: 3, background: faint, overflow: "hidden" }}>
@@ -1532,7 +1532,7 @@ function StatsView() {
           </div>
         ))}
       </div>
-      <div style={{ fontSize: 10.5, color: dim, marginTop: 8, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: dim, marginTop: 8, lineHeight: 1.5 }}>
         The quirk of 25/26: Coleraine outscored everyone — 10 more than champions Larne — and still finished second.
         All figures verified via AiScore and published stats tables, July 2026.
       </div>
@@ -1569,7 +1569,7 @@ function SupportView() {
             {t.featured && (
               <div style={{
                 position: "absolute", top: -9, left: 16, background: "#FFB627", color: "#0B1512",
-                fontSize: 9.5, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase",
+                fontSize: 12, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase",
                 borderRadius: 999, padding: "3px 10px",
               }}>Most popular</div>
             )}
@@ -1579,7 +1579,7 @@ function SupportView() {
               </div>
               <div style={{ textAlign: "right" }}>
                 <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 24, color: chalk, fontVariantNumeric: "tabular-nums" }}>{t.price}</span>
-                <span style={{ fontSize: 11, color: dim }}> {t.cadence}</span>
+                <span style={{ fontSize: 12, color: dim }}> {t.cadence}</span>
               </div>
             </div>
             <ul style={{ listStyle: "none", display: "grid", gap: 6, marginBottom: 14 }}>
@@ -1603,15 +1603,16 @@ function SupportView() {
         ))}
       </div>
 
-      <div style={{ fontSize: 10.5, color: dim, marginTop: 14, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: dim, marginTop: 14, lineHeight: 1.5 }}>
         Payments are handled securely by Ko-fi — GIBSON never sees your card details.
         Memberships can be cancelled any time from your Ko-fi account.
       </div>
 
       <div style={{ marginTop: 24 }}>
-        <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>The Roadmap</div>
+        <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>The Roadmap</div>
         {[
           { v: "1.01", when: "Jul 2026", title: "The complete foundation", desc: "Official 25/26 archive, Stats Lab with xG, full 26/27 fixture browser, Predictor share cards and the live-data layer — shipped.", status: "done" },
+          { v: "1.05", when: "Jul 2026", title: "Cleaner GIBSON", desc: "Five-tab navigation, Home screen, readability pass — shipped.", status: "done" },
           { v: "1.1", when: "Aug 2026", title: "Season one kicks off", desc: "Global Predictor leaderboard, live 26/27 table, and GIBSON on the Play Store.", status: "next" },
           { v: "1.2", when: "When funded", title: "Live scores", desc: "In-play scores every two minutes. Unlocks when Ko-fi support covers the data feed — one Season Ticket flips the switch.", status: "planned" },
           { v: "v1.2", when: "Pre-season", title: "Fixtures & Predictor gameweeks", desc: "26/27 fixture list, opening-day countdown, and weekly Predictor rounds all season long.", status: "planned" },
@@ -1629,14 +1630,14 @@ function SupportView() {
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 13.5, fontWeight: 700, color: chalk }}>
                 {r.title}
-                {r.status === "next" && <span style={{ fontSize: 9, fontWeight: 800, color: "#0B1512", background: "#FFB627", borderRadius: 999, padding: "2px 8px", marginLeft: 8, letterSpacing: "0.08em", textTransform: "uppercase", verticalAlign: "middle" }}>Up next</span>}
+                {r.status === "next" && <span style={{ fontSize: 12, fontWeight: 800, color: "#0B1512", background: "#FFB627", borderRadius: 999, padding: "2px 8px", marginLeft: 8, letterSpacing: "0.08em", textTransform: "uppercase", verticalAlign: "middle" }}>Up next</span>}
               </div>
               <div style={{ fontSize: 12, color: dim, marginTop: 3, lineHeight: 1.45 }}>{r.desc}</div>
-              <div style={{ fontSize: 10, color: dim, marginTop: 3, letterSpacing: "0.08em", textTransform: "uppercase" }}>{r.when}</div>
+              <div style={{ fontSize: 12, color: dim, marginTop: 3, letterSpacing: "0.08em", textTransform: "uppercase" }}>{r.when}</div>
             </div>
           </div>
         ))}
-        <div style={{ fontSize: 11, color: dim, marginTop: 10, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 12, color: dim, marginTop: 10, lineHeight: 1.5 }}>
           Season Ticket holders vote on what gets built first.
         </div>
       </div>
@@ -1666,6 +1667,227 @@ function LogoMark({ size = 42 }) {
   );
 }
 
+function SubNav({ items, value, onChange }) {
+  return (
+    <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+      {items.map(([id, label]) => (
+        <button key={id} onClick={() => onChange(id)} style={{
+          flex: 1, padding: "9px", borderRadius: 10, cursor: "pointer",
+          fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, letterSpacing: "0.08em", textTransform: "uppercase",
+          background: value === id ? "#FFB627" : "rgba(240,255,245,0.05)",
+          color: value === id ? "#0B1512" : dim,
+          border: `1px solid ${value === id ? "#FFB627" : faint}`,
+        }}>{label}</button>
+      ))}
+    </div>
+  );
+}
+
+function HomeView({ goTo }) {
+  // Next unplayed, non-provisional Euro fixture per club — a club still stands if it has one
+  const nextEuro = [];
+  for (const club of Object.keys(CLUB_FIXTURES)) {
+    const f = CLUB_FIXTURES[club].find((x) => !x.res && !x.opp.includes("*"));
+    if (f) nextEuro.push({ club, ...f });
+  }
+  const opener = FIXTURES_2627[0];
+  const openMatch = opener.matches[0];
+  const resultsIn = PREDICTOR_GW.fixtures.every((f) => f.result);
+  const feed = TRANSFERS.slice(0, 3);
+  const label = { fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 };
+  return (
+    <div style={{ animation: "riseIn 0.4s ease-out" }}>
+      <div style={label}>Next up</div>
+      <div style={{ border: `1px solid ${faint}`, borderRadius: 14, overflow: "hidden", marginBottom: 18 }}>
+        {nextEuro.map((f) => (
+          <div key={f.club + f.date} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 13px", borderBottom: `1px solid ${faint}` }}>
+            <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#5EC8F2", width: 74, flexShrink: 0, lineHeight: 1.2 }}>{f.date}</div>
+            <Crest club={f.club} size={22} />
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 600, color: chalk }}>{CLUBS[f.club].name} v {f.opp}</div>
+              <div style={{ fontSize: 12, color: dim, marginTop: 2 }}>{f.comp}</div>
+            </div>
+          </div>
+        ))}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 13px" }}>
+          <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#FFB627", width: 74, flexShrink: 0, lineHeight: 1.2 }}>{openMatch.d || opener.date}</div>
+          <Crest club={openMatch.h} size={22} />
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 600, color: chalk }}>{CLUBS[openMatch.h].name} v {CLUBS[openMatch.a].name}</div>
+            <div style={{ fontSize: 12, color: dim, marginTop: 2 }}>Premiership opening night · Round {opener.round}{openMatch.t ? ` · ${openMatch.t}` : ""}</div>
+          </div>
+        </div>
+      </div>
+
+      <div style={label}>Euro Watch · still standing</div>
+      <div style={{ display: "grid", gap: 6, marginBottom: 18 }}>
+        {nextEuro.map((f) => (
+          <button key={f.club} className="gb-row" onClick={() => goTo("matches", "europe")} style={{
+            display: "flex", alignItems: "center", gap: 10, width: "100%", textAlign: "left", cursor: "pointer",
+            background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`, borderRadius: 12, padding: "10px 13px",
+          }}>
+            <Crest club={f.club} size={22} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: chalk, flex: 1, minWidth: 0 }}>
+              {CLUBS[f.club].name} <span style={{ color: dim, fontWeight: 400 }}>v {f.opp} · {f.date}</span>
+            </span>
+            <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#5EC8F2", flexShrink: 0 }}>{f.comp.split(" · ")[0]}</span>
+          </button>
+        ))}
+      </div>
+
+      <div style={{
+        borderRadius: 14, padding: "16px", marginBottom: 18,
+        background: "linear-gradient(120deg, rgba(255,182,39,0.12), transparent 60%), rgba(240,255,245,0.03)",
+        border: `1px solid ${faint}`,
+      }}>
+        <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 20, textTransform: "uppercase", color: chalk, lineHeight: 1.1 }}>
+          The Predictor · {PREDICTOR_GW.name} 🎯
+        </div>
+        <div style={{ fontSize: 12, color: dim, marginTop: 4 }}>
+          {PREDICTOR_GW.fixtures.length} fixtures · exact score 3 pts · {PREDICTOR_GW.deadline}
+        </div>
+        <button onClick={() => goTo("predictor")} style={{
+          marginTop: 12, width: "100%", padding: "11px", borderRadius: 10, cursor: "pointer",
+          background: "#FFB627", color: "#0B1512", border: "1px solid #FFB627",
+          fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 15, letterSpacing: "0.08em", textTransform: "uppercase",
+        }}>{resultsIn ? "Results are in — see your score →" : "Make your picks →"}</button>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+        <div style={{ ...label, marginBottom: 0 }}>Latest transfer talk</div>
+        <button onClick={() => goTo("more", "transfers")} style={{
+          fontSize: 12, fontWeight: 700, color: "#FFB627", background: "transparent", border: "none", cursor: "pointer",
+        }}>See all →</button>
+      </div>
+      <div style={{ display: "grid", gap: 8 }}>
+        {feed.map((t) => {
+          const meta = STATUS_META[t.status];
+          return (
+            <div key={t.id} style={{
+              background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`,
+              borderLeft: `3px solid ${meta.color}`, borderRadius: 12, padding: "10px 13px",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 15, color: chalk }}>{t.player}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: meta.color, textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0 }}>{meta.label}</span>
+              </div>
+              <div style={{ fontSize: 12, color: dim, marginTop: 4, lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{t.note}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function PlayersView() {
+  const [selected, setSelected] = useState(PLAYERS[0].id);
+  const [sort, setSort] = useState("rating");
+  const player = PLAYERS.find((p) => p.id === selected);
+  const sorted = useMemo(() => {
+    const arr = [...PLAYERS];
+    if (sort === "rating") arr.sort((x, y) => y.rating - x.rating);
+    if (sort === "goals") arr.sort((x, y) => y.goals - x.goals);
+    if (sort === "assists") arr.sort((x, y) => y.assists - x.assists);
+    return arr;
+  }, [sort]);
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr)", gap: 18 }}>
+      <div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+          <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>GIBSON Index · 25/26 · beta</div>
+          <div style={{ display: "flex", gap: 4 }}>
+            {["rating", "goals", "assists"].map((s) => (
+              <button key={s} onClick={() => setSort(s)} style={{
+                fontSize: 12, padding: "4px 10px", borderRadius: 999, cursor: "pointer", textTransform: "capitalize",
+                background: sort === s ? "rgba(255,182,39,0.15)" : "transparent",
+                color: sort === s ? "#FFB627" : dim, border: `1px solid ${sort === s ? "rgba(255,182,39,0.4)" : faint}`,
+              }}>{s}</button>
+            ))}
+          </div>
+        </div>
+        <div style={{ border: `1px solid ${faint}`, borderRadius: 14, overflow: "hidden" }}>
+          {sorted.map((p, i) => (
+            <button key={p.id} className="gb-row" onClick={() => setSelected(p.id)} style={{
+              display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left",
+              padding: "10px 12px", cursor: "pointer", border: "none",
+              borderBottom: i < sorted.length - 1 ? `1px solid ${faint}` : "none",
+              background: selected === p.id ? "rgba(255,182,39,0.08)" : "transparent", transition: "background 0.15s ease",
+            }}>
+              <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 15, color: dim, width: 18, fontVariantNumeric: "tabular-nums" }}>{i + 1}</span>
+              <Avatar player={p} size={44} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 600, fontSize: 14, color: chalk, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</div>
+                <div style={{ fontSize: 12, color: dim, display: "flex", alignItems: "center", gap: 5 }}>
+                  <Crest club={p.club} size={13} /> {CLUBS[p.club].name} · {p.pos}
+                </div>
+              </div>
+              <div style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 18, color: ratingColor(p.rating) }}>{p.rating.toFixed(1)}</div>
+                <div style={{ fontSize: 12, color: dim }}>{p.goals}g · {p.assists}a</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{ fontSize: 12, color: dim, lineHeight: 1.5, marginTop: -8 }}>
+        Goals cross-verified via AiScore and season reports; assists via Transfermarkt (may undercount).
+        GIBSON Index ratings, radar profiles, xG and per-90 figures are our own model estimates.
+      </div>
+      <PlayerDetail player={player} />
+      <div>
+        <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Treatment Table · current injuries</div>
+        <div style={{ border: `1px solid ${faint}`, borderRadius: 14, overflow: "hidden" }}>
+          {INJURIES.length === 0 && (
+            <div style={{ padding: "16px", fontSize: 12, color: dim, textAlign: "center" }}>
+              🟢 Treatment room's empty — every squad at full strength. Enjoy it while it lasts.
+            </div>
+          )}
+          {INJURIES.map((inj, i) => (
+            <div key={inj.player} style={{
+              display: "flex", alignItems: "center", gap: 10, padding: "9px 13px",
+              borderBottom: i < INJURIES.length - 1 ? `1px solid ${faint}` : "none",
+            }}>
+              <Crest club={inj.club} size={18} />
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: chalk, flex: 1 }}>{inj.player}</span>
+              <span style={{ fontSize: 12, color: "#E05252" }}>✚ {inj.injury}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 12, color: dim, marginTop: 6 }}>Via Transfermarkt, July 2026.</div>
+      </div>
+      <div>
+        <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Discipline · 25/26 card leaders</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div style={{ border: `1px solid ${faint}`, borderRadius: 12, padding: "10px 12px" }}>
+            <div style={{ fontSize: 12, color: "#FFB627", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>🟨 Most yellows</div>
+            {DISCIPLINE.yellows.map((p) => (
+              <div key={p.player} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
+                <Crest club={p.club} size={15} />
+                <span style={{ fontSize: 12, color: chalk, flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.player}</span>
+                <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#FFB627" }}>{p.n}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ border: `1px solid ${faint}`, borderRadius: 12, padding: "10px 12px" }}>
+            <div style={{ fontSize: 12, color: "#E05252", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>🟥 Most reds</div>
+            {DISCIPLINE.reds.map((p) => (
+              <div key={p.player} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
+                <Crest club={p.club} size={15} />
+                <span style={{ fontSize: 12, color: chalk, flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.player}</span>
+                <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#E05252" }}>{p.n}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{ fontSize: 12, color: dim, marginTop: 6 }}>
+          Bangor's Lewis Harrison: 10 yellows AND 2 reds — the league's most booked man. Via AiScore.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ================= APP ================= */
 class GibsonBoundary extends React.Component {
   constructor(props) { super(props); this.state = { err: null }; }
@@ -1691,30 +1913,24 @@ class GibsonBoundary extends React.Component {
 }
 
 export default function App() {
-  const [tab, setTab] = useState("table");
-  const [selected, setSelected] = useState(PLAYERS[0].id);
-  const [sort, setSort] = useState("rating");
-  const player = PLAYERS.find((p) => p.id === selected);
+  const [tab, setTab] = useState("home");
+  const [matchesSub, setMatchesSub] = useState("table");
+  const [statsSub, setStatsSub] = useState("lab");
+  const [moreSub, setMoreSub] = useState("transfers");
 
-  const sorted = useMemo(() => {
-    const arr = [...PLAYERS];
-    if (sort === "rating") arr.sort((x, y) => y.rating - x.rating);
-    if (sort === "goals") arr.sort((x, y) => y.goals - x.goals);
-    if (sort === "assists") arr.sort((x, y) => y.assists - x.assists);
-    return arr;
-  }, [sort]);
+  const goTo = (t, sub) => {
+    if (t === "matches" && sub) setMatchesSub(sub);
+    if (t === "stats" && sub) setStatsSub(sub);
+    if (t === "more" && sub) setMoreSub(sub);
+    setTab(t);
+  };
 
   const tabs = [
-    { id: "table", label: "Table" },
-    { id: "europe", label: "Europe" },
+    { id: "home", label: "Home" },
+    { id: "matches", label: "Matches" },
     { id: "predictor", label: "Predictor 🎯" },
-    { id: "fixtures", label: "Fixtures" },
-    { id: "players", label: "Players" },
-    { id: "duel", label: "Duel" },
-    { id: "transfers", label: "Transfers" },
     { id: "stats", label: "Stats ⚡" },
-    { id: "history", label: "History" },
-    { id: "support", label: "Support ♥" },
+    { id: "more", label: "More" },
   ];
 
   return (
@@ -1732,7 +1948,7 @@ export default function App() {
               textTransform: "uppercase", lineHeight: 1,
               background: "linear-gradient(90deg, #EDF5EF, #FFB627)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
             }}>Gibson</h1>
-            <div style={{ fontSize: 10.5, color: dim, letterSpacing: "0.18em", textTransform: "uppercase", marginTop: 2 }}>
+            <div style={{ fontSize: 12, color: dim, letterSpacing: "0.18em", textTransform: "uppercase", marginTop: 2 }}>
               The home of Irish League stats
             </div>
           </div>
@@ -1774,115 +1990,31 @@ export default function App() {
 
       <main style={{ maxWidth: 760, margin: "0 auto", padding: "0 18px" }}>
         <GibsonBoundary key={tab}>
-        {tab === "table" && <TableView />}
-        {tab === "europe" && <EuropeView />}
+        {tab === "home" && <HomeView goTo={goTo} />}
+        {tab === "matches" && (<>
+          <SubNav items={[["table", "Table"], ["fixtures", "Fixtures"], ["europe", "Europe"]]} value={matchesSub} onChange={setMatchesSub} />
+          {matchesSub === "table" && <TableView />}
+          {matchesSub === "fixtures" && <FixturesView />}
+          {matchesSub === "europe" && <EuropeView />}
+        </>)}
         {tab === "predictor" && <PredictorView />}
-        {tab === "fixtures" && <FixturesView />}
-        {tab === "players" && (
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr)", gap: 18 }}>
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>GIBSON Index · 25/26 · beta</div>
-                <div style={{ display: "flex", gap: 4 }}>
-                  {["rating", "goals", "assists"].map((s) => (
-                    <button key={s} onClick={() => setSort(s)} style={{
-                      fontSize: 11, padding: "4px 10px", borderRadius: 999, cursor: "pointer", textTransform: "capitalize",
-                      background: sort === s ? "rgba(255,182,39,0.15)" : "transparent",
-                      color: sort === s ? "#FFB627" : dim, border: `1px solid ${sort === s ? "rgba(255,182,39,0.4)" : faint}`,
-                    }}>{s}</button>
-                  ))}
-                </div>
-              </div>
-              <div style={{ border: `1px solid ${faint}`, borderRadius: 14, overflow: "hidden" }}>
-                {sorted.map((p, i) => (
-                  <button key={p.id} className="gb-row" onClick={() => setSelected(p.id)} style={{
-                    display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left",
-                    padding: "10px 12px", cursor: "pointer", border: "none",
-                    borderBottom: i < sorted.length - 1 ? `1px solid ${faint}` : "none",
-                    background: selected === p.id ? "rgba(255,182,39,0.08)" : "transparent", transition: "background 0.15s ease",
-                  }}>
-                    <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 15, color: dim, width: 18, fontVariantNumeric: "tabular-nums" }}>{i + 1}</span>
-                    <Avatar player={p} size={44} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 600, fontSize: 14, color: chalk, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</div>
-                      <div style={{ fontSize: 11, color: dim, display: "flex", alignItems: "center", gap: 5 }}>
-                        <Crest club={p.club} size={13} /> {CLUBS[p.club].name} · {p.pos}
-                      </div>
-                    </div>
-                    <div style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                      <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 18, color: ratingColor(p.rating) }}>{p.rating.toFixed(1)}</div>
-                      <div style={{ fontSize: 10, color: dim }}>{p.goals}g · {p.assists}a</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div style={{ fontSize: 10, color: dim, lineHeight: 1.5, marginTop: -8 }}>
-              Goals cross-verified via AiScore and season reports; assists via Transfermarkt (may undercount).
-              GIBSON Index ratings, radar profiles, xG and per-90 figures are our own model estimates.
-            </div>
-            <PlayerDetail player={player} />
-            <div>
-              <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Treatment Table · current injuries</div>
-              <div style={{ border: `1px solid ${faint}`, borderRadius: 14, overflow: "hidden" }}>
-                {INJURIES.length === 0 && (
-                  <div style={{ padding: "16px", fontSize: 12, color: dim, textAlign: "center" }}>
-                    🟢 Treatment room's empty — every squad at full strength. Enjoy it while it lasts.
-                  </div>
-                )}
-                {INJURIES.map((inj, i) => (
-                  <div key={inj.player} style={{
-                    display: "flex", alignItems: "center", gap: 10, padding: "9px 13px",
-                    borderBottom: i < INJURIES.length - 1 ? `1px solid ${faint}` : "none",
-                  }}>
-                    <Crest club={inj.club} size={18} />
-                    <span style={{ fontSize: 12.5, fontWeight: 600, color: chalk, flex: 1 }}>{inj.player}</span>
-                    <span style={{ fontSize: 11, color: "#E05252" }}>✚ {inj.injury}</span>
-                  </div>
-                ))}
-              </div>
-              <div style={{ fontSize: 10, color: dim, marginTop: 6 }}>Via Transfermarkt, July 2026.</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 10, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Discipline · 25/26 card leaders</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <div style={{ border: `1px solid ${faint}`, borderRadius: 12, padding: "10px 12px" }}>
-                  <div style={{ fontSize: 10, color: "#FFB627", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>🟨 Most yellows</div>
-                  {DISCIPLINE.yellows.map((p) => (
-                    <div key={p.player} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
-                      <Crest club={p.club} size={15} />
-                      <span style={{ fontSize: 11.5, color: chalk, flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.player}</span>
-                      <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#FFB627" }}>{p.n}</span>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ border: `1px solid ${faint}`, borderRadius: 12, padding: "10px 12px" }}>
-                  <div style={{ fontSize: 10, color: "#E05252", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>🟥 Most reds</div>
-                  {DISCIPLINE.reds.map((p) => (
-                    <div key={p.player} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
-                      <Crest club={p.club} size={15} />
-                      <span style={{ fontSize: 11.5, color: chalk, flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.player}</span>
-                      <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#E05252" }}>{p.n}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div style={{ fontSize: 10, color: dim, marginTop: 6 }}>
-                Bangor's Lewis Harrison: 10 yellows AND 2 reds — the league's most booked man. Via AiScore.
-              </div>
-            </div>
-          </div>
-        )}
-        {tab === "duel" && <DuelView />}
-        {tab === "transfers" && <TransfersView />}
-        {tab === "stats" && <StatsView />}
-        {tab === "history" && <HistoryView />}
-        {tab === "support" && <SupportView />}
+        {tab === "stats" && (<>
+          <SubNav items={[["lab", "Lab"], ["players", "Players"], ["duel", "Duel"]]} value={statsSub} onChange={setStatsSub} />
+          {statsSub === "lab" && <StatsView />}
+          {statsSub === "players" && <PlayersView />}
+          {statsSub === "duel" && <DuelView />}
+        </>)}
+        {tab === "more" && (<>
+          <SubNav items={[["transfers", "Transfers"], ["history", "History"], ["support", "Support ♥"]]} value={moreSub} onChange={setMoreSub} />
+          {moreSub === "transfers" && <TransfersView />}
+          {moreSub === "history" && <HistoryView />}
+          {moreSub === "support" && <SupportView />}
+        </>)}
         </GibsonBoundary>
-        <div style={{ textAlign: "center", padding: "26px 0 10px", fontSize: 9.5, color: "rgba(143,166,155,0.55)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
-          GIBSON 1.01 · build 11 JUL · B2 🏆
+        <div style={{ textAlign: "center", padding: "26px 0 10px", fontSize: 12, color: "rgba(143,166,155,0.55)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
+          GIBSON 1.05 · build 17 JUL · 🏆
         </div>
-        <div style={{ textAlign: "center", padding: "0 0 24px", fontSize: 9.5, color: "rgba(143,166,155,0.55)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
+        <div style={{ textAlign: "center", padding: "0 0 24px", fontSize: 12, color: "rgba(143,166,155,0.55)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
           Unofficial fan project — not affiliated with the NIFL or any club · <a href="/privacy.html" style={{ color: "rgba(143,166,155,0.55)", textDecoration: "underline" }}>Privacy</a>
         </div>
       </main>
