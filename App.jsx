@@ -25,6 +25,17 @@ const GlobalStyle = () => (
     @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
     .gb-row:hover { background: rgba(240,255,245,0.05) !important; }
     .gb-tab:focus-visible, .gb-row:focus-visible, button:focus-visible { outline: 2px solid #FFB627; outline-offset: 2px; }
+    @media (min-width: 768px) {
+      .gb-header, .gb-main { max-width: 820px !important; }
+    }
+    @media (min-width: 1100px) {
+      .gb-header, .gb-main { max-width: 1020px !important; }
+      .gb-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+      .gb-nav { margin-top: 0 !important; flex-wrap: nowrap !important; }
+      .gb-narrow { max-width: 780px; margin-left: auto; margin-right: auto; }
+      .gb-desk-2col { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 22px; align-items: start; }
+      .gb-desk-2col > div { margin-top: 0 !important; }
+    }
   `}</style>
 );
 
@@ -298,6 +309,8 @@ function TableView() {
       <div style={{ animation: "riseIn 0.4s ease-out" }}>
         <LiveBlock />
         <LiveTeaser />
+        <div className="gb-desk-2col">
+        <div>
         <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
           Sports Direct Premiership · Final 2025/26
         </div>
@@ -330,6 +343,7 @@ function TableView() {
           Official final table (split format — Carrick matched Cliftonville's 53 points but finished 7th in the
           bottom-six group). Verified · GIBSON 1.01.
         </div>
+        </div>
 
         <div style={{ marginTop: 22 }}>
           <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
@@ -356,6 +370,7 @@ function TableView() {
             Most valuable player: {LEAGUE_FACTS.mvp}.
           </div>
         </div>
+        </div>
       </div>
     );
   }
@@ -363,6 +378,8 @@ function TableView() {
     <div style={{ animation: "riseIn 0.4s ease-out" }}>
       <LiveBlock />
       <LiveTeaser />
+      <div className="gb-desk-2col">
+      <div>
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
         Sports Direct Premiership · Final 2025/26
       </div>
@@ -384,6 +401,7 @@ function TableView() {
       <div style={{ fontSize: 12, color: dim, marginTop: 10, lineHeight: 1.5 }}>
         Confirmed final placings shown. Full verified records now live in the table above —
         the 26/27 live table takes over here in August.
+      </div>
       </div>
 
       <div style={{ marginTop: 22 }}>
@@ -410,6 +428,7 @@ function TableView() {
           League total {LEAGUE_FACTS.totalValue} across {LEAGUE_FACTS.players} players · {LEAGUE_FACTS.foreigners} from outside NI · average age {LEAGUE_FACTS.avgAge}.
           Most valuable player: {LEAGUE_FACTS.mvp}.
         </div>
+      </div>
       </div>
 
     </div>
@@ -510,7 +529,7 @@ function DuelView() {
     </select>
   );
   return (
-    <div style={{ animation: "riseIn 0.4s ease-out" }}>
+    <div className="gb-narrow" style={{ animation: "riseIn 0.4s ease-out" }}>
       <div style={{ fontSize: 12, color: dim, marginBottom: 12, lineHeight: 1.5 }}>
         Pick any two, settle the argument. Radar profiles are GIBSON Index estimates — fuel for the debate, not the end of it.
       </div>
@@ -632,7 +651,7 @@ function TransfersView() {
     departure: "Nobody's left the league in this window yet. The ferries stay empty for now.",
   };
   return (
-    <div style={{ animation: "riseIn 0.4s ease-out" }}>
+    <div className="gb-narrow" style={{ animation: "riseIn 0.4s ease-out" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
         <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>Summer window 2026</div>
         <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
@@ -747,7 +766,7 @@ function EuropeView() {
   const compColor = (c) => (c === "Champions League" ? "#5EC8F2" : "#3DDC84");
   const anyOdds = EURO.some((e) => e.odds);
   return (
-    <div style={{ animation: "riseIn 0.4s ease-out" }}>
+    <div className="gb-narrow" style={{ animation: "riseIn 0.4s ease-out" }}>
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 4 }}>
         Euro Watch · Qualifying 2026/27
       </div>
@@ -837,7 +856,7 @@ function FixturesView() {
   }
   const nextLeague = showAll ? leagueFixtures : leagueFixtures.slice(0, 5);
   return (
-    <div style={{ animation: "riseIn 0.4s ease-out" }}>
+    <div className="gb-narrow" style={{ animation: "riseIn 0.4s ease-out" }}>
       <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
         {[["club", "By club"], ["round", "By round"]].map(([m, label]) => (
           <button key={m} onClick={() => setMode(m)} style={{
@@ -1187,7 +1206,7 @@ function PredictorView() {
   );
 
   return (
-    <div style={{ animation: "riseIn 0.4s ease-out" }}>
+    <div className="gb-narrow" style={{ animation: "riseIn 0.4s ease-out" }}>
       <div style={{
         borderRadius: 14, padding: "16px", marginBottom: 14,
         ...SURFACE.hero,
@@ -1365,7 +1384,7 @@ function HistoryView() {
 
       <div style={{ marginTop: 22 }}>
         <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Only in the Irish League · six true stories</div>
-        <div style={{ display: "grid", gap: 10 }}>
+        <div className="gb-desk-2col" style={{ display: "grid", gap: 10 }}>
           {LEAGUE_LORE.map((l, i) => (
             <div key={l.id} style={{ ...SURFACE.card, borderRadius: 12, padding: "13px 14px", ...rise(i) }}>
               <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, textTransform: "uppercase", color: "#FFB627", lineHeight: 1.15 }}>{l.title}</div>
@@ -1451,6 +1470,8 @@ function StatsView() {
         <div style={{ fontSize: 12, color: dim, marginTop: 4 }}>25/26 season · verified team-level numbers</div>
       </div>
 
+      <div className="gb-desk-2col">
+      <div>
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
         The Entertainment Index · goals per game in their matches
       </div>
@@ -1476,6 +1497,7 @@ function StatsView() {
         Crusaders games were pure chaos (3.39 goals a game); Linfield games were chess (2.47). League average:
         {" "}{GOALS_LEAGUE_AVG.o25}% of matches went over 2.5 goals, both teams scored in {GOALS_LEAGUE_AVG.bts}%.
       </div>
+      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
         <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "12px" }}>
@@ -1497,7 +1519,10 @@ function StatsView() {
           <div style={{ fontSize: 12, color: dim }}>in Linfield games — bring a coffee for the first half</div>
         </div>
       </div>
+      </div>
 
+      <div className="gb-desk-2col">
+      <div>
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
         The xG Lab · expected goals per 90
       </div>
@@ -1533,6 +1558,8 @@ function StatsView() {
         expected defence — and finished third. Larne conceded 0.68 goals per game against an expected 1.10:
         title-winning goalkeeping and game management.
       </div>
+      </div>
+      <div>
 
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
         Clinical XI · goals vs expected goals
@@ -1557,6 +1584,8 @@ function StatsView() {
         Hoban scored 26 from chances worth 16.8 — over nine goals of pure finishing, the most clinical season the
         league has seen in years. Source: FootyStats, including play-offs; totals may differ slightly from the
         league-only scorer chart above.
+      </div>
+      </div>
       </div>
 
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
@@ -1588,7 +1617,7 @@ function StatsView() {
 
 function SupportView() {
   return (
-    <div style={{ animation: "riseIn 0.4s ease-out" }}>
+    <div className="gb-narrow" style={{ animation: "riseIn 0.4s ease-out" }}>
       <div style={{
         borderRadius: 14, padding: "20px 16px", marginBottom: 16,
         ...SURFACE.hero,
@@ -1758,7 +1787,7 @@ function HomeView({ goTo }) {
   };
   const heroDate = heroFix ? heroFix.date.match(/^(\d+)(\S*)(.*)$/) : null;
   return (
-    <div style={{ animation: "riseIn 0.4s ease-out" }}>
+    <div className="gb-narrow" style={{ animation: "riseIn 0.4s ease-out" }}>
       {heroFix && (
         <div style={{ ...SURFACE.hero, borderRadius: 14, padding: "18px 16px 14px", marginBottom: 14, textAlign: "center", animation: "boardFlicker 0.4s ease-out" }}>
           <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>Next match</div>
@@ -1878,7 +1907,7 @@ function PlayersView() {
     return arr;
   }, [sort]);
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr)", gap: 18 }}>
+    <div className="gb-narrow" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr)", gap: 18 }}>
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
           <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>GIBSON Index · 25/26 · beta</div>
@@ -2074,7 +2103,7 @@ function AppShell() {
       color: chalk, fontFamily: "'Barlow', sans-serif", padding: "0 0 40px",
     }}>
       <GlobalStyle />
-      <header style={{ padding: "22px 18px 14px", maxWidth: 760, margin: "0 auto" }}>
+      <header className="gb-header" style={{ padding: "22px 18px 14px", maxWidth: 760, margin: "0 auto" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <LogoMark size={46} />
           <div style={{ flex: 1 }}>
@@ -2106,7 +2135,7 @@ function AppShell() {
             </a>
           </div>
         </div>
-        <nav style={{ display: "flex", gap: 6, marginTop: 16, flexWrap: "wrap", position: "relative" }} aria-label="Views">
+        <nav className="gb-nav" style={{ display: "flex", gap: 6, marginTop: 16, flexWrap: "wrap", position: "relative" }} aria-label="Views">
           <div aria-hidden="true" style={{
             position: "absolute", top: 0, left: 0, borderRadius: 999, background: "#FFB627",
             width: pill.w, height: pill.h, transform: `translate(${pill.x}px, ${pill.y}px)`,
@@ -2125,7 +2154,7 @@ function AppShell() {
         </nav>
       </header>
 
-      <main style={{ maxWidth: 760, margin: "0 auto", padding: "0 18px" }}>
+      <main className="gb-main" style={{ maxWidth: 760, margin: "0 auto", padding: "0 18px" }}>
         <GibsonBoundary key={tab}>
         {tab === "home" && <HomeView goTo={goTo} />}
         {tab === "matches" && (<>
