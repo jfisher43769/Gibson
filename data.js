@@ -204,6 +204,13 @@ export const AXES = ["Shooting", "Creation", "Passing", "Dribbling", "Defending"
 // Summer 2026 window tracker — real, sourced stories. Update as fresh news breaks.
 // from/to use a NIFL club code, OR fromExternal/toExternal for clubs outside the league.
 export const TRANSFERS = [
+  { id: 21, date: "18 Jul", player: "Conrad Hunt", fromExternal: "Watford", to: "COL", status: "done", note: "Right-back arrives at Coleraine on loan from Watford — Championship pedigree for the Bannsiders' European campaign." },
+  { id: 22, date: "18 Jul", player: "Caoimhin McConnell", fromExternal: "Free transfer", to: "BAL", status: "done", note: "Attacking midfielder joins Ballymena United on a free — the rebuild rolls on at the Showgrounds." },
+  { id: 23, date: "18 Jul", player: "Dean McMaster", fromExternal: "Free transfer", to: "CLI", status: "done", note: "Defensive midfielder joins Cliftonville on a free." },
+  { id: 24, date: "18 Jul", player: "Alex Bannon", fromExternal: "Burton Albion", to: "CLI", status: "done", note: "Centre-back arrives at Solitude on a free from Burton Albion — the Reds double up on new recruits in one window." },
+  { id: 25, date: "18 Jul", player: "Callum McCay", from: "CLI", toExternal: "Moyola Park", status: "departure", note: "Defensive midfielder leaves Cliftonville for Moyola Park on a free." },
+  { id: 26, date: "18 Jul", player: "Ethan Boyle", from: "CAR", toExternal: "CK United", status: "departure", note: "Right-back departs Carrick Rangers for CK United on a free." },
+  { id: 27, date: "18 Jul", player: "James Knowles", from: "DUN", toExternal: "Retired", status: "departure", note: "Central midfielder hangs up the boots after leaving Dungannon Swifts." },
   { id: 20, date: "10 Jul", player: "Alfie Gaston", from: "COL", to: "LIM", status: "done", note: "Back to where he won it: Gaston returns to Limavady on a season loan after playing a key part in their Championship title. Smart move all round — the newly promoted side get a player who knows the club, Coleraine get him first-team minutes." },
   { id: 17, date: "10 Jul", player: "Zeno Ibsen Rossi & Rhys Walsh", fromExternal: "Free transfers", to: "GLE", status: "done", note: "The Glens' new arrivals confirmed on Transfermarkt — and Ibsen Rossi wasted no time, heading the opener against RFS in his first European start. Walsh arrives from Sunderland." },
   { id: 18, date: "10 Jul", player: "Owen Mahoney", from: "LAR", to: "BAL", status: "done", note: "Ballymena's rebuild continues — the midfielder becomes signing number nine, this time raiding the champions." },
