@@ -205,8 +205,8 @@ export const AXES = ["Shooting", "Creation", "Passing", "Dribbling", "Defending"
 // from/to use a NIFL club code, OR fromExternal/toExternal for clubs outside the league.
 export const TRANSFERS = [
   { id: 21, date: "18 Jul", player: "Conrad Hunt", fromExternal: "Watford", to: "COL", status: "done", note: "Right-back arrives at Coleraine on loan from Watford — Championship pedigree for the Bannsiders' European campaign." },
-  { id: 22, date: "18 Jul", player: "Caoimhin McConnell", fromExternal: "Free transfer", to: "BAL", status: "done", note: "Attacking midfielder joins Ballymena United on a free — the rebuild rolls on at the Showgrounds." },
-  { id: 23, date: "18 Jul", player: "Dean McMaster", fromExternal: "Free transfer", to: "CLI", status: "done", note: "Defensive midfielder joins Cliftonville on a free." },
+  { id: 22, date: "18 Jul", player: "Caoimhin McConnell", fromExternal: "Bryant Bulldogs", to: "BAL", status: "done", note: "Attacking midfielder joins Ballymena United on a free from the Bryant Bulldogs — the rebuild rolls on at the Showgrounds." },
+  { id: 23, date: "18 Jul", player: "Dean McMaster", fromExternal: "Airdrieonians", to: "CLI", status: "done", note: "Defensive midfielder joins Cliftonville on a free from Airdrieonians." },
   { id: 24, date: "18 Jul", player: "Alex Bannon", fromExternal: "Burton Albion", to: "CLI", status: "done", note: "Centre-back arrives at Solitude on a free from Burton Albion — the Reds double up on new recruits in one window." },
   { id: 25, date: "18 Jul", player: "Callum McCay", from: "CLI", toExternal: "Moyola Park", status: "departure", note: "Defensive midfielder leaves Cliftonville for Moyola Park on a free." },
   { id: 26, date: "18 Jul", player: "Ethan Boyle", from: "CAR", toExternal: "CK United", status: "departure", note: "Right-back departs Carrick Rangers for CK United on a free." },
