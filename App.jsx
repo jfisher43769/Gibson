@@ -224,7 +224,7 @@ function SkelRows({ n = 3 }) {
 
 function TableView() {
   const noteLabel = { C: "Champions · Gibson Cup", IC: "Irish Cup winners · Europe", E: "Europe (automatic)", EPO: "Europe (via play-off)", PO: "Relegation play-off", R: "Relegated" };
-  const noteColor = { C: "#3DDC84", IC: "#5EC8F2", E: "#FFB627", EPO: "#5EC8F2", PO: "#E0A252", R: "#E8663C" };
+  const noteColor = { C: "#3DDC84", IC: "#5EC8F2", E: "#FFB627", EPO: "#5EC8F2", PO: "#E8663C", R: "#E8663C" };
   const [live, setLive] = useState(null);
   const [checking, setChecking] = useState(true);
   const [offline, setOffline] = useState(false);
@@ -1816,8 +1816,9 @@ function HomeView({ goTo }) {
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
   const lore = LEAGUE_LORE[dayOfYear % LEAGUE_LORE.length];
   const label = { fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 };
-  // Stadium scoreboard hero for the very next fixture; external opponents get a
-  // derived code (already-uppercase first word, else initials — RSB, TF, HJK)
+  // Stadium scoreboard hero for the very next fixture. Prefers the soonest European
+  // tie; off-season it falls back to the Premiership opener so the board always shows
+  // a real upcoming match. External opponents get a derived code (RSB, HJK, TF).
   const heroFix = nextEuro[0] || null;
   const restEuro = nextEuro.slice(heroFix ? 1 : 0);
   const oppCode = (name) => {
@@ -1826,66 +1827,81 @@ function HomeView({ goTo }) {
       ? first
       : name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 3);
   };
-  const heroDate = heroFix ? heroFix.date.match(/^(\d+)(\S*)(.*)$/) : null;
+  const board = heroFix
+    ? { home: heroFix.club, away: oppCode(heroFix.opp), date: heroFix.date, sub: `${CLUBS[heroFix.club].name} v ${heroFix.opp} · ${heroFix.comp}` }
+    : { home: openMatch.h, away: openMatch.a, date: (openMatch.d || opener.date).replace(/^\w+\s+/, ""), sub: `${CLUBS[openMatch.h].name} v ${CLUBS[openMatch.a].name} · Premiership opening night` };
+  const heroDate = board.date.match(/^(\d+)(\S*)(.*)$/);
   return (
     <div className="gb-narrow" style={{ animation: "riseIn 0.4s ease-out" }}>
-      {heroFix && (
-        <div style={{ ...SURFACE.hero, borderRadius: 14, padding: "18px 16px 14px", marginBottom: 14, textAlign: "center", animation: "boardFlicker 0.4s ease-out" }}>
-          <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>Next match</div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 18 }}>
-            <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, letterSpacing: "0.2em", color: chalk, marginRight: "-0.2em" }}>{heroFix.club}</span>
-            <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 48, lineHeight: 1, color: "#FFB627", fontVariantNumeric: "tabular-nums" }}>
-              {heroDate ? <><CountUp value={parseInt(heroDate[1], 10)} />{heroDate[2]}</> : heroFix.date}
-              {heroDate && heroDate[3] && <span style={{ fontSize: 20, letterSpacing: "0.12em", color: dim }}>{heroDate[3].toUpperCase()}</span>}
-            </span>
-            <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, letterSpacing: "0.2em", color: chalk, marginRight: "-0.2em" }}>{oppCode(heroFix.opp)}</span>
-          </div>
-          <div style={{ height: 2, width: 130, margin: "12px auto 9px", background: "#FFB627", opacity: 0.7, borderRadius: 1 }} />
-          <div style={{ fontSize: 12, color: dim }}>{CLUBS[heroFix.club].name} v {heroFix.opp} · {heroFix.comp}</div>
+      <div style={{
+        position: "relative", overflow: "hidden", borderRadius: 14, padding: "20px 16px 15px",
+        marginBottom: 14, textAlign: "center",
+        background: "linear-gradient(180deg, #0A140F, #060D0A)",
+        border: "1px solid rgba(255,182,39,0.28)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), 0 0 26px rgba(255,182,39,0.07)",
+        animation: "boardFlicker 0.4s ease-out",
+      }}>
+        <div aria-hidden="true" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, transparent, #FFB627, transparent)" }} />
+        <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 12 }}>Next match</div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 18 }}>
+          <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, letterSpacing: "0.2em", color: chalk, marginRight: "-0.2em" }}>{board.home}</span>
+          <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 48, lineHeight: 1, color: "#FFB627", fontVariantNumeric: "tabular-nums", textShadow: "0 0 18px rgba(255,182,39,0.35)" }}>
+            {heroDate ? <><CountUp value={parseInt(heroDate[1], 10)} />{heroDate[2]}</> : board.date}
+            {heroDate && heroDate[3] && <span style={{ fontSize: 20, letterSpacing: "0.12em", color: dim }}>{heroDate[3].toUpperCase()}</span>}
+          </span>
+          <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, letterSpacing: "0.2em", color: chalk, marginRight: "-0.2em" }}>{board.away}</span>
         </div>
-      )}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-        <div style={{ ...label, marginBottom: 0 }}>Next up</div>
-        <button onClick={() => goTo("matches", "fixtures")} style={{
-          fontSize: 12, fontWeight: 700, color: "#FFB627", background: "transparent", border: "none", cursor: "pointer", flexShrink: 0,
-        }}>All fixtures →</button>
+        <div style={{ height: 2, width: 130, margin: "13px auto 9px", background: "#FFB627", opacity: 0.7, borderRadius: 1 }} />
+        <div style={{ fontSize: 12, color: dim }}>{board.sub}</div>
       </div>
-      <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden", marginBottom: 18 }}>
-        {restEuro.map((f) => (
-          <div key={f.club + f.date} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 13px", borderBottom: `1px solid ${faint}` }}>
-            <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#5EC8F2", width: 74, flexShrink: 0, lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>{f.date}</div>
-            <Crest club={f.club} size={22} />
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: 13.5, fontWeight: 600, color: chalk }}>{CLUBS[f.club].name} v {f.opp}</div>
-              <div style={{ fontSize: 12, color: dim, marginTop: 2 }}>{f.comp}</div>
+      {(restEuro.length > 0 || heroFix) && (<>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+          <div style={{ ...label, marginBottom: 0 }}>Next up</div>
+          <button onClick={() => goTo("matches", "fixtures")} style={{
+            fontSize: 12, fontWeight: 700, color: "#FFB627", background: "transparent", border: "none", cursor: "pointer", flexShrink: 0,
+          }}>See all →</button>
+        </div>
+        <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden", marginBottom: 18 }}>
+          {restEuro.map((f) => (
+            <div key={f.club + f.date} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 13px", borderBottom: `1px solid ${faint}` }}>
+              <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#5EC8F2", width: 74, flexShrink: 0, lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>{f.date}</div>
+              <Crest club={f.club} size={22} />
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: chalk }}>{CLUBS[f.club].name} v {f.opp}</div>
+                <div style={{ fontSize: 12, color: dim, marginTop: 2 }}>{f.comp}</div>
+              </div>
             </div>
-          </div>
-        ))}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 13px" }}>
-          <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#FFB627", width: 74, flexShrink: 0, lineHeight: 1.2 }}>{openMatch.d || opener.date}</div>
-          <Crest club={openMatch.h} size={22} />
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontSize: 13.5, fontWeight: 600, color: chalk }}>{CLUBS[openMatch.h].name} v {CLUBS[openMatch.a].name}</div>
-            <div style={{ fontSize: 12, color: dim, marginTop: 2 }}>Premiership opening night · Round {opener.round}{openMatch.t ? ` · ${openMatch.t}` : ""}</div>
-          </div>
+          ))}
+          {heroFix && (
+            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 13px" }}>
+              <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#FFB627", width: 74, flexShrink: 0, lineHeight: 1.2 }}>{openMatch.d || opener.date}</div>
+              <Crest club={openMatch.h} size={22} />
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: chalk }}>{CLUBS[openMatch.h].name} v {CLUBS[openMatch.a].name}</div>
+                <div style={{ fontSize: 12, color: dim, marginTop: 2 }}>Premiership opening night · Round {opener.round}{openMatch.t ? ` · ${openMatch.t}` : ""}</div>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      </>)}
 
-      <div style={label}>Euro Watch · still standing</div>
-      <div style={{ display: "grid", gap: 6, marginBottom: 18 }}>
-        {nextEuro.map((f) => (
-          <button key={f.club} className="gb-row" onClick={() => goTo("matches", "europe")} style={{
-            display: "flex", alignItems: "center", gap: 10, width: "100%", textAlign: "left", cursor: "pointer",
-            ...SURFACE.card, borderRadius: 12, padding: "10px 13px",
-          }}>
-            <Crest club={f.club} size={22} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: chalk, flex: 1, minWidth: 0 }}>
-              {CLUBS[f.club].name} <span style={{ color: dim, fontWeight: 400 }}>v {f.opp} · {f.date}</span>
-            </span>
-            <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#5EC8F2", flexShrink: 0 }}>{f.comp.split(" · ")[0]}</span>
-          </button>
-        ))}
-      </div>
+      {nextEuro.length > 0 && (<>
+        <div style={label}>Euro Watch · still standing</div>
+        <div style={{ display: "grid", gap: 6, marginBottom: 18 }}>
+          {nextEuro.map((f) => (
+            <button key={f.club} className="gb-row" onClick={() => goTo("matches", "europe")} style={{
+              display: "flex", alignItems: "center", gap: 10, width: "100%", textAlign: "left", cursor: "pointer",
+              ...SURFACE.card, borderRadius: 12, padding: "10px 13px",
+            }}>
+              <Crest club={f.club} size={22} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: chalk, flex: 1, minWidth: 0 }}>
+                {CLUBS[f.club].name} <span style={{ color: dim, fontWeight: 400 }}>v {f.opp} · {f.date}</span>
+              </span>
+              <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#5EC8F2", flexShrink: 0 }}>{f.comp.split(" · ")[0]}</span>
+            </button>
+          ))}
+        </div>
+      </>)}
 
       <div style={{
         borderRadius: 14, padding: "16px", marginBottom: 18,
@@ -1931,7 +1947,7 @@ function HomeView({ goTo }) {
       <div style={{ ...SURFACE.card, borderRadius: 14, padding: "14px", marginTop: 18 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 8 }}>
           <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>Did you know? · Only in the Irish League</div>
-          <button onClick={() => goTo("more", "history")} style={{ fontSize: 12, fontWeight: 700, color: "#FFB627", background: "transparent", border: "none", cursor: "pointer", flexShrink: 0 }}>more in History →</button>
+          <button onClick={() => goTo("more", "history")} style={{ fontSize: 12, fontWeight: 700, color: "#FFB627", background: "transparent", border: "none", cursor: "pointer", flexShrink: 0 }}>See all →</button>
         </div>
         <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, textTransform: "uppercase", color: "#FFB627", lineHeight: 1.15 }}>{lore.title}</div>
         <div style={{ fontSize: 12.5, color: chalk, marginTop: 6, lineHeight: 1.55 }}>{lore.fact}</div>
@@ -2052,9 +2068,9 @@ function PlayersView() {
 
 /* ================= APP ================= */
 // Full-app crash screen — mirrored by the pre-React window.onerror fallback in index.html
-function CrashScreen() {
+function CrashScreen({ minHeight = "100vh" }) {
   return (
-    <div style={{ minHeight: "100vh", background: "#0B1512", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center", fontFamily: "'Barlow', sans-serif" }}>
+    <div style={{ minHeight, background: "#0B1512", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center", fontFamily: "'Barlow', sans-serif" }}>
       <div style={{ fontSize: 44, marginBottom: 12 }}>🏆</div>
       <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 26, color: "#EDF5EF", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 8 }}>GIBSON hit a post</div>
       <div style={{ fontSize: 13, color: "#8FA69B", lineHeight: 1.6, maxWidth: 340, marginBottom: 18 }}>
@@ -2083,21 +2099,9 @@ class GibsonBoundary extends React.Component {
   constructor(props) { super(props); this.state = { err: null }; }
   static getDerivedStateFromError(err) { return { err }; }
   render() {
-    if (this.state.err) {
-      return (
-        <div style={{ minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center" }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🏆</div>
-          <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 24, color: "#EDF5EF", textTransform: "uppercase", marginBottom: 8 }}>VAR is checking something</div>
-          <div style={{ fontSize: 13, color: "#8FA69B", lineHeight: 1.6, maxWidth: 340, marginBottom: 18 }}>
-            Something in the latest data update didn't parse. It's on us, not your phone — a fix is usually live within the hour.
-          </div>
-          <button onClick={() => window.location.reload()} style={{
-            padding: "12px 28px", borderRadius: 12, border: "none", cursor: "pointer",
-            background: "#FFB627", color: "#0B1512", fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 15, letterSpacing: "0.08em", textTransform: "uppercase",
-          }}>Try again</button>
-        </div>
-      );
-    }
+    // One crash screen, one voice — the tab-level boundary shows the same UI as the
+    // top-level one, at reduced min-height so the header/nav stay usable around it.
+    if (this.state.err) return <CrashScreen minHeight="60vh" />;
     return this.props.children;
   }
 }
