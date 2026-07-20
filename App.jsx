@@ -88,7 +88,17 @@ function CountUp({ value, decimals = 0 }) {
 }
 
 const ratingColor = (r) => (r >= 8 ? "#3DDC84" : r >= 7.3 ? "#FFB627" : "#8FA69B");
-const formColor = (f) => (f === "W" ? "#3DDC84" : f === "D" ? "#FFB627" : "#E05252");
+const formColor = (f) => (f === "W" ? "#3DDC84" : f === "D" ? "#FFB627" : "#E8663C");
+
+// Quiet error-report link — points at the GIBSON X account
+function ReportLink({ style }) {
+  return (
+    <a href="https://x.com/GibsonStats" target="_blank" rel="noopener noreferrer"
+      style={{ fontSize: 12, color: dim, textDecoration: "underline", ...style }}>
+      Spot an error? Tell GIBSON
+    </a>
+  );
+}
 
 function Crest({ club, size = 34 }) {
   const c = CLUBS[club];
@@ -196,7 +206,7 @@ function SkelRows({ n = 3 }) {
 
 function TableView() {
   const noteLabel = { C: "Champions · Gibson Cup", IC: "Irish Cup winners · Europe", E: "Europe (automatic)", EPO: "Europe (via play-off)", PO: "Relegation play-off", R: "Relegated" };
-  const noteColor = { C: "#3DDC84", IC: "#5EC8F2", E: "#FFB627", EPO: "#5EC8F2", PO: "#E0A252", R: "#E05252" };
+  const noteColor = { C: "#3DDC84", IC: "#5EC8F2", E: "#FFB627", EPO: "#5EC8F2", PO: "#E0A252", R: "#E8663C" };
   const [live, setLive] = useState(null);
   const [checking, setChecking] = useState(true);
   useEffect(() => {
@@ -246,7 +256,12 @@ function TableView() {
                 </span>
                 <span style={{ display: "flex", gap: 3 }}>
                   {row.form.split("").map((f, j) => (
-                    <span key={j} style={{ width: 6.5, height: 6.5, borderRadius: "50%", background: formColor(f), opacity: j === row.form.length - 1 ? 1 : 0.55 }} />
+                    <span key={j} aria-label={f === "W" ? "win" : f === "D" ? "draw" : "loss"} style={{
+                      width: 14, height: 14, borderRadius: 4, background: formColor(f), color: "#0B1512",
+                      fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 10, lineHeight: 1,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      opacity: j === row.form.length - 1 ? 1 : 0.62,
+                    }}>{f}</span>
                   ))}
                 </span>
               </div>
@@ -633,7 +648,7 @@ function ClubLedger() {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         <List title={`→ In at ${CLUBS[club].name}`} items={w.ins} color="#3DDC84" />
-        <List title={`← Out`} items={w.outs} color="#E05252" />
+        <List title={`← Out`} items={w.outs} color="#E8663C" />
       </div>
       <div style={{ fontSize: 12, color: dim, marginTop: 8, lineHeight: 1.5 }}>
         Compiled from Transfermarkt, July 2026 — may not be exhaustive. Loan returns noted where known.
@@ -1133,7 +1148,7 @@ function PredictorView() {
       const pts = scoreFor(f);
       if (pts !== null) {
         ctx.font = "bold 26px 'Barlow Condensed', 'Arial Narrow', sans-serif";
-        ctx.fillStyle = pts === 3 ? "#3DDC84" : pts === 1 ? "#FFB627" : "#FF5A5A";
+        ctx.fillStyle = pts === 3 ? "#3DDC84" : pts === 1 ? "#FFB627" : "#E8663C";
         ctx.fillText(pts === 3 ? "EXACT · +3" : pts === 1 ? "RESULT · +1" : "+0", W/2, y + 48);
       } else {
         ctx.font = "24px 'Barlow Condensed', 'Arial Narrow', sans-serif";
@@ -1259,7 +1274,7 @@ function PredictorView() {
                 <div style={{ textAlign: "center", marginTop: 10, fontSize: 12 }}>
                   <span style={{ color: dim }}>Result: </span>
                   <span style={{ color: chalk, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{f.result[0]}–{f.result[1]}</span>
-                  {pts !== null && <span style={{ color: pts === 3 ? "#3DDC84" : pts === 1 ? "#FFB627" : "#E05252", fontWeight: 700 }}> · +{pts} pts</span>}
+                  {pts !== null && <span style={{ color: pts === 3 ? "#3DDC84" : pts === 1 ? "#FFB627" : "#E8663C", fontWeight: 700 }}> · +{pts} pts</span>}
                 </div>
               )}
               <OddsStrip odds={f.odds} homeLabel={sideName(f.home)} awayLabel={sideName(f.away)} />
@@ -1432,7 +1447,7 @@ function HistoryView() {
             {arch.relegated && (
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
                 <span style={{ fontSize: 12, color: dim, textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0 }}>Relegated</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "#E05252" }}>{arch.relegated}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#E8663C" }}>{arch.relegated}</span>
               </div>
             )}
           </div>
@@ -1535,8 +1550,8 @@ function StatsView() {
                 <span style={{ fontSize: 12, fontWeight: 600, color: chalk }}>{CLUBS[t.club].name}
                   <span style={{ color: dim, fontWeight: 400, fontSize: 12 }}> · xG {t.xg.toFixed(2)} · xGA {t.xga.toFixed(2)}</span>
                 </span>
-                <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: t.xgd >= 0 ? "#3DDC84" : "#FF5A5A", fontVariantNumeric: "tabular-nums" }}>
-                  {t.xgd >= 0 ? "+" : ""}{t.xgd.toFixed(2)}
+                <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: t.xgd >= 0 ? "#3DDC84" : "#E8663C", fontVariantNumeric: "tabular-nums" }}>
+                  {t.xgd >= 0 ? "+" : "−"}{Math.abs(t.xgd).toFixed(2)}
                 </span>
               </div>
               <div style={{ height: 6, borderRadius: 3, background: faint, overflow: "hidden", display: "flex", justifyContent: "center" }}>
@@ -1545,7 +1560,7 @@ function StatsView() {
                   <div style={{ position: "absolute", top: 0, bottom: 0,
                     left: t.xgd >= 0 ? "50%" : `${50 - (Math.abs(t.xgd) / 0.7) * 50}%`,
                     width: `${(Math.abs(t.xgd) / 0.7) * 50}%`,
-                    background: t.xgd >= 0 ? "linear-gradient(90deg, #3DDC8455, #3DDC84)" : "linear-gradient(90deg, #FF5A5A, #FF5A5A55)",
+                    background: t.xgd >= 0 ? "linear-gradient(90deg, #3DDC8455, #3DDC84)" : "linear-gradient(90deg, #E8663C, #E8663C55)",
                     borderRadius: 3 }} />
                 </div>
               </div>
@@ -1573,8 +1588,8 @@ function StatsView() {
               <span style={{ fontSize: 12, fontWeight: 600, color: chalk, flex: 1 }}>{p.name}</span>
               <span style={{ fontSize: 12, color: dim, fontVariantNumeric: "tabular-nums" }}>{p.goals}g / {p.xg.toFixed(1)} xG</span>
               <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13.5, minWidth: 44, textAlign: "right",
-                color: diff >= 2 ? "#3DDC84" : diff <= -1 ? "#FF5A5A" : chalk, fontVariantNumeric: "tabular-nums" }}>
-                {diff >= 0 ? "+" : ""}{diff.toFixed(1)}
+                color: diff >= 2 ? "#3DDC84" : diff <= -1 ? "#E8663C" : chalk, fontVariantNumeric: "tabular-nums" }}>
+                {diff >= 0 ? "+" : "−"}{Math.abs(diff).toFixed(1)}
               </span>
             </div>
           );
@@ -1611,6 +1626,7 @@ function StatsView() {
         The quirk of 25/26: Coleraine outscored everyone — 10 more than champions Larne — and still finished second.
         All figures verified via AiScore and published stats tables, July 2026.
       </div>
+      <div style={{ marginTop: 16 }}><ReportLink /></div>
     </div>
   );
 }
@@ -1965,7 +1981,7 @@ function PlayersView() {
             }}>
               <Crest club={inj.club} size={18} />
               <span style={{ fontSize: 12.5, fontWeight: 600, color: chalk, flex: 1 }}>{inj.player}</span>
-              <span style={{ fontSize: 12, color: "#E05252" }}>✚ {inj.injury}</span>
+              <span style={{ fontSize: 12, color: "#E8663C" }}>✚ {inj.injury}</span>
             </div>
           ))}
         </div>
@@ -1985,12 +2001,12 @@ function PlayersView() {
             ))}
           </div>
           <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "10px 12px" }}>
-            <div style={{ fontSize: 12, color: "#E05252", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>🟥 Most reds</div>
+            <div style={{ fontSize: 12, color: "#E8663C", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>🟥 Most reds</div>
             {DISCIPLINE.reds.map((p) => (
               <div key={p.player} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
                 <Crest club={p.club} size={15} />
                 <span style={{ fontSize: 12, color: chalk, flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.player}</span>
-                <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#E05252", fontVariantNumeric: "tabular-nums" }}>{p.n}</span>
+                <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#E8663C", fontVariantNumeric: "tabular-nums" }}>{p.n}</span>
               </div>
             ))}
           </div>
@@ -1999,6 +2015,7 @@ function PlayersView() {
           Bangor's Lewis Harrison: 10 yellows AND 2 reds — the league's most booked man. Via AiScore.
         </div>
       </div>
+      <div style={{ marginTop: 4 }}><ReportLink /></div>
     </div>
   );
 }
@@ -2179,6 +2196,9 @@ function AppShell() {
         </GibsonBoundary>
         <div style={{ textAlign: "center", padding: "26px 0 10px", fontSize: 12, color: "rgba(143,166,155,0.55)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
           GIBSON 1.06 · build 17 JUL · 🏆
+        </div>
+        <div style={{ textAlign: "center", padding: "0 0 14px" }}>
+          <ReportLink />
         </div>
         <div style={{ textAlign: "center", padding: "0 0 24px", fontSize: 12, color: "rgba(143,166,155,0.55)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
           Unofficial fan project — not affiliated with the NIFL or any club · <a href="/privacy.html" style={{ color: "rgba(143,166,155,0.55)", textDecoration: "underline" }}>Privacy</a>
