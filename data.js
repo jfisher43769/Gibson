@@ -322,13 +322,12 @@ export const LEAGUE_LORE = [
 // When results are known, fill in `result: [home, away]` on each fixture and redeploy —
 // saved predictions on each player's device are scored automatically.
 export const PREDICTOR_GW = {
-  id: "euro-week-2",
-  name: "Euro Week 2 · Second Legs",
-  deadline: "Larne tonight 8pm · Glens & Blues Thursday",
+  id: "euro-week-3",
+  name: "Euro Week 3 · Q2 First Legs",
+  deadline: "Larne Tue 21 Jul · Coleraine Thu 23/24 Jul",
   fixtures: [
-    { id: "f1", home: { club: "LAR" }, away: { external: "Tre Fiori" }, comp: "UCL Q1 · 2nd leg · Inver Park · lead 1-0", result: [2, 1], odds: { home: 1.1, draw: 8.0, away: 15.0 } },
-    { id: "f2", home: { external: "RFS" }, away: { club: "GLE" }, comp: "UECL Q1 · 2nd leg · Riga · Glens trail 1-2", result: [2, 0], odds: { home: 1.7, draw: 3.8, away: 4.5 } },
-    { id: "f3", home: { club: "LIN" }, away: { external: "Nõmme Kalju" }, comp: "UECL Q1 · 2nd leg · Windsor · Blues trail 0-1", result: [2, 2], odds: { home: 1.75, draw: 3.5, away: 4.3 } },
+    { id: "f1", home: { club: "LAR" }, away: { external: "Red Star Belgrade" }, comp: "UCL Q2 · 1st leg · Inver Park", result: null, odds: { home: 8.0, draw: 5.0, away: 1.35 } },
+    { id: "f2", home: { external: "HJK Helsinki" }, away: { club: "COL" }, comp: "UECL Q2 · 1st leg · Helsinki", result: null, odds: { home: 1.9, draw: 3.6, away: 3.9 } },
   ],
 };
 
@@ -556,14 +555,14 @@ export // Odds are informational only — plain numbers, no bookmaker branding, 
 // Leave as null until you have a source you trust. See Playbook section 8.
 const EURO = [
   {
-    club: "LAR", comp: "Champions League", round: "First qualifying round",
-    opp: "Tre Fiori", oppCountry: "San Marino", odds: { home: 12.0, draw: 6.0, away: 1.15 },
+    club: "LAR", comp: "Champions League", round: "Second qualifying round",
+    opp: "Red Star Belgrade", oppCountry: "Serbia", odds: null,
     legs: [
-      { label: "1st leg · away", date: "Tue 7/8 Jul", venue: "San Marino" },
-      { label: "2nd leg · home", date: "Tue 14 Jul · 20:00", venue: "Inver Park" },
+      { label: "1st leg · home", date: "Tue 21 Jul", venue: "Inver Park" },
+      { label: "2nd leg · away", date: "28/29 Jul", venue: "Belgrade" },
     ],
-    prize: "Winner faces Red Star Belgrade in Q2 (21 Jul & 28/29 Jul)",
-    note: "THROUGH: Larne 2-1 Tre Fiori at Inver Park, 3-1 on aggregate. The prize is enormous and it's real now — Crvena Zvezda, Red Star Belgrade, in Q2, first leg 21 July. Even defeat there isn't the end: the loser drops into Conference League Q3.",
+    prize: "Winner reaches UCL Q3 — and the loser still drops into Conference League Q3",
+    note: "The big one is here: Crvena Zvezda — Red Star Belgrade — at Inver Park on Tuesday night, with the return in Belgrade a week later. Larne beat Tre Fiori 3-1 on aggregate to earn it. However the tie goes, the European summer continues: the loser parachutes into Conference League Q3.",
   },
   {
     club: "GLE", comp: "Conference League", round: "First qualifying round",
@@ -602,8 +601,8 @@ export const CLUB_FIXTURES = {
   LAR: [
     { date: "8 Jul", res: "0–1 W", opp: "Tre Fiori (a) — Lusty 45'", comp: "UCL Q1 · 1st leg" },
     { date: "14 Jul", res: "2–1 W", opp: "Tre Fiori (h)", comp: "UCL Q1 · 2nd leg · 3–1 agg" },
-    { date: "21 Jul", opp: "Red Star Belgrade", comp: "UCL Q2 · 1st leg" },
-    { date: "28/29 Jul", opp: "Red Star Belgrade", comp: "UCL Q2 · 2nd leg" },
+    { date: "21 Jul", opp: "Red Star Belgrade", comp: "UCL Q2 · 1st leg · Inver Park" },
+    { date: "28/29 Jul", opp: "Red Star Belgrade", comp: "UCL Q2 · 2nd leg · Belgrade" },
   ],
   GLE: [
     { date: "9 Jul", res: "1–2 L", opp: "RFS (h) — Ibsen Rossi 38'", comp: "UECL Q1 · 1st leg" },
