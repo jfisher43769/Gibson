@@ -1844,7 +1844,12 @@ function HomeView({ goTo }) {
           <div style={{ fontSize: 12, color: dim }}>{CLUBS[heroFix.club].name} v {heroFix.opp} · {heroFix.comp}</div>
         </div>
       )}
-      <div style={label}>Next up</div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+        <div style={{ ...label, marginBottom: 0 }}>Next up</div>
+        <button onClick={() => goTo("matches", "fixtures")} style={{
+          fontSize: 12, fontWeight: 700, color: "#FFB627", background: "transparent", border: "none", cursor: "pointer", flexShrink: 0,
+        }}>All fixtures →</button>
+      </div>
       <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden", marginBottom: 18 }}>
         {restEuro.map((f) => (
           <div key={f.club + f.date} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 13px", borderBottom: `1px solid ${faint}` }}>
