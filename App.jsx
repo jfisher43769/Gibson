@@ -56,6 +56,19 @@ const SURFACE = {
   hero: { background: "linear-gradient(120deg, rgba(255,182,39,0.12), transparent 60%), rgba(240,255,245,0.03)", border: `1px solid ${faint}` },
 };
 
+// Near-white overlay used for interactive chrome (buttons, icon tiles) — one fill,
+// not the ten ad-hoc opacities this replaced. Card/hero backgrounds stay in SURFACE;
+// data-viz strokes and CSS hover/scrollbar are intentionally separate.
+const OVERLAY = { fill: "rgba(240,255,245,0.06)" };
+
+// Type scale — the app's intentional sizes. 12 is the accessibility floor (labels,
+// captions, footnotes); everything else steps up from there. Orphan sizes (12.5,
+// 13.5, 14.5, 17, 18, 19, 22) were snapped to their nearest step below.
+//   12 cap · 13 small · 14 body · 15 control · 16 lead · 20 title · 24/26 head ·
+//   30/34 stat · 38 wordmark · 48 scoreboard · 120 watermark
+// Spacing rhythm keeps to even steps (2/4/6/8/10/12/14/16/18/20/22/24); odd
+// orphans (5/7/9) were snapped to the nearest even.
+
 // Staggered list entrance: ~30ms per row, capped at row 10. The global
 // prefers-reduced-motion rule disables all animation, so no check needed here.
 const rise = (i) => ({ animation: `riseIn 0.35s ease-out ${Math.min(i, 10) * 0.03}s backwards` });
@@ -265,10 +278,10 @@ function TableView() {
             borderRadius: 12, padding: "10px 14px 10px 11px",
             ...rise(i),
           }}>
-            <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, color: dim, width: 24, textAlign: "center", fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>{i + 1}</div>
+            <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 16, color: dim, width: 24, textAlign: "center", fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>{i + 1}</div>
             <Crest club={row.club} size={26} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: 14.5, color: chalk }}>{CLUBS[row.club].name}</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: chalk }}>{CLUBS[row.club].name}</div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
                 <span style={{ fontSize: 12, color: dim, fontVariantNumeric: "tabular-nums" }}>
                   P{row.p} · W{row.w} D{row.d} L{row.l} · {row.gd > 0 ? "+" : ""}{row.gd} GD
@@ -277,7 +290,7 @@ function TableView() {
                   {row.form.split("").map((f, j) => (
                     <span key={j} aria-label={f === "W" ? "win" : f === "D" ? "draw" : "loss"} style={{
                       width: 14, height: 14, borderRadius: 4, background: formColor(f), color: "#0B1512",
-                      fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 10, lineHeight: 1,
+                      fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 12, lineHeight: 1,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       opacity: j === row.form.length - 1 ? 1 : 0.62,
                     }}>{f}</span>
@@ -307,13 +320,13 @@ function TableView() {
       ...rise(i),
     }}>
       <div style={{
-        fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 18,
+        fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 16,
         color: note ? noteColor[note] : dim, width: 26, textAlign: "center",
         fontVariantNumeric: "tabular-nums", flexShrink: 0,
       }}>{pos ?? "·"}</div>
       <Crest club={club} size={26} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 700, fontSize: 14.5, color: chalk }}>{CLUBS[club].name}</div>
+        <div style={{ fontWeight: 700, fontSize: 14, color: chalk }}>{CLUBS[club].name}</div>
         {(note || tag) && <div style={{ fontSize: 12, color: note ? noteColor[note] : dim, marginTop: 2 }}>{note ? noteLabel[note] : tag}</div>}
       </div>
     </div>
@@ -358,10 +371,10 @@ function TableView() {
               borderRadius: 12, padding: "10px 14px 10px 11px",
               ...rise(i),
             }}>
-              <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, color: row.note ? noteC[row.note] : dim, width: 24, textAlign: "center", fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>{i + 1}</div>
+              <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 16, color: row.note ? noteC[row.note] : dim, width: 24, textAlign: "center", fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>{i + 1}</div>
               <Crest club={row.club} size={26} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 14.5, color: chalk }}>{CLUBS[row.club].name}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: chalk }}>{CLUBS[row.club].name}</div>
                 <div style={{ fontSize: 12, color: dim, marginTop: 2, fontVariantNumeric: "tabular-nums" }}>
                   P{row.p} · W{row.w} D{row.d} L{row.l} · {row.gd > 0 ? "+" : ""}{row.gd} GD
                 </div>
@@ -384,7 +397,7 @@ function TableView() {
           <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
             Squad Market Values 26/27 · Transfermarkt
           </div>
-          <div style={{ display: "grid", gap: 7 }}>
+          <div style={{ display: "grid", gap: 8 }}>
             {MARKET_VALUES.map((m, i) => (
               <div key={m.club} style={{ display: "flex", alignItems: "center", gap: 10, ...rise(i) }}>
                 <Crest club={m.club} size={20} />
@@ -444,7 +457,7 @@ function TableView() {
         <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
           Squad Market Values 26/27 · Transfermarkt
         </div>
-        <div style={{ display: "grid", gap: 7 }}>
+        <div style={{ display: "grid", gap: 8 }}>
           {MARKET_VALUES.map((m, i) => (
             <div key={m.club} style={{ display: "flex", alignItems: "center", gap: 10, ...rise(i) }}>
               <Crest club={m.club} size={20} />
@@ -644,7 +657,7 @@ function ClubLedger() {
       <div style={{ fontSize: 12, color, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>{title}</div>
       {items.length === 0 && <div style={{ fontSize: 12, color: dim, fontStyle: "italic" }}>None recorded yet</div>}
       {items.map(([p, c]) => (
-        <div key={p + c} style={{ marginBottom: 7 }}>
+        <div key={p + c} style={{ marginBottom: 8 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: chalk, lineHeight: 1.3 }}>{p}</div>
           <div style={{ fontSize: 12, color: dim }}>{c}</div>
         </div>
@@ -703,7 +716,7 @@ function TransfersView() {
       </div>
       <div style={{ display: "grid", gap: 10 }}>
         {items.length === 0 && (
-          <div style={{ border: `1px dashed ${faint}`, borderRadius: 14, padding: "18px 16px", fontSize: 12.5, color: dim, lineHeight: 1.6, textAlign: "center" }}>
+          <div style={{ border: `1px dashed ${faint}`, borderRadius: 14, padding: "18px 16px", fontSize: 13, color: dim, lineHeight: 1.6, textAlign: "center" }}>
             {emptyLines[filter] || "Nothing here yet."}
           </div>
         )}
@@ -718,7 +731,7 @@ function TransfersView() {
               ...rise(i),
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 17, color: chalk }}>{t.player}</span>
+                <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 16, color: chalk }}>{t.player}</span>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                   <span style={{ fontSize: 12, color: dim }}>{t.date}</span>
                   <span style={{ fontSize: 12, fontWeight: 700, color: meta.color, background: `${meta.color}1F`, borderRadius: 999, padding: "3px 9px", letterSpacing: "0.06em", textTransform: "uppercase" }}>{meta.label}</span>
@@ -745,7 +758,7 @@ function TransfersView() {
                 )}
                 {isContract && <span style={{ fontSize: 12, color: "#5EC8F2" }}>✎ stays put</span>}
               </div>
-              <div style={{ fontSize: 12, color: dim, marginTop: 7, lineHeight: 1.4 }}>{t.note}</div>
+              <div style={{ fontSize: 12, color: dim, marginTop: 8, lineHeight: 1.4 }}>{t.note}</div>
             </div>
           );
         })}
@@ -820,7 +833,7 @@ function EuropeView() {
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
                 <Crest club={e.club} size={26} />
                 <div style={{ flex: 1, minWidth: 140 }}>
-                  <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 19, textTransform: "uppercase", color: chalk, lineHeight: 1 }}>
+                  <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 20, textTransform: "uppercase", color: chalk, lineHeight: 1 }}>
                     {c.name} <span style={{ color: dim, fontWeight: 600 }}>v</span> {e.opp}
                   </div>
                   <div style={{ fontSize: 12, color: dim, marginTop: 3 }}>{e.opp} · {e.oppCountry}</div>
@@ -841,7 +854,7 @@ function EuropeView() {
                   </div>
                 ))}
               </div>
-              <div style={{ fontSize: 12, color: "#FFB627", fontWeight: 600, marginBottom: 5 }}>→ {e.prize}</div>
+              <div style={{ fontSize: 12, color: "#FFB627", fontWeight: 600, marginBottom: 6 }}>→ {e.prize}</div>
               <div style={{ fontSize: 12, color: dim, lineHeight: 1.45 }}>{e.note}</div>
               <OddsStrip
                 odds={e.odds}
@@ -900,7 +913,7 @@ function FixturesView() {
           <button key={m} onClick={() => setMode(m)} style={{
             flex: 1, padding: "9px", borderRadius: 10, cursor: "pointer",
             fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, letterSpacing: "0.08em", textTransform: "uppercase",
-            background: mode === m ? "#FFB627" : "rgba(240,255,245,0.05)",
+            background: mode === m ? "#FFB627" : OVERLAY.fill,
             color: mode === m ? "#0B1512" : dim,
             border: `1px solid ${mode === m ? "#FFB627" : faint}`,
           }}>{label}</button>
@@ -914,7 +927,7 @@ function FixturesView() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
               <button onClick={() => setRound(Math.max(1, round - 1))} disabled={round === 1} style={{
                 padding: "8px 16px", borderRadius: 10, cursor: round === 1 ? "default" : "pointer", opacity: round === 1 ? 0.3 : 1,
-                background: "rgba(240,255,245,0.06)", color: chalk, border: `1px solid ${faint}`,
+                background: OVERLAY.fill, color: chalk, border: `1px solid ${faint}`,
                 fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 16,
               }} aria-label="Previous round">‹</button>
               <div style={{ textAlign: "center" }}>
@@ -923,7 +936,7 @@ function FixturesView() {
               </div>
               <button onClick={() => setRound(Math.min(33, round + 1))} disabled={round === 33} style={{
                 padding: "8px 16px", borderRadius: 10, cursor: round === 33 ? "default" : "pointer", opacity: round === 33 ? 0.3 : 1,
-                background: "rgba(240,255,245,0.06)", color: chalk, border: `1px solid ${faint}`,
+                background: OVERLAY.fill, color: chalk, border: `1px solid ${faint}`,
                 fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 16,
               }} aria-label="Next round">›</button>
             </div>
@@ -935,13 +948,13 @@ function FixturesView() {
                   background: i % 2 ? "rgba(240,255,245,0.02)" : "transparent",
                 }}>
                   <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, justifyContent: "flex-end" }}>
-                    <span style={{ fontSize: 12.5, fontWeight: 600, color: chalk, textAlign: "right" }}>{CLUBS[m.h].name}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: chalk, textAlign: "right" }}>{CLUBS[m.h].name}</span>
                     <Crest club={m.h} size={19} />
                   </div>
                   <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#FFB627", padding: "0 12px" }}>V</span>
                   <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
                     <Crest club={m.a} size={19} />
-                    <span style={{ fontSize: 12.5, fontWeight: 600, color: chalk }}>{CLUBS[m.a].name}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: chalk }}>{CLUBS[m.a].name}</span>
                   </div>
                 </div>
               ))}
@@ -1022,7 +1035,7 @@ function FixturesView() {
               }}>
                 <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#5EC8F2", width: 74, flexShrink: 0, lineHeight: 1.2 }}>{f.date}{f.res && <span style={{ color: "#FFB627" }}> {f.res}</span>}</div>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 600, color: chalk }}>{f.opp.replace("*", "")}{f.opp.includes("*") && <span style={{ fontSize: 12, color: dim }}> (provisional)</span>}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: chalk }}>{f.opp.replace("*", "")}{f.opp.includes("*") && <span style={{ fontSize: 12, color: dim }}> (provisional)</span>}</div>
                   <div style={{ fontSize: 12, color: dim, marginTop: 2 }}>{f.comp}</div>
                 </div>
               </div>
@@ -1045,7 +1058,7 @@ function FixturesView() {
             </div>
             <Crest club={f.opp} size={22} />
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: 13.5, fontWeight: 600, color: chalk }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: chalk }}>
                 {CLUBS[f.opp].name} <span style={{ color: f.home ? "#3DDC84" : dim, fontSize: 12, fontWeight: 700 }}>{f.home ? "(H)" : "(A)"}</span>
               </div>
               <div style={{ fontSize: 12, color: dim, marginTop: 2 }}>Round {f.round} · {f.venue}</div>
@@ -1055,7 +1068,7 @@ function FixturesView() {
       </div>
       <button onClick={() => setShowAll(!showAll)} style={{
         width: "100%", marginTop: 10, padding: "11px", borderRadius: 10, cursor: "pointer",
-        background: "rgba(240,255,245,0.05)", color: chalk, border: `1px solid ${faint}`,
+        background: OVERLAY.fill, color: chalk, border: `1px solid ${faint}`,
         fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, letterSpacing: "0.08em", textTransform: "uppercase",
       }}>{showAll ? "Show opening five only" : `Show all ${leagueFixtures.length} league fixtures`}</button>
       <div style={{ fontSize: 12, color: dim, marginTop: 10, lineHeight: 1.5 }}>
@@ -1221,23 +1234,23 @@ function PredictorView() {
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
       <button onClick={() => bump(fid, side, 1)} disabled={locked} style={{
         width: 34, height: 26, borderRadius: 8, border: `1px solid ${faint}`, cursor: locked ? "default" : "pointer",
-        background: "rgba(240,255,245,0.06)", color: locked ? dim : "#FFB627", fontSize: 15, fontWeight: 800,
+        background: OVERLAY.fill, color: locked ? dim : "#FFB627", fontSize: 15, fontWeight: 800,
         opacity: locked ? 0.4 : 1,
       }}>+</button>
       <div style={{
-        fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 32, color: chalk,
+        fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 30, color: chalk,
         fontVariantNumeric: "tabular-nums", lineHeight: 1, minWidth: 30, textAlign: "center",
       }}>{picks[fid][side]}</div>
       <button onClick={() => bump(fid, side, -1)} disabled={locked} style={{
         width: 34, height: 26, borderRadius: 8, border: `1px solid ${faint}`, cursor: locked ? "default" : "pointer",
-        background: "rgba(240,255,245,0.06)", color: locked ? dim : "#FFB627", fontSize: 15, fontWeight: 800,
+        background: OVERLAY.fill, color: locked ? dim : "#FFB627", fontSize: 15, fontWeight: 800,
         opacity: locked ? 0.4 : 1,
       }}>−</button>
     </div>
   );
 
   const TeamCell = ({ s }) => (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, width: 84 }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 84 }}>
       {s.club
         ? <Crest club={s.club} size={30} />
         : <div style={{ width: 30, height: 34, borderRadius: 6, border: `1px dashed ${dim}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: dim, fontFamily: "'Barlow Condensed'", fontWeight: 700 }}>EUR</div>}
@@ -1253,7 +1266,7 @@ function PredictorView() {
         display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap",
       }}>
         <div>
-          <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 22, textTransform: "uppercase", color: chalk, lineHeight: 1.1 }}>
+          <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 20, textTransform: "uppercase", color: chalk, lineHeight: 1.1 }}>
             The Predictor · {PREDICTOR_GW.name}
           </div>
           <div style={{ fontSize: 12, color: dim, marginTop: 4 }}>
@@ -1313,7 +1326,7 @@ function PredictorView() {
         {locked ? (
           <button onClick={unlock} style={{
             padding: "12px", borderRadius: 10, cursor: "pointer",
-            background: "rgba(240,255,245,0.06)", color: chalk, border: `1px solid ${faint}`,
+            background: OVERLAY.fill, color: chalk, border: `1px solid ${faint}`,
             fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 15, letterSpacing: "0.08em", textTransform: "uppercase",
           }}>✏️ Edit picks</button>
         ) : (
@@ -1330,7 +1343,7 @@ function PredictorView() {
         }}>{resultsIn ? "🎯 Share my score" : "🎯 Share my picks"}</button>
         <button onClick={copyPicks} style={{
           padding: "12px", borderRadius: 10, cursor: "pointer",
-          background: "rgba(240,255,245,0.06)", color: copied ? "#3DDC84" : chalk, border: `1px solid ${copied ? "#3DDC84" : faint}`,
+          background: OVERLAY.fill, color: copied ? "#3DDC84" : chalk, border: `1px solid ${copied ? "#3DDC84" : faint}`,
           fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 15, letterSpacing: "0.08em", textTransform: "uppercase",
         }}>{copied ? "✓ Copied!" : "📋 Copy as text"}</button>
       </div>
@@ -1362,7 +1375,7 @@ function HistoryView() {
         <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 24, textTransform: "uppercase", color: chalk, lineHeight: 1.1 }}>
           The Gibson Cup
         </div>
-        <div style={{ fontSize: 12.5, color: dim, marginTop: 8, lineHeight: 1.55 }}>
+        <div style={{ fontSize: 13, color: dim, marginTop: 8, lineHeight: 1.55 }}>
           Contested since the league's founding era in 1890, the Gibson Cup is one of the oldest prizes
           in world football — and the trophy this site is named after.
         </div>
@@ -1372,14 +1385,14 @@ function HistoryView() {
         {RECORDS.map((r) => (
           <div key={r.label} style={{ ...SURFACE.card, borderRadius: 12, padding: "12px 13px" }}>
             <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 30, color: "#FFB627", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{r.big}</div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: chalk, marginTop: 5 }}>{r.label}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: chalk, marginTop: 6 }}>{r.label}</div>
             <div style={{ fontSize: 12, color: dim, marginTop: 3, lineHeight: 1.4 }}>{r.sub}</div>
           </div>
         ))}
       </div>
 
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>All-time league titles · current Premiership clubs</div>
-      <div style={{ display: "grid", gap: 7, marginBottom: 20 }}>
+      <div style={{ display: "grid", gap: 8, marginBottom: 20 }}>
         {ALL_TIME_TITLES.map((t, i) => {
           const c = CLUBS[t.club];
           return (
@@ -1427,8 +1440,8 @@ function HistoryView() {
         <div className="gb-desk-2col" style={{ display: "grid", gap: 10 }}>
           {LEAGUE_LORE.map((l, i) => (
             <div key={l.id} style={{ ...SURFACE.card, borderRadius: 12, padding: "13px 14px", ...rise(i) }}>
-              <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, textTransform: "uppercase", color: "#FFB627", lineHeight: 1.15 }}>{l.title}</div>
-              <div style={{ fontSize: 12.5, color: chalk, marginTop: 6, lineHeight: 1.55 }}>{l.fact}</div>
+              <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 16, textTransform: "uppercase", color: "#FFB627", lineHeight: 1.15 }}>{l.title}</div>
+              <div style={{ fontSize: 13, color: chalk, marginTop: 6, lineHeight: 1.55 }}>{l.fact}</div>
               <div style={{ fontSize: 12, color: dim, marginTop: 6 }}>{l.source}</div>
             </div>
           ))}
@@ -1446,7 +1459,7 @@ function HistoryView() {
           </select>
         </div>
         <div style={{ ...SURFACE.card, borderRadius: 14, padding: "14px 15px", animation: "riseIn 0.35s ease-out" }} key={arch.season}>
-          <div style={{ display: "grid", gap: 9 }}>
+          <div style={{ display: "grid", gap: 8 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
               <span style={{ fontSize: 12, color: dim, textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0 }}>Champions 🏆</span>
               <span style={{ fontSize: 13, fontWeight: 700, color: "#FFB627", textAlign: "right" }}>{arch.champion}{arch.champNote && <span style={{ color: dim, fontWeight: 400 }}> · {arch.champNote}</span>}</span>
@@ -1479,7 +1492,7 @@ function HistoryView() {
           {arch.facts?.length > 0 && (
             <div style={{ marginTop: 12, borderTop: `1px solid ${faint}`, paddingTop: 10 }}>
               {arch.facts.map((f) => (
-                <div key={f} style={{ fontSize: 12, color: dim, lineHeight: 1.5, display: "flex", gap: 7, marginBottom: 5 }}>
+                <div key={f} style={{ fontSize: 12, color: dim, lineHeight: 1.5, display: "flex", gap: 8, marginBottom: 6 }}>
                   <span style={{ color: "#FFB627", flexShrink: 0 }}>›</span>{f}
                 </div>
               ))}
@@ -1504,7 +1517,7 @@ function StatsView() {
         borderRadius: 14, padding: "16px", marginBottom: 16,
         ...SURFACE.hero,
       }}>
-        <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 22, textTransform: "uppercase", color: chalk, lineHeight: 1.1 }}>
+        <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 20, textTransform: "uppercase", color: chalk, lineHeight: 1.1 }}>
           The Stats Lab ⚡
         </div>
         <div style={{ fontSize: 12, color: dim, marginTop: 4 }}>25/26 season · verified team-level numbers</div>
@@ -1515,7 +1528,7 @@ function StatsView() {
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
         The Entertainment Index · goals per game in their matches
       </div>
-      <div style={{ display: "grid", gap: 7, marginBottom: 8 }}>
+      <div style={{ display: "grid", gap: 8, marginBottom: 8 }}>
         {GOALS_STATS.map((t, i) => (
           <div key={t.club} style={{ display: "flex", alignItems: "center", gap: 10, ...rise(i) }}>
             <Crest club={t.club} size={20} />
@@ -1543,7 +1556,7 @@ function StatsView() {
         <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "12px" }}>
           <div style={{ fontSize: 12, color: "#3DDC84", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>🧤 Clean sheet kings</div>
           {csSorted.map((t) => (
-            <div key={t.club} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
+            <div key={t.club} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
               <Crest club={t.club} size={15} />
               <span style={{ fontSize: 12, color: chalk, flex: 1 }}>{CLUBS[t.club].name}</span>
               <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#3DDC84", fontVariantNumeric: "tabular-nums" }}>{t.cs}%</span>
@@ -1566,7 +1579,7 @@ function StatsView() {
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
         The xG Lab · expected goals per 90
       </div>
-      <div style={{ display: "grid", gap: 7, marginBottom: 8 }}>
+      <div style={{ display: "grid", gap: 8, marginBottom: 8 }}>
         {XG_TEAMS.map((t, i) => (
           <div key={t.club} style={{ display: "flex", alignItems: "center", gap: 10, ...rise(i) }}>
             <Crest club={t.club} size={20} />
@@ -1608,11 +1621,11 @@ function StatsView() {
         {XG_PLAYERS.map((p, i) => {
           const diff = p.goals - p.xg;
           return (
-            <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 9, ...rise(i) }}>
+            <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 8, ...rise(i) }}>
               <Crest club={p.club} size={17} />
               <span style={{ fontSize: 12, fontWeight: 600, color: chalk, flex: 1 }}>{p.name}</span>
               <span style={{ fontSize: 12, color: dim, fontVariantNumeric: "tabular-nums" }}>{p.goals}g / {p.xg.toFixed(1)} xG</span>
-              <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13.5, minWidth: 44, textAlign: "right",
+              <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, minWidth: 44, textAlign: "right",
                 color: diff >= 2 ? "#3DDC84" : diff <= -1 ? "#E8663C" : chalk, fontVariantNumeric: "tabular-nums" }}>
                 {diff >= 0 ? "+" : "−"}{Math.abs(diff).toFixed(1)}
               </span>
@@ -1631,7 +1644,7 @@ function StatsView() {
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
         Goals scored & possession
       </div>
-      <div style={{ display: "grid", gap: 7 }}>
+      <div style={{ display: "grid", gap: 8 }}>
         {TEAM_STATS_2526.map((t, i) => (
           <div key={t.club} style={{ display: "flex", alignItems: "center", gap: 10, ...rise(i) }}>
             <Crest club={t.club} size={20} />
@@ -1699,14 +1712,14 @@ function SupportView() {
             </div>
             <ul style={{ listStyle: "none", display: "grid", gap: 6, marginBottom: 14 }}>
               {t.perks.map((p) => (
-                <li key={p} style={{ fontSize: 12.5, color: chalk, display: "flex", gap: 8, lineHeight: 1.4 }}>
+                <li key={p} style={{ fontSize: 13, color: chalk, display: "flex", gap: 8, lineHeight: 1.4 }}>
                   <span style={{ color: t.color, flexShrink: 0 }}>✓</span>{p}
                 </li>
               ))}
             </ul>
             <a href={KOFI_URL} target="_blank" rel="noopener noreferrer" onClick={() => track("kofi_tapped", { tier: t.id })} style={{
               display: "block", textAlign: "center", textDecoration: "none",
-              background: t.featured ? "#FFB627" : "rgba(240,255,245,0.07)",
+              background: t.featured ? "#FFB627" : OVERLAY.fill,
               color: t.featured ? "#0B1512" : chalk,
               fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 15,
               letterSpacing: "0.08em", textTransform: "uppercase",
@@ -1743,7 +1756,7 @@ function SupportView() {
               color: r.status === "next" ? "#FFB627" : dim,
             }}>{r.v}</div>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 13.5, fontWeight: 700, color: chalk }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: chalk }}>
                 {r.title}
                 {r.status === "next" && <span style={{ fontSize: 12, fontWeight: 800, color: "#0B1512", background: "#FFB627", borderRadius: 999, padding: "2px 8px", marginLeft: 8, letterSpacing: "0.08em", textTransform: "uppercase", verticalAlign: "middle" }}>Up next</span>}
               </div>
@@ -1792,7 +1805,7 @@ function SubNav({ items, value, onChange }) {
         <button key={id} onClick={() => onChange(id)} style={{
           flex: 1, padding: "9px", borderRadius: 10, cursor: "pointer",
           fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, letterSpacing: "0.08em", textTransform: "uppercase",
-          background: value === id ? "#FFB627" : "rgba(240,255,245,0.05)",
+          background: value === id ? "#FFB627" : OVERLAY.fill,
           color: value === id ? "#0B1512" : dim,
           border: `1px solid ${value === id ? "#FFB627" : faint}`,
         }}>{label}</button>
@@ -1867,7 +1880,7 @@ function HomeView({ goTo }) {
               <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#5EC8F2", width: 74, flexShrink: 0, lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>{f.date}</div>
               <Crest club={f.club} size={22} />
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 600, color: chalk }}>{CLUBS[f.club].name} v {f.opp}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: chalk }}>{CLUBS[f.club].name} v {f.opp}</div>
                 <div style={{ fontSize: 12, color: dim, marginTop: 2 }}>{f.comp}</div>
               </div>
             </div>
@@ -1877,7 +1890,7 @@ function HomeView({ goTo }) {
               <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#FFB627", width: 74, flexShrink: 0, lineHeight: 1.2 }}>{openMatch.d || opener.date}</div>
               <Crest club={openMatch.h} size={22} />
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 600, color: chalk }}>{CLUBS[openMatch.h].name} v {CLUBS[openMatch.a].name}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: chalk }}>{CLUBS[openMatch.h].name} v {CLUBS[openMatch.a].name}</div>
                 <div style={{ fontSize: 12, color: dim, marginTop: 2 }}>Premiership opening night · Round {opener.round}{openMatch.t ? ` · ${openMatch.t}` : ""}</div>
               </div>
             </div>
@@ -1949,8 +1962,8 @@ function HomeView({ goTo }) {
           <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>Did you know? · Only in the Irish League</div>
           <button onClick={() => goTo("more", "history")} style={{ fontSize: 12, fontWeight: 700, color: "#FFB627", background: "transparent", border: "none", cursor: "pointer", flexShrink: 0 }}>See all →</button>
         </div>
-        <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, textTransform: "uppercase", color: "#FFB627", lineHeight: 1.15 }}>{lore.title}</div>
-        <div style={{ fontSize: 12.5, color: chalk, marginTop: 6, lineHeight: 1.55 }}>{lore.fact}</div>
+        <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 16, textTransform: "uppercase", color: "#FFB627", lineHeight: 1.15 }}>{lore.title}</div>
+        <div style={{ fontSize: 13, color: chalk, marginTop: 6, lineHeight: 1.55 }}>{lore.fact}</div>
         <div style={{ fontSize: 12, color: dim, marginTop: 6 }}>{lore.source}</div>
       </div>
     </div>
@@ -1995,12 +2008,12 @@ function PlayersView() {
               <Avatar player={p} size={44} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: 14, color: chalk, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</div>
-                <div style={{ fontSize: 12, color: dim, display: "flex", alignItems: "center", gap: 5 }}>
+                <div style={{ fontSize: 12, color: dim, display: "flex", alignItems: "center", gap: 6 }}>
                   <Crest club={p.club} size={13} /> {CLUBS[p.club].name} · {p.pos}
                 </div>
               </div>
               <div style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 18, color: ratingColor(p.rating) }}>{p.rating.toFixed(1)}</div>
+                <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 16, color: ratingColor(p.rating) }}>{p.rating.toFixed(1)}</div>
                 <div style={{ fontSize: 12, color: dim }}>{p.goals}g · {p.assists}a</div>
               </div>
             </button>
@@ -2026,7 +2039,7 @@ function PlayersView() {
               borderBottom: i < INJURIES.length - 1 ? `1px solid ${faint}` : "none",
             }}>
               <Crest club={inj.club} size={18} />
-              <span style={{ fontSize: 12.5, fontWeight: 600, color: chalk, flex: 1 }}>{inj.player}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: chalk, flex: 1 }}>{inj.player}</span>
               <span style={{ fontSize: 12, color: "#E8663C" }}>✚ {inj.injury}</span>
             </div>
           ))}
@@ -2039,7 +2052,7 @@ function PlayersView() {
           <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "10px 12px" }}>
             <div style={{ fontSize: 12, color: "#FFB627", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>🟨 Most yellows</div>
             {DISCIPLINE.yellows.map((p) => (
-              <div key={p.player} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
+              <div key={p.player} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                 <Crest club={p.club} size={15} />
                 <span style={{ fontSize: 12, color: chalk, flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.player}</span>
                 <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#FFB627", fontVariantNumeric: "tabular-nums" }}>{p.n}</span>
@@ -2049,7 +2062,7 @@ function PlayersView() {
           <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "10px 12px" }}>
             <div style={{ fontSize: 12, color: "#E8663C", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>🟥 Most reds</div>
             {DISCIPLINE.reds.map((p) => (
-              <div key={p.player} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
+              <div key={p.player} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                 <Crest club={p.club} size={15} />
                 <span style={{ fontSize: 12, color: chalk, flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.player}</span>
                 <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#E8663C", fontVariantNumeric: "tabular-nums" }}>{p.n}</span>
@@ -2176,7 +2189,7 @@ function AppShell() {
           <div style={{ display: "flex", gap: 8 }}>
             <a href={SOCIALS.x.url} target="_blank" rel="noopener noreferrer" aria-label={`GIBSON on X: ${SOCIALS.x.handle}`} style={{
               width: 34, height: 34, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center",
-              background: "rgba(240,255,245,0.06)", border: `1px solid ${faint}`, textDecoration: "none",
+              background: OVERLAY.fill, border: `1px solid ${faint}`, textDecoration: "none",
             }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill={chalk}>
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
@@ -2184,7 +2197,7 @@ function AppShell() {
             </a>
             <a href={SOCIALS.tiktok.url} target="_blank" rel="noopener noreferrer" aria-label={`GIBSON on TikTok: ${SOCIALS.tiktok.handle}`} style={{
               width: 34, height: 34, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center",
-              background: "rgba(240,255,245,0.06)", border: `1px solid ${faint}`, textDecoration: "none",
+              background: OVERLAY.fill, border: `1px solid ${faint}`, textDecoration: "none",
             }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill={chalk}>
                 <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
