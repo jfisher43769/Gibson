@@ -90,6 +90,24 @@ function CountUp({ value, decimals = 0 }) {
 const ratingColor = (r) => (r >= 8 ? "#3DDC84" : r >= 7.3 ? "#FFB627" : "#8FA69B");
 const formColor = (f) => (f === "W" ? "#3DDC84" : f === "D" ? "#FFB627" : "#E8663C");
 
+// Fire a Vercel Web Analytics custom event — no-op if analytics isn't loaded, never throws
+function track(name, data) {
+  try {
+    if (typeof window !== "undefined" && typeof window.va === "function") {
+      window.va("event", data ? { name, data } : { name });
+    }
+  } catch {}
+}
+
+// Quiet banner shown when a live-data fetch failed and we've fallen back to saved data
+function OfflineNote() {
+  return (
+    <div style={{ fontSize: 12, color: dim, marginBottom: 12, fontStyle: "italic", display: "flex", alignItems: "center", gap: 6 }}>
+      <span aria-hidden="true">⚠</span> Offline — showing saved data.
+    </div>
+  );
+}
+
 // Quiet error-report link — points at the GIBSON X account
 function ReportLink({ style }) {
   return (
@@ -209,6 +227,7 @@ function TableView() {
   const noteColor = { C: "#3DDC84", IC: "#5EC8F2", E: "#FFB627", EPO: "#5EC8F2", PO: "#E0A252", R: "#E8663C" };
   const [live, setLive] = useState(null);
   const [checking, setChecking] = useState(true);
+  const [offline, setOffline] = useState(false);
   useEffect(() => {
     let on = true;
     fetch("/api/table")
@@ -216,7 +235,7 @@ function TableView() {
       .then((j) => {
         if (on && j && j.ok && Array.isArray(j.rows) && j.rows.some((r) => r.p > 0)) setLive(j);
       })
-      .catch(() => {})
+      .catch(() => { if (on) setOffline(true); })
       .finally(() => { if (on) setChecking(false); });
     return () => { on = false; };
   }, []);
@@ -322,6 +341,7 @@ function TableView() {
     const noteL = noteLabel, noteC = noteColor;
     return (
       <div style={{ animation: "riseIn 0.4s ease-out" }}>
+        {offline && <OfflineNote />}
         <LiveBlock />
         <LiveTeaser />
         <div className="gb-desk-2col">
@@ -391,6 +411,7 @@ function TableView() {
   }
   return (
     <div style={{ animation: "riseIn 0.4s ease-out" }}>
+      {offline && <OfflineNote />}
       <LiveBlock />
       <LiveTeaser />
       <div className="gb-desk-2col">
@@ -843,12 +864,13 @@ function FixturesView() {
   const [showAll, setShowAll] = useState(false);
   const [liveEv, setLiveEv] = useState(null);
   const [evLoading, setEvLoading] = useState(true);
+  const [offline, setOffline] = useState(false);
   useEffect(() => {
     let on = true;
     fetch("/api/events")
       .then((r) => r.json())
       .then((j) => { if (on && j && j.ok) setLiveEv(j); })
-      .catch(() => {})
+      .catch(() => { if (on) setOffline(true); })
       .finally(() => { if (on) setEvLoading(false); });
     return () => { on = false; };
   }, []);
@@ -872,6 +894,7 @@ function FixturesView() {
   const nextLeague = showAll ? leagueFixtures : leagueFixtures.slice(0, 5);
   return (
     <div className="gb-narrow" style={{ animation: "riseIn 0.4s ease-out" }}>
+      {offline && <OfflineNote />}
       <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
         {[["club", "By club"], ["round", "By round"]].map(([m, label]) => (
           <button key={m} onClick={() => setMode(m)} style={{
@@ -1076,6 +1099,7 @@ function PredictorView() {
   const lockIn = () => {
     store.set(storageKey, JSON.stringify({ picks, locked: true }));
     setLocked(true);
+    track("predictor_pick_saved", { gw: PREDICTOR_GW.id });
   };
   const unlock = () => {
     store.set(storageKey, JSON.stringify({ picks, locked: false }));
@@ -1106,6 +1130,7 @@ function PredictorView() {
   };
 
   const shareImage = async () => {
+    track("share_card_generated", { gw: PREDICTOR_GW.id, scored: resultsIn });
     const W = 1080, H = 1080;
     const cv = document.createElement("canvas");
     cv.width = W; cv.height = H;
@@ -1679,7 +1704,7 @@ function SupportView() {
                 </li>
               ))}
             </ul>
-            <a href={KOFI_URL} target="_blank" rel="noopener noreferrer" style={{
+            <a href={KOFI_URL} target="_blank" rel="noopener noreferrer" onClick={() => track("kofi_tapped", { tier: t.id })} style={{
               display: "block", textAlign: "center", textDecoration: "none",
               background: t.featured ? "#FFB627" : "rgba(240,255,245,0.07)",
               color: t.featured ? "#0B1512" : chalk,
@@ -2081,10 +2106,16 @@ export default function App() {
 }
 
 function AppShell() {
-  const [tab, setTab] = useState("home");
+  const [tab, setTabState] = useState("home");
   const [matchesSub, setMatchesSub] = useState("table");
   const [statsSub, setStatsSub] = useState("lab");
   const [moreSub, setMoreSub] = useState("transfers");
+
+  // Wrap the tab setter so every switch — nav bar or in-app deep link — logs one event
+  const setTab = (t) => {
+    if (t !== tab) track("tab_switch", { tab: t });
+    setTabState(t);
+  };
 
   const goTo = (t, sub) => {
     if (t === "matches" && sub) setMatchesSub(sub);
