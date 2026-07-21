@@ -276,7 +276,7 @@ export const RECORDS = [
   { big: "24/25", label: "Larne make Euro history", sub: "First Irish League club ever to reach the league phase of a European competition" },
   { big: "0-0", label: "Charity Shield 2026", sub: "Larne beat Coleraine on penalties in the curtain-raiser \u2014 the new season's first silverware" },
   { big: "10", label: "Linfield Premiership titles", sub: "Most top-flight titles won under the Premiership era format \u2014 separate from their 57 all-time league titles. League records." },
-  { big: "759", label: "Jamie Mulgrew \u2014 record appearances", sub: "The most appearances by any player in Irish League history. League records." },
+  { big: "759", label: "Jamie Mulgrew \u2014 record Premiership appearances", sub: "The most Premiership appearances by any player in Irish League history. League records." },
   { big: "215", label: "Joe Gormley \u2014 record Premiership scorer", sub: "The most goals scored by any player in the Premiership era. League records." },
   { big: "191,138", label: "Total Premiership attendance 25/26", sub: "Averaging 1,241 fans per match across the season. Sofascore." },
 ];
@@ -603,6 +603,15 @@ const EURO = [
     note: "Family affair: Coleraine's Kodi Lyons-Foster could line up against his brother Brooklyn, who's on HJK's books.",
   },
 ];
+
+// Northern Ireland's UEFA country coefficient — the rolling five-year total that
+// decides how many European places the league gets and how its clubs are seeded.
+export const EURO_COEFFICIENT = {
+  rank: 47,
+  points: 7.25,
+  lastSeason: { rank: 42, points: 8.33 },
+  note: "Every qualifying win earns coefficient points — the country's rank decides how many European places the league gets and how its clubs are seeded.",
+};
 
 // 26/27 domestic fixtures not yet released — Europe fills the schedule for now
 export const CLUB_FIXTURES = {

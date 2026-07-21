@@ -40,7 +40,7 @@ const GlobalStyle = () => (
 );
 
 import {
-  CLUBS, FINAL_PLACINGS, MID_TABLE, FULL_TABLE, PLAYERS, AXES, TRANSFERS, STATUS_META, ROLL_OF_HONOUR, ALL_TIME_TITLES, RECORDS, PREDICTOR_GW, store, KOFI_URL, EURO, CLUB_FIXTURES, FIXTURES_2627, POST_SPLIT_DATES, SUPPORT_TIERS, SOCIALS, SEASON_ARCHIVE, MARKET_VALUES, LEAGUE_FACTS, LEAGUE_LORE, INJURIES, TEAM_STATS_2526, DISCIPLINE, WINDOW, GOALS_STATS, GOALS_LEAGUE_AVG, XG_TEAMS, XG_PLAYERS,
+  CLUBS, FINAL_PLACINGS, MID_TABLE, FULL_TABLE, PLAYERS, AXES, TRANSFERS, STATUS_META, ROLL_OF_HONOUR, ALL_TIME_TITLES, RECORDS, PREDICTOR_GW, store, KOFI_URL, EURO, CLUB_FIXTURES, FIXTURES_2627, POST_SPLIT_DATES, SUPPORT_TIERS, SOCIALS, SEASON_ARCHIVE, MARKET_VALUES, LEAGUE_FACTS, LEAGUE_LORE, INJURIES, TEAM_STATS_2526, DISCIPLINE, WINDOW, GOALS_STATS, GOALS_LEAGUE_AVG, XG_TEAMS, XG_PLAYERS, EURO_COEFFICIENT,
 } from "./data.js";
 
 
@@ -843,6 +843,26 @@ function EuropeView() {
       <div style={{ fontSize: 12, color: dim, marginBottom: 12, lineHeight: 1.5 }}>
         Four Irish League clubs on the continent this summer. First legs from 7 July.
       </div>
+
+      {EURO_COEFFICIENT && (
+        <div style={{ ...SURFACE.card, borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
+            <div style={{ fontSize: 12, color: dim, letterSpacing: "0.1em", textTransform: "uppercase" }}>UEFA country coefficient</div>
+            <div style={{ fontSize: 12, color: dim }}>Northern Ireland</div>
+          </div>
+          <div style={{ display: "flex", gap: 18, alignItems: "flex-end" }}>
+            <div>
+              <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, color: "#FFB627", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>#{EURO_COEFFICIENT.rank}</div>
+              <div style={{ fontSize: 12, color: dim, marginTop: 3 }}>rank · {EURO_COEFFICIENT.points.toFixed(2)} pts</div>
+            </div>
+            <div style={{ fontSize: 12, color: dim, lineHeight: 1.4 }}>
+              from #{EURO_COEFFICIENT.lastSeason.rank} ({EURO_COEFFICIENT.lastSeason.points.toFixed(2)}) last season
+            </div>
+          </div>
+          <div style={{ fontSize: 12, color: dim, marginTop: 8, lineHeight: 1.45 }}>{EURO_COEFFICIENT.note}</div>
+        </div>
+      )}
+
       <div style={{ display: "grid", gap: 12 }}>
         {EURO.map((e, i) => {
           const c = CLUBS[e.club];
