@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef, useLayoutEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef, useLayoutEffect, useContext } from "react";
 import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   ResponsiveContainer,
@@ -103,6 +103,12 @@ function CountUp({ value, decimals = 0 }) {
 const ratingColor = (r) => (r >= 8 ? "#3DDC84" : r >= 7.3 ? "#FFB627" : "#8FA69B");
 const formColor = (f) => (f === "W" ? "#3DDC84" : f === "D" ? "#FFB627" : "#E8663C");
 
+// Club-page navigation: any Crest can open a club page via this context. Provided at
+// the app root; null when unavailable (SSR/render test), so Crest degrades to static.
+const ClubNavContext = React.createContext(null);
+// GLV (Glenavon) is the archived, relegated club — no club page, so its crest stays static.
+const hasClubPage = (club) => club !== "GLV";
+
 // Fire a Vercel Web Analytics custom event — no-op if analytics isn't loaded, never throws
 function track(name, data) {
   try {
@@ -131,10 +137,11 @@ function ReportLink({ style }) {
   );
 }
 
-function Crest({ club, size = 34 }) {
+function Crest({ club, size = 34, tappable = true }) {
+  const openClub = useContext(ClubNavContext);
   const c = CLUBS[club];
   const [c1, c2] = c.colors;
-  return (
+  const svg = (
     <svg width={size} height={size * 1.15} viewBox="0 0 40 46" aria-label={c.name + " crest"}>
       <defs>
         <clipPath id={`shield-${club}`}>
@@ -154,6 +161,20 @@ function Crest({ club, size = 34 }) {
       </text>
     </svg>
   );
+  // Any crest opens that club's page, unless the caller opts out (e.g. it already sits
+  // inside a selector button whose own action should win). Uses a role=button span, not
+  // a <button>, to stay valid when nested inside other interactive rows.
+  if (tappable && openClub && hasClubPage(club)) {
+    return (
+      <span role="button" tabIndex={0} aria-label={`${c.name} — open club page`}
+        onClick={(e) => { e.stopPropagation(); openClub(club); }}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); openClub(club); } }}
+        style={{ display: "inline-flex", lineHeight: 0, cursor: "pointer" }}>
+        {svg}
+      </span>
+    );
+  }
+  return svg;
 }
 
 function Avatar({ player, size = 56, ring = true }) {
@@ -676,7 +697,7 @@ function ClubLedger() {
             background: club === x.club ? "rgba(255,182,39,0.14)" : "transparent",
             border: `1px solid ${club === x.club ? "rgba(255,182,39,0.5)" : faint}`,
           }}>
-            <Crest club={x.club} size={24} />
+            <Crest club={x.club} size={24} tappable={false} />
           </button>
         ))}
       </div>
@@ -870,8 +891,9 @@ function EuropeView() {
   );
 }
 
-function FixturesView() {
-  const [club, setClub] = useState("LAR");
+function FixturesView({ fixedClub } = {}) {
+  const locked = !!fixedClub; // club-page mode: lock to one club, hide pickers/toggle
+  const [club, setClub] = useState(fixedClub || "LAR");
   const [mode, setMode] = useState("club"); // 'club' | 'round'
   const [round, setRound] = useState(1);
   const [showAll, setShowAll] = useState(false);
@@ -908,6 +930,7 @@ function FixturesView() {
   return (
     <div className="gb-narrow" style={{ animation: "riseIn 0.4s ease-out" }}>
       {offline && <OfflineNote />}
+      {!locked && (
       <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
         {[["club", "By club"], ["round", "By round"]].map(([m, label]) => (
           <button key={m} onClick={() => setMode(m)} style={{
@@ -919,8 +942,9 @@ function FixturesView() {
           }}>{label}</button>
         ))}
       </div>
+      )}
 
-      {mode === "round" && (() => {
+      {!locked && mode === "round" && (() => {
         const r = FIXTURES_2627.find((x) => x.round === round) || FIXTURES_2627[0];
         return (
           <div style={{ animation: "riseIn 0.3s ease-out" }}>
@@ -970,6 +994,7 @@ function FixturesView() {
       })()}
 
       {mode === "club" && (<>
+      {!locked && (<>
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 4 }}>
         BoyleSports Premiership 26/27 · pick your club
       </div>
@@ -1014,15 +1039,16 @@ function FixturesView() {
             background: club === k ? "rgba(255,182,39,0.14)" : "transparent",
             border: `1px solid ${club === k ? "rgba(255,182,39,0.5)" : faint}`,
           }}>
-            <Crest club={k} size={26} />
+            <Crest club={k} size={26} tappable={false} />
           </button>
         ))}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-        <Crest club={club} size={24} />
+        <Crest club={club} size={24} tappable={false} />
         <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 20, textTransform: "uppercase", color: chalk }}>{c.name}</span>
         <span style={{ fontSize: 12, color: dim }}>· {c.ground}</span>
       </div>
+      </>)}
       {euro && (
         <>
           <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 }}>In Europe first</div>
@@ -1741,6 +1767,7 @@ function SupportView() {
         {[
           { v: "1.01", when: "Jul 2026", title: "The complete foundation", desc: "Official 25/26 archive, Stats Lab with xG, full 26/27 fixture browser, Predictor share cards and the live-data layer — shipped.", status: "done" },
           { v: "1.05", when: "Jul 2026", title: "Cleaner GIBSON", desc: "Five-tab navigation, Home screen, readability pass — shipped.", status: "done" },
+          { v: "1.07", when: "Jul 2026", title: "Club pages: every club, one tap", desc: "A full page for all twelve clubs — season, squad, transfers, fixtures and honours — reachable from any shield in the app.", status: "done" },
           { v: "1.1", when: "Aug 2026", title: "Season one kicks off", desc: "Global Predictor leaderboard, live 26/27 table, and GIBSON on the Play Store.", status: "next" },
           { v: "1.2", when: "When funded", title: "Live scores", desc: "In-play scores every two minutes. Unlocks when Ko-fi support covers the data feed — one Season Ticket flips the switch.", status: "planned" },
           { v: "v1.2", when: "Pre-season", title: "Fixtures & Predictor gameweeks", desc: "26/27 fixture list, opening-day countdown, and weekly Predictor rounds all season long.", status: "planned" },
@@ -2009,7 +2036,7 @@ function PlayersView() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: 14, color: chalk, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</div>
                 <div style={{ fontSize: 12, color: dim, display: "flex", alignItems: "center", gap: 6 }}>
-                  <Crest club={p.club} size={13} /> {CLUBS[p.club].name} · {p.pos}
+                  <Crest club={p.club} size={13} tappable={false} /> {CLUBS[p.club].name} · {p.pos}
                 </div>
               </div>
               <div style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
@@ -2112,11 +2139,252 @@ class GibsonBoundary extends React.Component {
   constructor(props) { super(props); this.state = { err: null }; }
   static getDerivedStateFromError(err) { return { err }; }
   render() {
-    // One crash screen, one voice — the tab-level boundary shows the same UI as the
-    // top-level one, at reduced min-height so the header/nav stay usable around it.
-    if (this.state.err) return <CrashScreen minHeight="60vh" />;
+    // One crash screen, one voice — reduced min-height so the header/nav stay usable
+    // around it. Sections pass a compact minHeight so one failing block stays contained.
+    if (this.state.err) return <CrashScreen minHeight={this.props.minHeight || "60vh"} />;
     return this.props.children;
   }
+}
+
+/* ================= CLUB PAGES (1.07) ================= */
+// A section wrapper: its own error boundary (compact fallback) + eyebrow label, so one
+// malformed dataset never takes down the whole club page.
+function ClubSection({ title, children }) {
+  return (
+    <GibsonBoundary minHeight="160px">
+      <div style={{ marginBottom: 22 }}>
+        <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>{title}</div>
+        {children}
+      </div>
+    </GibsonBoundary>
+  );
+}
+
+// The twelve current Premiership clubs (excludes archived GLV).
+function ClubsGrid({ openClub }) {
+  const clubs = Object.keys(CLUBS).filter((k) => k !== "GLV");
+  return (
+    <div style={{ animation: "riseIn 0.4s ease-out" }}>
+      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Club pages · tap a shield</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(92px, 1fr))", gap: 10 }}>
+        {clubs.map((k, i) => (
+          <button key={k} onClick={() => openClub(k)} aria-label={`Open ${CLUBS[k].name} club page`} style={{
+            ...SURFACE.card, borderRadius: 12, padding: "12px 6px", cursor: "pointer",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 6, ...rise(i),
+          }}>
+            <Crest club={k} size={34} tappable={false} />
+            <span style={{ fontSize: 12, fontWeight: 600, color: chalk, textAlign: "center", lineHeight: 1.2 }}>{CLUBS[k].name}</span>
+          </button>
+        ))}
+      </div>
+      <div style={{ fontSize: 12, color: dim, marginTop: 12, lineHeight: 1.5 }}>
+        Every club shield across the app is tappable — the table, fixtures, transfers, anywhere — and opens that club's page.
+      </div>
+    </div>
+  );
+}
+
+function ClubPage({ club, onBack }) {
+  const c = CLUBS[club];
+  const c1 = c.colors[0];
+  const ord = (n) => n + (n % 10 === 1 && n !== 11 ? "st" : n % 10 === 2 && n !== 12 ? "nd" : n % 10 === 3 && n !== 13 ? "rd" : "th");
+  const tableIdx = FULL_TABLE.findIndex((r) => r.club === club);
+  const row = tableIdx >= 0 ? FULL_TABLE[tableIdx] : null;
+  const pos = tableIdx >= 0 ? tableIdx + 1 : null;
+  const mv = MARKET_VALUES.find((m) => m.club === club);
+  const xg = XG_TEAMS.find((t) => t.club === club);
+  const teamStat = TEAM_STATS_2526.find((t) => t.club === club);
+  const goalsStat = GOALS_STATS.find((t) => t.club === club);
+  const yellows = DISCIPLINE.yellows.filter((p) => p.club === club);
+  const reds = DISCIPLINE.reds.filter((p) => p.club === club);
+  const indexPlayers = PLAYERS.filter((p) => p.club === club).sort((a, b) => b.rating - a.rating);
+  const scorers = XG_PLAYERS.filter((p) => p.club === club);
+  const injuries = INJURIES.filter((p) => p.club === club);
+  const win = WINDOW.find((w) => w.club === club);
+  const feed = TRANSFERS.filter((t) => t.from === club || t.to === club);
+  const titles = ROLL_OF_HONOUR.filter((r) => r.club === club);
+  const noteLabel = { C: "Champions · Gibson Cup", IC: "Irish Cup winners", E: "Europe (automatic)", EPO: "Europe (play-off)", PO: "Relegation play-off", R: "Relegated" };
+
+  const empty = (msg) => <div style={{ fontSize: 13, color: dim, fontStyle: "italic", padding: "8px 0" }}>{msg}</div>;
+  const tile = (label, value, accent) => (
+    <div style={{ ...SURFACE.card, borderRadius: 10, padding: "10px 12px", textAlign: "center" }}>
+      <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 24, color: accent || chalk, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{value}</div>
+      <div style={{ fontSize: 12, color: dim, marginTop: 3 }}>{label}</div>
+    </div>
+  );
+  const subhead = { fontSize: 12, color: dim, letterSpacing: "0.1em", textTransform: "uppercase", margin: "12px 0 6px" };
+  const cardList = (items) => (
+    <div style={{ ...SURFACE.flat, borderRadius: 12, overflow: "hidden" }}>{items}</div>
+  );
+
+  return (
+    <div style={{ animation: "riseIn 0.4s ease-out" }}>
+      <button onClick={onBack} style={{
+        display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 14, padding: "7px 14px",
+        borderRadius: 999, cursor: "pointer", background: OVERLAY.fill, color: chalk, border: `1px solid ${faint}`,
+        fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase",
+      }}>← Back</button>
+
+      {/* Header — a subtle club-colour tint over the house dark green; GIBSON stays dominant */}
+      <GibsonBoundary minHeight="140px">
+        <div style={{
+          background: `linear-gradient(135deg, ${c1}22, transparent 62%), rgba(240,255,245,0.03)`,
+          border: `1px solid ${faint}`, borderRadius: 14, padding: "18px 16px", marginBottom: 22,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: row || mv ? 14 : 0 }}>
+            <Crest club={club} size={54} tappable={false} />
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, textTransform: "uppercase", color: chalk, lineHeight: 1 }}>{c.name}</div>
+              <div style={{ fontSize: 13, color: dim, marginTop: 4 }}>{c.ground}</div>
+              {row && row.note && <div style={{ fontSize: 12, color: "#FFB627", marginTop: 4 }}>{noteLabel[row.note]} · 2025/26</div>}
+            </div>
+          </div>
+          {row ? (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(72px, 1fr))", gap: 8 }}>
+              {tile("25/26", ord(pos), "#FFB627")}
+              {tile("W-D-L", `${row.w}-${row.d}-${row.l}`)}
+              {tile("Points", row.pts)}
+              {mv && tile("Squad value", `€${mv.total.toFixed(2)}m`)}
+            </div>
+          ) : (
+            <>
+              {empty("Promoted from the Championship — no 25/26 Premiership record.")}
+              {mv && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(72px, 1fr))", gap: 8 }}>{tile("Squad value", `€${mv.total.toFixed(2)}m`)}</div>}
+            </>
+          )}
+        </div>
+      </GibsonBoundary>
+
+      {/* Season */}
+      <ClubSection title="Season · 25/26">
+        {xg ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 12 }}>
+            {tile("xG for", xg.xg.toFixed(2), "#3DDC84")}
+            {tile("xG against", xg.xga.toFixed(2))}
+            {tile("xG diff", `${xg.xgd >= 0 ? "+" : "−"}${Math.abs(xg.xgd).toFixed(2)}`, xg.xgd >= 0 ? "#3DDC84" : "#E8663C")}
+          </div>
+        ) : empty("No expected-goals data for 25/26.")}
+        {(teamStat || goalsStat) && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(84px, 1fr))", gap: 8, marginBottom: 12 }}>
+            {teamStat && tile("Goals", teamStat.goals, "#3DDC84")}
+            {teamStat && tile("Possession", `${teamStat.poss.toFixed(0)}%`)}
+            {goalsStat && tile("Goals/game", goalsStat.avg.toFixed(2))}
+            {goalsStat && tile("Clean sheets", `${goalsStat.cs}%`)}
+          </div>
+        )}
+        <div style={subhead}>Discipline · 25/26</div>
+        {yellows.length || reds.length ? cardList(
+          [...yellows.map((p) => [p, "🟨", "#FFB627"]), ...reds.map((p) => [p, "🟥", "#E8663C"])].map(([p, icon, col], i, arr) => (
+            <div key={p.player + icon} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 13px", borderBottom: i < arr.length - 1 ? `1px solid ${faint}` : "none" }}>
+              <span style={{ fontSize: 13 }}>{icon}</span>
+              <span style={{ fontSize: 13, color: chalk, flex: 1 }}>{p.player}</span>
+              <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: col, fontVariantNumeric: "tabular-nums" }}>{p.n}</span>
+            </div>
+          ))
+        ) : empty("No booking data recorded for 25/26.")}
+      </ClubSection>
+
+      {/* Squad */}
+      <ClubSection title="Squad">
+        {indexPlayers.length ? cardList(
+          indexPlayers.map((p, i) => (
+            <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderBottom: i < indexPlayers.length - 1 ? `1px solid ${faint}` : "none" }}>
+              <Avatar player={p} size={40} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: chalk }}>{p.name}</div>
+                <div style={{ fontSize: 12, color: dim }}>{p.pos} · {p.goals}g · {p.assists}a</div>
+              </div>
+              <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 20, color: ratingColor(p.rating), fontVariantNumeric: "tabular-nums" }}>{p.rating.toFixed(1)}</div>
+            </div>
+          ))
+        ) : empty("No GIBSON Index players rated for this club yet.")}
+
+        {scorers.length > 0 && (<>
+          <div style={subhead}>Goals vs expected</div>
+          {cardList(scorers.map((p, i) => {
+            const diff = p.goals - p.xg;
+            return (
+              <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 13px", borderBottom: i < scorers.length - 1 ? `1px solid ${faint}` : "none" }}>
+                <span style={{ fontSize: 13, color: chalk, flex: 1 }}>{p.name}</span>
+                <span style={{ fontSize: 12, color: dim, fontVariantNumeric: "tabular-nums" }}>{p.goals}g / {p.xg.toFixed(1)} xG</span>
+                <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, minWidth: 44, textAlign: "right", color: diff >= 2 ? "#3DDC84" : diff <= -1 ? "#E8663C" : chalk, fontVariantNumeric: "tabular-nums" }}>{diff >= 0 ? "+" : "−"}{Math.abs(diff).toFixed(1)}</span>
+              </div>
+            );
+          }))}
+        </>)}
+
+        <div style={subhead}>Treatment table</div>
+        {injuries.length ? cardList(
+          injuries.map((inj, i) => (
+            <div key={inj.player} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 13px", borderBottom: i < injuries.length - 1 ? `1px solid ${faint}` : "none" }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: chalk, flex: 1 }}>{inj.player}</span>
+              <span style={{ fontSize: 12, color: "#E8663C" }}>✚ {inj.injury}</span>
+            </div>
+          ))
+        ) : empty("No current injuries — squad at full strength.")}
+      </ClubSection>
+
+      {/* Transfers */}
+      <ClubSection title="Summer window 2026">
+        {win ? (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            {[["→ In", win.ins, "#3DDC84"], ["← Out", win.outs, "#E8663C"]].map(([t, items, col]) => (
+              <div key={t} style={{ ...SURFACE.flat, borderRadius: 12, padding: "10px 12px" }}>
+                <div style={{ fontSize: 12, color: col, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>{t}</div>
+                {items.length === 0 && <div style={{ fontSize: 12, color: dim, fontStyle: "italic" }}>None recorded</div>}
+                {items.map(([p, place]) => (
+                  <div key={p + place} style={{ marginBottom: 7 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: chalk, lineHeight: 1.3 }}>{p}</div>
+                    <div style={{ fontSize: 12, color: dim }}>{place}</div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : empty("No confirmed window business recorded yet.")}
+        {feed.length > 0 && (<>
+          <div style={subhead}>In the transfer feed</div>
+          <div style={{ display: "grid", gap: 8 }}>
+            {feed.map((t) => {
+              const meta = STATUS_META[t.status];
+              return (
+                <div key={t.id} style={{ ...SURFACE.card, borderLeft: `3px solid ${meta.color}`, borderRadius: 12, padding: "10px 13px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 15, color: chalk }}>{t.player}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: meta.color, textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0 }}>{meta.label}</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: dim, marginTop: 4, lineHeight: 1.4 }}>{t.note}</div>
+                </div>
+              );
+            })}
+          </div>
+        </>)}
+      </ClubSection>
+
+      {/* Fixtures — reuses the existing by-club fixtures view, locked to this club */}
+      <ClubSection title="Fixtures · 26/27">
+        <FixturesView key={club} fixedClub={club} />
+      </ClubSection>
+
+      {/* Honours */}
+      <ClubSection title="Honours · league titles, last 12 seasons">
+        {titles.length ? (
+          <>
+            <div style={{ fontSize: 13, color: chalk, marginBottom: 8 }}>
+              <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 20, color: "#FFB627", fontVariantNumeric: "tabular-nums" }}>{titles.length}</span> title{titles.length > 1 ? "s" : ""} since 2014/15
+            </div>
+            {cardList(titles.map((t, i) => (
+              <div key={t.season} style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 13px", borderBottom: i < titles.length - 1 ? `1px solid ${faint}` : "none" }}>
+                <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 14, color: dim, width: 62, flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>{t.season}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: chalk, flex: 1 }}>Champions 🏆</span>
+                {t.note && <span style={{ fontSize: 12, color: "#FFB627" }}>{t.note}</span>}
+              </div>
+            )))}
+          </>
+        ) : empty("No league titles in the last 12 seasons.")}
+      </ClubSection>
+    </div>
+  );
 }
 
 export default function App() {
@@ -2131,11 +2399,17 @@ function AppShell() {
   const [tab, setTabState] = useState("home");
   const [matchesSub, setMatchesSub] = useState("table");
   const [statsSub, setStatsSub] = useState("lab");
-  const [moreSub, setMoreSub] = useState("transfers");
+  const [moreSub, setMoreSub] = useState("clubs");
+  const [clubPage, setClubPage] = useState(null); // selected club code, or null
+
+  // Any crest anywhere opens a club page; tapping a nav tab exits back to that tab.
+  const openClub = (code) => { setClubPage(code); track("club_open", { club: code }); try { window.scrollTo(0, 0); } catch {} };
+  const closeClub = () => setClubPage(null);
 
   // Wrap the tab setter so every switch — nav bar or in-app deep link — logs one event
   const setTab = (t) => {
     if (t !== tab) track("tab_switch", { tab: t });
+    setClubPage(null);
     setTabState(t);
   };
 
@@ -2168,6 +2442,7 @@ function AppShell() {
   }, [tab]);
 
   return (
+    <ClubNavContext.Provider value={openClub}>
     <div style={{
       minHeight: "100vh", background: "radial-gradient(1200px 500px at 50% -10%, rgba(255,182,39,0.07), transparent), #0B1512",
       color: chalk, fontFamily: "'Barlow', sans-serif", padding: "0 0 40px",
@@ -2225,6 +2500,11 @@ function AppShell() {
       </header>
 
       <main className="gb-main" style={{ maxWidth: 760, margin: "0 auto", padding: "0 18px" }}>
+        {clubPage ? (
+          <GibsonBoundary key={`club-${clubPage}`}>
+            <ClubPage club={clubPage} onBack={closeClub} />
+          </GibsonBoundary>
+        ) : (
         <GibsonBoundary key={tab}>
         {tab === "home" && <HomeView goTo={goTo} />}
         {tab === "matches" && (<>
@@ -2241,14 +2521,16 @@ function AppShell() {
           {statsSub === "duel" && <DuelView />}
         </>)}
         {tab === "more" && (<>
-          <SubNav items={[["transfers", "Transfers"], ["history", "History"], ["support", "Support ♥"]]} value={moreSub} onChange={setMoreSub} />
+          <SubNav items={[["clubs", "Clubs"], ["transfers", "Transfers"], ["history", "History"], ["support", "Support ♥"]]} value={moreSub} onChange={setMoreSub} />
+          {moreSub === "clubs" && <ClubsGrid openClub={openClub} />}
           {moreSub === "transfers" && <TransfersView />}
           {moreSub === "history" && <HistoryView />}
           {moreSub === "support" && <SupportView />}
         </>)}
         </GibsonBoundary>
+        )}
         <div style={{ textAlign: "center", padding: "26px 0 10px", fontSize: 12, color: "rgba(143,166,155,0.55)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
-          GIBSON 1.06 · build 17 JUL · 🏆
+          GIBSON 1.07 · build 21 JUL · 🏆
         </div>
         <div style={{ textAlign: "center", padding: "0 0 14px" }}>
           <ReportLink />
@@ -2258,5 +2540,6 @@ function AppShell() {
         </div>
       </main>
     </div>
+    </ClubNavContext.Provider>
   );
 }
