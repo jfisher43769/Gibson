@@ -332,7 +332,7 @@ export const LEAGUE_LORE = [
 export const PREDICTOR_GW = {
   id: "euro-week-3",
   name: "Euro Week 3 · Q2 First Legs",
-  deadline: "Larne Tue 21 Jul · Coleraine Thu 23/24 Jul",
+  deadline: "Coleraine away in Helsinki · Thu 23 Jul, 5pm",
   fixtures: [
     { id: "f1", home: { club: "LAR" }, away: { external: "Red Star Belgrade" }, comp: "UCL Q2 · 1st leg · Inver Park", result: [0, 4], odds: { home: 8.0, draw: 5.0, away: 1.35 } },
     { id: "f2", home: { external: "HJK Helsinki" }, away: { club: "COL" }, comp: "UECL Q2 · 1st leg · Helsinki", result: null, odds: { home: 1.9, draw: 3.6, away: 3.9 } },
@@ -567,7 +567,7 @@ const EURO = [
     opp: "Red Star Belgrade", oppCountry: "Serbia", odds: null,
     legs: [
       { label: "1st leg · home", date: "Tue 21 Jul", venue: "Inver Park" },
-      { label: "2nd leg · away", date: "28/29 Jul", venue: "Belgrade" },
+      { label: "2nd leg · away", date: "Wed 29 Jul · 19:00", venue: "Belgrade" },
     ],
     prize: "Winner reaches UCL Q3 — and the loser still drops into Conference League Q3",
     note: "FIRST LEG: Larne 0-4 Red Star Belgrade at Inver Park — Duarte with two (26', 67' pen), Kostov (55') and Cham (85') giving the Serbian giants a commanding lead. A mountain to climb in Belgrade, but the European summer isn't over: the loser of the tie parachutes into Conference League Q3.",
@@ -596,7 +596,7 @@ const EURO = [
     club: "COL", comp: "Conference League", round: "Second qualifying round",
     opp: "HJK Helsinki", oppCountry: "Finland", odds: { home: 1.55, draw: 3.9, away: 5.5 },
     legs: [
-      { label: "1st leg · away", date: "23/24 Jul", venue: "Helsinki" },
+      { label: "1st leg · away", date: "Thu 23 Jul · 17:00", venue: "Helsinki" },
       { label: "2nd leg · home", date: "30/31 Jul", venue: "The Showgrounds" },
     ],
     prize: "Q2 entry as Irish Cup winners — a minimum €525,000 already banked",
@@ -619,7 +619,7 @@ export const CLUB_FIXTURES = {
     { date: "8 Jul", res: "0–1 W", opp: "Tre Fiori (a) — Lusty 45'", comp: "UCL Q1 · 1st leg" },
     { date: "14 Jul", res: "2–1 W", opp: "Tre Fiori (h)", comp: "UCL Q1 · 2nd leg · 3–1 agg" },
     { date: "21 Jul", res: "0–4 L", opp: "Red Star Belgrade", comp: "UCL Q2 · 1st leg · Inver Park" },
-    { date: "28/29 Jul", opp: "Red Star Belgrade", comp: "UCL Q2 · 2nd leg · Belgrade" },
+    { date: "29 Jul", opp: "Red Star Belgrade", comp: "UCL Q2 · 2nd leg · Belgrade · 7pm" },
   ],
   GLE: [
     { date: "9 Jul", res: "1–2 L", opp: "RFS (h) — Ibsen Rossi 38'", comp: "UECL Q1 · 1st leg" },
@@ -630,7 +630,7 @@ export const CLUB_FIXTURES = {
     { date: "16 Jul", res: "2–2 D", opp: "Nõmme Kalju (h)", comp: "UECL Q1 · 2nd leg · 2–3 agg · eliminated" },
   ],
   COL: [
-    { date: "23/24 Jul", opp: "HJK Helsinki (a)", comp: "UECL Q2 · 1st leg" },
+    { date: "23 Jul", opp: "HJK Helsinki (a)", comp: "UECL Q2 · 1st leg · 5pm" },
     { date: "30/31 Jul", opp: "HJK Helsinki (h)", comp: "UECL Q2 · 2nd leg · The Showgrounds" },
     { date: "6 Aug", opp: "UECL Q3*", comp: "if through" },
     { date: "13 Aug", opp: "UECL Q3*", comp: "if through" },
