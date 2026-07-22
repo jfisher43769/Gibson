@@ -334,7 +334,7 @@ export const PREDICTOR_GW = {
   name: "Euro Week 3 · Q2 First Legs",
   deadline: "Larne Tue 21 Jul · Coleraine Thu 23/24 Jul",
   fixtures: [
-    { id: "f1", home: { club: "LAR" }, away: { external: "Red Star Belgrade" }, comp: "UCL Q2 · 1st leg · Inver Park", result: null, odds: { home: 8.0, draw: 5.0, away: 1.35 } },
+    { id: "f1", home: { club: "LAR" }, away: { external: "Red Star Belgrade" }, comp: "UCL Q2 · 1st leg · Inver Park", result: [0, 4], odds: { home: 8.0, draw: 5.0, away: 1.35 } },
     { id: "f2", home: { external: "HJK Helsinki" }, away: { club: "COL" }, comp: "UECL Q2 · 1st leg · Helsinki", result: null, odds: { home: 1.9, draw: 3.6, away: 3.9 } },
   ],
 };
@@ -570,7 +570,7 @@ const EURO = [
       { label: "2nd leg · away", date: "28/29 Jul", venue: "Belgrade" },
     ],
     prize: "Winner reaches UCL Q3 — and the loser still drops into Conference League Q3",
-    note: "The big one is here: Crvena Zvezda — Red Star Belgrade — at Inver Park on Tuesday night, with the return in Belgrade a week later. Larne beat Tre Fiori 3-1 on aggregate to earn it. However the tie goes, the European summer continues: the loser parachutes into Conference League Q3.",
+    note: "FIRST LEG: Larne 0-4 Red Star Belgrade at Inver Park — Duarte with two (26', 67' pen), Kostov (55') and Cham (85') giving the Serbian giants a commanding lead. A mountain to climb in Belgrade, but the European summer isn't over: the loser of the tie parachutes into Conference League Q3.",
   },
   {
     club: "GLE", comp: "Conference League", round: "First qualifying round",
@@ -618,7 +618,7 @@ export const CLUB_FIXTURES = {
   LAR: [
     { date: "8 Jul", res: "0–1 W", opp: "Tre Fiori (a) — Lusty 45'", comp: "UCL Q1 · 1st leg" },
     { date: "14 Jul", res: "2–1 W", opp: "Tre Fiori (h)", comp: "UCL Q1 · 2nd leg · 3–1 agg" },
-    { date: "21 Jul", opp: "Red Star Belgrade", comp: "UCL Q2 · 1st leg · Inver Park" },
+    { date: "21 Jul", res: "0–4 L", opp: "Red Star Belgrade", comp: "UCL Q2 · 1st leg · Inver Park" },
     { date: "28/29 Jul", opp: "Red Star Belgrade", comp: "UCL Q2 · 2nd leg · Belgrade" },
   ],
   GLE: [
