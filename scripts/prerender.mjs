@@ -25,14 +25,14 @@ const out = join(tmpdir(), "gibson-prerender.cjs");
 writeFileSync(entry, `
 import React from "react";
 import { renderToString } from "react-dom/server";
-import App, { ALL_ROUTES, metaForPath, jsonLdForPath } from "${root}/App.jsx";
+import App, { ALL_ROUTES, metaForPath, jsonLdForPath, ogImageForPath } from "${root}/App.jsx";
 export function renderRoute(path) {
   globalThis.__GIBSON_ROUTE__ = path;
   const html = renderToString(React.createElement(App));
   delete globalThis.__GIBSON_ROUTE__;
   return html;
 }
-export { ALL_ROUTES, metaForPath, jsonLdForPath };
+export { ALL_ROUTES, metaForPath, jsonLdForPath, ogImageForPath };
 `);
 
 await build({
@@ -61,6 +61,14 @@ function pageHtml(path) {
   let doc = template
     .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(meta.title)}</title>`)
     .replace(/<meta name="description" content="[\s\S]*?"\s*\/>/, `<meta name="description" content="${esc(meta.description)}" />`);
+  // Per-route social card: point og:image + twitter:image at the dynamic /api/og card.
+  // The root has no card URL (ogImageForPath returns null) so it keeps og-card.png.
+  const ogImg = mod.ogImageForPath(path);
+  if (ogImg) {
+    doc = doc
+      .replace(/<meta property="og:image" content="[\s\S]*?"\s*\/>/, `<meta property="og:image" content="${esc(ogImg)}" />`)
+      .replace(/<meta name="twitter:image" content="[\s\S]*?"\s*\/>/, `<meta name="twitter:image" content="${esc(ogImg)}" />`);
+  }
   let head = `<link rel="canonical" href="${SITE}${path === "/" ? "/" : path}" />`;
   if (ld) head += `\n    <script type="application/ld+json">${JSON.stringify(ld)}</script>`;
   doc = doc.replace("</head>", `    ${head}\n  </head>`);
