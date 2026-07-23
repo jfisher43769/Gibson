@@ -597,7 +597,7 @@ const EURO = [
     opp: "HJK Helsinki", oppCountry: "Finland", odds: { home: 1.55, draw: 3.9, away: 5.5 },
     legs: [
       { label: "1st leg · away", date: "Thu 23 Jul · 17:00", venue: "Helsinki" },
-      { label: "2nd leg · home", date: "30/31 Jul", venue: "The Showgrounds" },
+      { label: "2nd leg · home", date: "Thu 30 Jul · 19:45", venue: "The Showgrounds" },
     ],
     prize: "Q2 entry as Irish Cup winners — a minimum €525,000 already banked",
     note: "Family affair: Coleraine's Kodi Lyons-Foster could line up against his brother Brooklyn, who's on HJK's books.",
@@ -631,7 +631,7 @@ export const CLUB_FIXTURES = {
   ],
   COL: [
     { date: "23 Jul", opp: "HJK Helsinki (a)", comp: "UECL Q2 · 1st leg · 5pm" },
-    { date: "30/31 Jul", opp: "HJK Helsinki (h)", comp: "UECL Q2 · 2nd leg · The Showgrounds" },
+    { date: "30 Jul", opp: "HJK Helsinki (h)", comp: "UECL Q2 · 2nd leg · The Showgrounds · 7:45pm" },
     { date: "6 Aug", opp: "UECL Q3*", comp: "if through" },
     { date: "13 Aug", opp: "UECL Q3*", comp: "if through" },
   ],
