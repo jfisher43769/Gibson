@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://gibson-one.vercel.app/sitemap.xml
+Sitemap: https://gibsonstats.com/sitemap.xml

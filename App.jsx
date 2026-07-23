@@ -110,7 +110,7 @@ const ClubNavContext = React.createContext(null);
 const hasClubPage = (club) => club !== "GLV";
 
 /* ================= ROUTING (client + build-time prerender) ================= */
-const SITE_ORIGIN = "https://gibson-one.vercel.app";
+const SITE_ORIGIN = "https://gibsonstats.com";
 const slugify = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 const ROUTE_CLUBS = Object.keys(CLUBS).filter((k) => k !== "GLV"); // twelve current clubs
 const CLUB_TO_SLUG = Object.fromEntries(ROUTE_CLUBS.map((k) => [k, slugify(CLUBS[k].name)]));

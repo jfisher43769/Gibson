@@ -15,7 +15,7 @@ import { createRequire } from "node:module";
 
 const root = process.cwd().replace(/\\/g, "/");
 const dist = join(root, "dist");
-const SITE = "https://gibson-one.vercel.app";
+const SITE = "https://gibsonstats.com";
 
 // 1. Bundle a Node-side render module that exposes renderRoute + the route metadata.
 const entry = join(tmpdir(), "gibson-prerender-entry.jsx");
