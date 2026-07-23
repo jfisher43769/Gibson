@@ -2105,12 +2105,21 @@ function SubNav({ items, value, onChange }) {
 }
 
 function HomeView({ goTo }) {
-  // Next unplayed, non-provisional Euro fixture per club — a club still stands if it has one
+  const now = Date.now();
+  // A kick-off within the last 2.5h still counts as "the match" rather than being
+  // skipped as past — the result usually isn't in data.js yet when it's still live.
+  const LIVE_WINDOW_MS = 2.5 * 60 * 60 * 1000;
+  // Soonest still-relevant (future, or within the live window), non-provisional fixture
+  // per club, picked by real kick-off time — not by array/object order, so whichever
+  // club's dt is earliest wins regardless of which key comes first in CLUB_FIXTURES.
   const nextEuro = [];
   for (const club of Object.keys(CLUB_FIXTURES)) {
-    const f = CLUB_FIXTURES[club].find((x) => !x.res && !x.opp.includes("*"));
-    if (f) nextEuro.push({ club, ...f });
+    const eligible = CLUB_FIXTURES[club]
+      .filter((x) => !x.opp.includes("*") && x.dt && new Date(x.dt).getTime() >= now - LIVE_WINDOW_MS)
+      .sort((a, b) => new Date(a.dt) - new Date(b.dt));
+    if (eligible[0]) nextEuro.push({ club, ...eligible[0] });
   }
+  nextEuro.sort((a, b) => new Date(a.dt) - new Date(b.dt));
   const opener = FIXTURES_2627[0];
   const openMatch = opener.matches[0];
   const resultsIn = PREDICTOR_GW.fixtures.every((f) => f.result);

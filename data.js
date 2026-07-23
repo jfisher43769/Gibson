@@ -566,8 +566,8 @@ const EURO = [
     club: "LAR", comp: "Champions League", round: "Second qualifying round",
     opp: "Red Star Belgrade", oppCountry: "Serbia", odds: null,
     legs: [
-      { label: "1st leg · home", date: "Tue 21 Jul", venue: "Inver Park" },
-      { label: "2nd leg · away", date: "Wed 29 Jul · 19:00", venue: "Belgrade" },
+      { label: "1st leg · home", date: "Tue 21 Jul", dt: "2026-07-21T18:45:00Z", venue: "Inver Park" },
+      { label: "2nd leg · away", date: "Wed 29 Jul · 19:00", dt: "2026-07-29T18:00:00Z", venue: "Belgrade" },
     ],
     prize: "Winner reaches UCL Q3 — and the loser still drops into Conference League Q3",
     note: "FIRST LEG: Larne 0-4 Red Star Belgrade at Inver Park — Duarte with two (26', 67' pen), Kostov (55') and Cham (85') giving the Serbian giants a commanding lead. A mountain to climb in Belgrade, but the European summer isn't over: the loser of the tie parachutes into Conference League Q3.",
@@ -576,8 +576,8 @@ const EURO = [
     club: "GLE", comp: "Conference League", round: "First qualifying round",
     opp: "RFS", oppCountry: "Latvia", odds: { home: 3.6, draw: 3.5, away: 1.95 },
     legs: [
-      { label: "1st leg · home", date: "Thu 9 Jul · 20:30", venue: "The Oval" },
-      { label: "2nd leg · away", date: "Thu 16 Jul · 18:30", venue: "Riga" },
+      { label: "1st leg · home", date: "Thu 9 Jul · 20:30", dt: "2026-07-09T19:30:00Z", venue: "The Oval" },
+      { label: "2nd leg · away", date: "Thu 16 Jul · 18:30", dt: "2026-07-16T17:30:00Z", venue: "Riga" },
     ],
     prize: "Winner faces Qarabağ or Vestri in Q2",
     note: "ELIMINATED: Beaten 2-0 in Riga, 1-4 on aggregate. Ibsen Rossi's header at the Oval was as good as it got — the Glens' European summer is over at the first hurdle.",
@@ -586,8 +586,8 @@ const EURO = [
     club: "LIN", comp: "Conference League", round: "First qualifying round",
     opp: "Nõmme Kalju", oppCountry: "Estonia", odds: { home: 2.6, draw: 3.3, away: 2.5 },
     legs: [
-      { label: "1st leg · away", date: "Thu 9 Jul · 18:00", venue: "Tallinn" },
-      { label: "2nd leg · home", date: "Thu 16 Jul · 20:45", venue: "Windsor Park" },
+      { label: "1st leg · away", date: "Thu 9 Jul · 18:00", dt: "2026-07-09T17:00:00Z", venue: "Tallinn" },
+      { label: "2nd leg · home", date: "Thu 16 Jul · 20:45", dt: "2026-07-16T19:45:00Z", venue: "Windsor Park" },
     ],
     prize: "Winner faces Shelbourne in Q2 — an all-Ireland tie",
     note: "ELIMINATED: 2-2 at Windsor, out 2-3 on aggregate — and it's the cruellest kind. Needing one more goal, the Blues were caught by a last-minute Kalju equaliser instead.",
@@ -596,8 +596,8 @@ const EURO = [
     club: "COL", comp: "Conference League", round: "Second qualifying round",
     opp: "HJK Helsinki", oppCountry: "Finland", odds: { home: 1.55, draw: 3.9, away: 5.5 },
     legs: [
-      { label: "1st leg · away", date: "Thu 23 Jul · 17:00", venue: "Helsinki" },
-      { label: "2nd leg · home", date: "Thu 30 Jul · 19:45", venue: "The Showgrounds" },
+      { label: "1st leg · away", date: "Thu 23 Jul · 17:00", dt: "2026-07-23T16:00:00Z", venue: "Helsinki" },
+      { label: "2nd leg · home", date: "Thu 30 Jul · 19:45", dt: "2026-07-30T18:45:00Z", venue: "The Showgrounds" },
     ],
     prize: "Q2 entry as Irish Cup winners — a minimum €525,000 already banked",
     note: "Family affair: Coleraine's Kodi Lyons-Foster could line up against his brother Brooklyn, who's on HJK's books.",
@@ -616,24 +616,24 @@ export const EURO_COEFFICIENT = {
 // 26/27 domestic fixtures not yet released — Europe fills the schedule for now
 export const CLUB_FIXTURES = {
   LAR: [
-    { date: "8 Jul", res: "0–1 W", opp: "Tre Fiori (a) — Lusty 45'", comp: "UCL Q1 · 1st leg" },
-    { date: "14 Jul", res: "2–1 W", opp: "Tre Fiori (h)", comp: "UCL Q1 · 2nd leg · 3–1 agg" },
-    { date: "21 Jul", res: "0–4 L", opp: "Red Star Belgrade", comp: "UCL Q2 · 1st leg · Inver Park" },
-    { date: "29 Jul", opp: "Red Star Belgrade", comp: "UCL Q2 · 2nd leg · Belgrade · 7pm" },
+    { date: "8 Jul", dt: "2026-07-08T18:45:00Z", res: "0–1 W", opp: "Tre Fiori (a) — Lusty 45'", comp: "UCL Q1 · 1st leg" },
+    { date: "14 Jul", dt: "2026-07-14T18:45:00Z", res: "2–1 W", opp: "Tre Fiori (h)", comp: "UCL Q1 · 2nd leg · 3–1 agg" },
+    { date: "21 Jul", dt: "2026-07-21T18:45:00Z", res: "0–4 L", opp: "Red Star Belgrade", comp: "UCL Q2 · 1st leg · Inver Park" },
+    { date: "29 Jul", dt: "2026-07-29T18:00:00Z", opp: "Red Star Belgrade", comp: "UCL Q2 · 2nd leg · Belgrade · 7pm" },
   ],
   GLE: [
-    { date: "9 Jul", res: "1–2 L", opp: "RFS (h) — Ibsen Rossi 38'", comp: "UECL Q1 · 1st leg" },
-    { date: "16 Jul", res: "2–0 L", opp: "RFS (a)", comp: "UECL Q1 · 2nd leg · 1–4 agg · eliminated" },
+    { date: "9 Jul", dt: "2026-07-09T19:30:00Z", res: "1–2 L", opp: "RFS (h) — Ibsen Rossi 38'", comp: "UECL Q1 · 1st leg" },
+    { date: "16 Jul", dt: "2026-07-16T17:30:00Z", res: "2–0 L", opp: "RFS (a)", comp: "UECL Q1 · 2nd leg · 1–4 agg · eliminated" },
   ],
   LIN: [
-    { date: "9 Jul", res: "0–1 L", opp: "Nõmme Kalju (a)", comp: "UECL Q1 · 1st leg" },
-    { date: "16 Jul", res: "2–2 D", opp: "Nõmme Kalju (h)", comp: "UECL Q1 · 2nd leg · 2–3 agg · eliminated" },
+    { date: "9 Jul", dt: "2026-07-09T17:00:00Z", res: "0–1 L", opp: "Nõmme Kalju (a)", comp: "UECL Q1 · 1st leg" },
+    { date: "16 Jul", dt: "2026-07-16T19:45:00Z", res: "2–2 D", opp: "Nõmme Kalju (h)", comp: "UECL Q1 · 2nd leg · 2–3 agg · eliminated" },
   ],
   COL: [
-    { date: "23 Jul", opp: "HJK Helsinki (a)", comp: "UECL Q2 · 1st leg · 5pm" },
-    { date: "30 Jul", opp: "HJK Helsinki (h)", comp: "UECL Q2 · 2nd leg · The Showgrounds · 7:45pm" },
-    { date: "6 Aug", opp: "UECL Q3*", comp: "if through" },
-    { date: "13 Aug", opp: "UECL Q3*", comp: "if through" },
+    { date: "23 Jul", dt: "2026-07-23T16:00:00Z", opp: "HJK Helsinki (a)", comp: "UECL Q2 · 1st leg · 5pm" },
+    { date: "30 Jul", dt: "2026-07-30T18:45:00Z", opp: "HJK Helsinki (h)", comp: "UECL Q2 · 2nd leg · The Showgrounds · 7:45pm" },
+    { date: "6 Aug", dt: "2026-08-06T18:45:00Z", opp: "UECL Q3*", comp: "if through" },
+    { date: "13 Aug", dt: "2026-08-13T18:45:00Z", opp: "UECL Q3*", comp: "if through" },
   ],
 };
 
