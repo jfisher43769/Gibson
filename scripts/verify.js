@@ -1,6 +1,9 @@
 // GIBSON data invariant checker — run before any commit: node scripts/verify.js
+// NOTE: run `npm run build` first — the generated-file checks below need the files
+// scripts/generate.js writes as the npm "prebuild" step (see .github/workflows/ci.yml,
+// which now builds before verifying for exactly this reason).
 import * as D from "../data.js";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 let fails = 0;
 const check = (name, ok) => { console.log(ok ? "  ✓" : "  ✗ FAIL", name); if (!ok) fails++; };
 
@@ -43,6 +46,16 @@ check("every CLUB_FIXTURES/EURO fixture has a valid ISO dt matching its display 
 const sw = (() => { try { return readFileSync(new URL("../public/sw.js", import.meta.url), "utf8"); } catch { return ""; } })();
 check("service worker serves page navigations network-fresh (mode navigate + no-store)",
   /mode\s*===\s*["']navigate["']/.test(sw) && /cache:\s*["']no-store["']/.test(sw));
+
+// Build-time generated files (scripts/generate.js, run as the npm "prebuild" step) must
+// exist and cover every current club — a silent generation failure would otherwise ship
+// a site with a dead sitemap/RSS/calendar link and nobody would notice until a user did.
+const publicPath = (p) => new URL(`../public/${p}`, import.meta.url);
+check("public/sitemap.xml generated", existsSync(publicPath("sitemap.xml")));
+check("public/rss.xml generated", existsSync(publicPath("rss.xml")));
+check("public/calendar/all-fixtures.ics generated", existsSync(publicPath("calendar/all-fixtures.ics")));
+const routeClubs = Object.keys(D.CLUBS).filter((k) => k !== "GLV");
+check("every current club has a public/calendar/<CODE>.ics", routeClubs.every((code) => existsSync(publicPath(`calendar/${code}.ics`))));
 
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);

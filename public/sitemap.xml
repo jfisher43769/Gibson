@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Regenerated at build time by scripts/prerender.mjs from the route list; this source
-     copy is kept in sync so it is correct even before a build runs. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://gibsonstats.com/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
   <url><loc>https://gibsonstats.com/table</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>

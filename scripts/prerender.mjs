@@ -1,6 +1,8 @@
 // Build-time prerender: server-renders every route to a real static HTML file so
 // crawlers (and first paint) get content, not an empty shell. Runs after `vite build`.
-// Also regenerates dist/sitemap.xml from the route list. Run: node scripts/prerender.mjs
+// sitemap.xml/rss.xml/calendar/*.ics are generated separately by scripts/generate.js
+// (the npm "prebuild" step) into public/, which vite build already copies into dist/ —
+// this script only touches the per-route HTML. Run: node scripts/prerender.mjs
 //
 // Hosting model: DIRECTORY-INDEX files, zero Vercel config. A route like /table is
 // written to dist/table/index.html, /club/larne to dist/club/larne/index.html. Vercel
@@ -80,15 +82,6 @@ for (const route of mod.ALL_ROUTES) {
   writeFileSync(file, pageHtml(route));
   count++;
 }
-
-// 2. Regenerate the sitemap from the same route list (stays in sync with the clubs).
-const urls = mod.ALL_ROUTES.map((r) => {
-  const loc = `${SITE}${r === "/" ? "/" : r}`;
-  const meta = r === "/" ? "<changefreq>daily</changefreq><priority>1.0</priority>" : "<changefreq>weekly</changefreq><priority>0.8</priority>";
-  return `  <url><loc>${loc}</loc>${meta}</url>`;
-}).join("\n");
-writeFileSync(join(dist, "sitemap.xml"),
-  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`);
 
 console.error = origError;
 

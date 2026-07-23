@@ -116,10 +116,10 @@ const ClubNavContext = React.createContext(null);
 const hasClubPage = (club) => club !== "GLV";
 
 /* ================= ROUTING (client + build-time prerender) ================= */
-const SITE_ORIGIN = "https://gibsonstats.com";
+export const SITE_ORIGIN = "https://gibsonstats.com";
 const slugify = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-const ROUTE_CLUBS = Object.keys(CLUBS).filter((k) => k !== "GLV"); // twelve current clubs
-const CLUB_TO_SLUG = Object.fromEntries(ROUTE_CLUBS.map((k) => [k, slugify(CLUBS[k].name)]));
+export const ROUTE_CLUBS = Object.keys(CLUBS).filter((k) => k !== "GLV"); // twelve current clubs
+export const CLUB_TO_SLUG = Object.fromEntries(ROUTE_CLUBS.map((k) => [k, slugify(CLUBS[k].name)]));
 const SLUG_TO_CLUB = Object.fromEntries(ROUTE_CLUBS.map((k) => [CLUB_TO_SLUG[k], k]));
 
 // Every route that gets a URL + its own prerendered HTML file.
@@ -2642,6 +2642,11 @@ function ClubPage({ club, onBack }) {
       {/* Fixtures — reuses the existing by-club fixtures view, locked to this club */}
       <ClubSection title="Fixtures · 26/27">
         <FixturesView key={club} fixedClub={club} />
+        <a href={`/calendar/${club}.ics`} style={{
+          display: "inline-flex", alignItems: "center", gap: 6, marginTop: 10, padding: "7px 14px",
+          borderRadius: 999, background: OVERLAY.fill, color: chalk, border: `1px solid ${faint}`, textDecoration: "none",
+          fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase",
+        }}>📅 Add to calendar</a>
       </ClubSection>
 
       {/* Honours */}
@@ -2844,7 +2849,7 @@ function AppShell() {
           <ReportLink />
         </div>
         <div style={{ textAlign: "center", padding: "0 0 24px", fontSize: 12, color: "rgba(143,166,155,0.55)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
-          Unofficial fan project — not affiliated with the NIFL or any club · <a href="/privacy.html" style={{ color: "rgba(143,166,155,0.55)", textDecoration: "underline" }}>Privacy</a>
+          Unofficial fan project — not affiliated with the NIFL or any club · <a href="/privacy.html" style={{ color: "rgba(143,166,155,0.55)", textDecoration: "underline" }}>Privacy</a> · <a href="/rss.xml" style={{ color: "rgba(143,166,155,0.55)", textDecoration: "underline" }}>RSS</a>
         </div>
       </main>
     </div>
