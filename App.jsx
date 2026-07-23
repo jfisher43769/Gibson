@@ -2536,9 +2536,18 @@ function ClubPage({ club, onBack }) {
   const noteLabel = { C: "Champions · Gibson Cup", IC: "Irish Cup winners", E: "Europe (automatic)", EPO: "Europe (play-off)", PO: "Relegation play-off", R: "Relegated" };
 
   const empty = (msg) => <div style={{ fontSize: 13, color: dim, fontStyle: "italic", padding: "8px 0" }}>{msg}</div>;
+  // minWidth: 0 is the real fix — without it, a grid item's default min-width:auto refuses
+  // to shrink below its content's unwrapped width, so a narrow column (e.g. a 4th tile
+  // wrapping alone on a phone) forces the value to bleed past the card edge instead of
+  // shrinking to fit. clamp() scales the font down for that squeeze; overflowWrap is the
+  // last-resort safety net for values still too wide even at the smallest size.
   const tile = (label, value, accent) => (
-    <div style={{ ...SURFACE.card, borderRadius: 10, padding: "10px 12px", textAlign: "center" }}>
-      <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 24, color: accent || chalk, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{value}</div>
+    <div style={{ ...SURFACE.card, borderRadius: 10, padding: "10px 8px", textAlign: "center", minWidth: 0 }}>
+      <div style={{
+        fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: "clamp(15px, 5.5vw, 24px)",
+        color: accent || chalk, lineHeight: 1.05, fontVariantNumeric: "tabular-nums",
+        overflowWrap: "anywhere",
+      }}>{value}</div>
       <div style={{ fontSize: 12, color: dim, marginTop: 3 }}>{label}</div>
     </div>
   );
