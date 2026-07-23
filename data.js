@@ -204,6 +204,9 @@ export const AXES = ["Shooting", "Creation", "Passing", "Dribbling", "Defending"
 // Summer 2026 window tracker — real, sourced stories. Update as fresh news breaks.
 // from/to use a NIFL club code, OR fromExternal/toExternal for clubs outside the league.
 export const TRANSFERS = [
+  { id: 30, date: "23 Jul", player: "Ollie Samuels", fromExternal: "Middlesbrough", to: "CLI", status: "done", note: "Left-back joins Cliftonville on loan from Middlesbrough." },
+  { id: 29, date: "23 Jul", player: "Ryan McKay", from: "LIN", to: "CRU", status: "done", note: "Left-back moves to Seaview on loan from Linfield." },
+  { id: 28, date: "23 Jul", player: "Shea Callister", fromExternal: "Derry City", to: "CRU", status: "done", note: "Goalkeeper joins Crusaders on loan from Derry City." },
   { id: 21, date: "18 Jul", player: "Conrad Hunt", fromExternal: "Watford", to: "COL", status: "done", note: "Right-back arrives at Coleraine on loan from Watford — Championship pedigree for the Bannsiders' European campaign." },
   { id: 22, date: "18 Jul", player: "Caoimhin McConnell", fromExternal: "Bryant Bulldogs", to: "BAL", status: "done", note: "Attacking midfielder joins Ballymena United on a free from the Bryant Bulldogs — the rebuild rolls on at the Showgrounds." },
   { id: 23, date: "18 Jul", player: "Dean McMaster", fromExternal: "Airdrieonians", to: "CLI", status: "done", note: "Defensive midfielder joins Cliftonville on a free from Airdrieonians." },
@@ -436,7 +439,7 @@ export const WINDOW = [
     outs: [["Andy Ryan", "Hamilton Acad."], ["Kofi Moore", "Linfield"], ["Ryan Nolan", "Linfield"], ["Jordan Hastings", "Carrick Rangers"], ["Josh Kee", "HW Welders"], ["Owen Mahoney", "Ballymena United"], ["C. Bolger", "Without club"]] },
   { club: "LIN",
     ins: [["Ryan Nolan", "Larne"], ["Kofi Moore", "Larne"]],
-    outs: [["C. Allen", "Ballymena United"], ["J. Archer", "Ballymena United"], ["S. Whiteside", "Ballymena United"], ["C. McKee", "Ballymena United"], ["D. Walsh", "Ballymena United"]] },
+    outs: [["C. Allen", "Ballymena United"], ["J. Archer", "Ballymena United"], ["S. Whiteside", "Ballymena United"], ["C. McKee", "Ballymena United"], ["D. Walsh", "Ballymena United"], ["Ryan McKay", "Crusaders (loan)"]] },
   { club: "GLE",
     ins: [["Greg Sloggett", "Boston United"], ["Zeno Ibsen Rossi", "Free agent (ex-Cliftonville)"], ["Rhys Walsh", "Sunderland"]],
     outs: [["D. Amos", "Barrow"], ["Dylan Connolly", "Galway United"], ["A. Wightman", "Cliftonville"], ["C. Farley", "Warrenpoint"], ["C. Coll", "Strabane AFC"], ["C. Palmer", "Livingston"], ["Cillian McCann", "Newington"]] },
@@ -444,10 +447,10 @@ export const WINDOW = [
     ins: [["Jay Henderson", "Ross County"], ["Aidan Wilson", "Airdrieonians"], ["Ben Doherty", "Derry City"], ["Conor McMenamin", "St Mirren"], ["T. Brolly", "Loan return (Institute)"], ["C. McGrath", "Loan return (Moyola Park)"], ],
     outs: [["J. Glackin", "Dungannon"], ["S. Fallon", "Ballymena United"], ["G. Kelly", "Crusaders"], ["A. Tejada", "Moyola Park"], ["Jamie McGonigle", "Sligo Rovers (loan)"], ["Alfie Gaston", "Limavady United (loan)"]] },
   { club: "CRU",
-    ins: [["A. Reid", "Airdrieonians"], ["G. Kelly", "Coleraine"], ["T. Maguire", "Dungannon"], ["O. Wardell", "FK Be1"]],
+    ins: [["A. Reid", "Airdrieonians"], ["G. Kelly", "Coleraine"], ["T. Maguire", "Dungannon"], ["O. Wardell", "FK Be1"], ["Shea Callister", "Derry City (loan)"], ["Ryan McKay", "Linfield (loan)"]],
     outs: [["J. Forsythe", "Carrick Rangers"], ["Odhr\u00e1n McCart", "Moyola Park"], ["B. Hamilton", "Moyola Park"], ["Josh Owens", "Retired"], ["Jonny Tuffey", "Retired"], ["Musa Dibaga", "Dunfermline (fee undisclosed)"]] },
   { club: "CLI",
-    ins: [["Ben Quinn", "Portadown"], ["A. Wightman", "Glentoran"], ["K. McClelland", "Glenavon"], ["Dan O'Connor", "AFC Totton"], ["J. Thompson", "Ballymena United"]],
+    ins: [["Ben Quinn", "Portadown"], ["A. Wightman", "Glentoran"], ["K. McClelland", "Glenavon"], ["Dan O'Connor", "AFC Totton"], ["J. Thompson", "Ballymena United"], ["Ollie Samuels", "Middlesbrough (loan)"]],
     outs: [["M. Glynn", "Ballymena United"], ["J. Addis", "Ballymena United"], ["R. Jordan", "Loughgall"], ["S. Robertson", "Torquay"], ["A. Carroll", "Warrenpoint"], ["C. Pepper", "Retired"]] },
   { club: "DUN",
     ins: [["M. McElhatton", "Dergview"], ["J. Glackin", "Coleraine"], ["B. McKeown", "Glenavon"], ["Kris Lowe", "Glenavon"], ["R. Devlin", "Dungannon U18"], ["T. Connolly", "Loan return (Ballinamallard)"]],
