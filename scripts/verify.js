@@ -1,5 +1,6 @@
 // GIBSON data invariant checker — run before any commit: node scripts/verify.js
 import * as D from "../data.js";
+import { readFileSync } from "node:fs";
 let fails = 0;
 const check = (name, ok) => { console.log(ok ? "  ✓" : "  ✗ FAIL", name); if (!ok) fails++; };
 
@@ -36,5 +37,12 @@ const dtMatchesDisplayDate = (f) => {
 };
 const allEuroFixtures = [...Object.values(D.CLUB_FIXTURES).flat(), ...D.EURO.flatMap(e => e.legs)];
 check("every CLUB_FIXTURES/EURO fixture has a valid ISO dt matching its display date", allEuroFixtures.every(dtMatchesDisplayDate));
+// Service worker must fetch page navigations fresh from the network (bypassing the HTTP
+// cache), or a device gets stranded on an old build — the "new domain served the old
+// page" bug. Guard the two things that fix matter: navigation handling + a no-store fetch.
+const sw = (() => { try { return readFileSync(new URL("../public/sw.js", import.meta.url), "utf8"); } catch { return ""; } })();
+check("service worker serves page navigations network-fresh (mode navigate + no-store)",
+  /mode\s*===\s*["']navigate["']/.test(sw) && /cache:\s*["']no-store["']/.test(sw));
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);
