@@ -40,7 +40,7 @@ const GlobalStyle = () => (
 );
 
 import {
-  CLUBS, FINAL_PLACINGS, MID_TABLE, FULL_TABLE, PLAYERS, AXES, TRANSFERS, STATUS_META, ROLL_OF_HONOUR, ALL_TIME_TITLES, RECORDS, PREDICTOR_GW, store, KOFI_URL, EURO, CLUB_FIXTURES, FIXTURES_2627, POST_SPLIT_DATES, SUPPORT_TIERS, SOCIALS, SEASON_ARCHIVE, MARKET_VALUES, LEAGUE_FACTS, LEAGUE_LORE, INJURIES, TEAM_STATS_2526, DISCIPLINE, WINDOW, GOALS_STATS, GOALS_LEAGUE_AVG, XG_TEAMS, XG_PLAYERS, EURO_COEFFICIENT,
+  CLUBS, FINAL_PLACINGS, MID_TABLE, FULL_TABLE, PLAYERS, AXES, TRANSFERS, STATUS_META, ROLL_OF_HONOUR, ALL_TIME_TITLES, RECORDS, PREDICTOR_GW, store, KOFI_URL, EURO, CLUB_FIXTURES, FIXTURES_2627, POST_SPLIT_DATES, SUPPORT_TIERS, SOCIALS, SEASON_ARCHIVE, MARKET_VALUES, LEAGUE_FACTS, LEAGUE_LORE, INJURIES, TEAM_STATS_2526, DISCIPLINE, WINDOW, GOALS_STATS, GOALS_LEAGUE_AVG, XG_TEAMS, XG_PLAYERS, EURO_COEFFICIENT, CLUB_META, TRAVEL,
 } from "./data.js";
 
 
@@ -1971,6 +1971,44 @@ function StatsView() {
         The quirk of 25/26: Coleraine outscored everyone — 10 more than champions Larne — and still finished second.
         All figures verified via AiScore and published stats tables, July 2026.
       </div>
+
+      {/* Longest Away Trips — derived from CLUB_META (Wikidata) coordinates + the 26/27
+          fixture list. Empty state until CLUB_META has real coordinates for every club. */}
+      <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "12px", marginTop: 16 }}>
+        <div style={{ fontSize: 12, color: "#FFB627", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
+          🚌 Longest away trips · 26/27
+        </div>
+        {(() => {
+          const ranked = Object.entries(TRAVEL.clubs)
+            .filter(([, t]) => t?.longestTrip)
+            .sort((a, b) => b[1].longestTrip.miles - a[1].longestTrip.miles);
+          if (!ranked.length) return <div style={{ fontSize: 12, color: dim, fontStyle: "italic" }}>Travel data not yet available.</div>;
+          const maxMiles = ranked[0][1].longestTrip.miles;
+          return (
+            <div style={{ display: "grid", gap: 8 }}>
+              {ranked.slice(0, 6).map(([code, t]) => (
+                <div key={code} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <Crest club={code} size={18} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: chalk }}>{CLUBS[code].name} <span style={{ color: dim, fontWeight: 400 }}>to {t.longestTrip.opponent}</span></span>
+                      <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#FFB627", fontVariantNumeric: "tabular-nums" }}>{t.longestTrip.miles} mi</span>
+                    </div>
+                    <div style={{ height: 5, borderRadius: 3, background: faint, overflow: "hidden" }}>
+                      <div style={{ width: `${(t.longestTrip.miles / maxMiles) * 100}%`, height: "100%", background: `linear-gradient(90deg, ${CLUBS[code].colors[0]}, ${CLUBS[code].colors[0]}AA)`, borderRadius: 3 }} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+        {TRAVEL.leagueAverageMiles && (
+          <div style={{ fontSize: 12, color: dim, marginTop: 10 }}>League average season away miles: {TRAVEL.leagueAverageMiles.toLocaleString()}</div>
+        )}
+        <div style={{ fontSize: 11, color: "rgba(143,166,155,0.5)", marginTop: 6 }}>Straight-line distance from ground coordinates (Wikidata, CC0), not road/travel miles.</div>
+      </div>
+
       <div style={{ marginTop: 16 }}><ReportLink /></div>
     </div>
   );
@@ -2493,6 +2531,8 @@ function ClubPage({ club, onBack }) {
   const win = WINDOW.find((w) => w.club === club);
   const feed = TRANSFERS.filter((t) => t.from === club || t.to === club);
   const titles = ROLL_OF_HONOUR.filter((r) => r.club === club);
+  const meta = CLUB_META[club]; // ground/capacity/founded/website — Wikidata (CC0), null until sourced
+  const travel = TRAVEL.clubs[club]; // season away miles, derived from CLUB_META + FIXTURES_2627
   const noteLabel = { C: "Champions · Gibson Cup", IC: "Irish Cup winners", E: "Europe (automatic)", EPO: "Europe (play-off)", PO: "Relegation play-off", R: "Relegated" };
 
   const empty = (msg) => <div style={{ fontSize: 13, color: dim, fontStyle: "italic", padding: "8px 0" }}>{msg}</div>;
@@ -2544,6 +2584,31 @@ function ClubPage({ club, onBack }) {
           )}
         </div>
       </GibsonBoundary>
+
+      {/* Club info — ground/capacity/founded from Wikidata (CC0); season travel derived
+          from those coordinates + the 26/27 fixture list. Null fields render as
+          "not yet available" rather than a guess. */}
+      <ClubSection title="Club info">
+        {(meta?.founded || meta?.ground || meta?.capacity || travel) ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: 8 }}>
+            {meta?.founded && tile("Founded", meta.founded)}
+            {meta?.ground && tile("Ground", meta.ground)}
+            {meta?.capacity && tile("Capacity", meta.capacity.toLocaleString())}
+            {travel && tile("Season travel", `${travel.totalMiles.toLocaleString()} mi`)}
+          </div>
+        ) : empty("Club metadata not yet available.")}
+        {travel?.longestTrip && (
+          <div style={{ fontSize: 12, color: dim, marginTop: 10 }}>
+            Longest away trip: <span style={{ color: chalk }}>{travel.longestTrip.miles} mi</span> to {travel.longestTrip.opponent}
+          </div>
+        )}
+        {meta?.website && (
+          <div style={{ marginTop: 10 }}>
+            <a href={meta.website} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#FFB627" }}>Official website ↗</a>
+          </div>
+        )}
+        {meta && <div style={{ fontSize: 11, color: "rgba(143,166,155,0.5)", marginTop: 10 }}>Source: {meta.source}</div>}
+      </ClubSection>
 
       {/* Season */}
       <ClubSection title="Season · 25/26">
