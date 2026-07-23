@@ -44,6 +44,12 @@ import {
 } from "./data.js";
 
 
+// Injected at build time via vite/esbuild `define` (see vite.config.js, scripts/prerender.mjs,
+// scripts/render-test.mjs) — NOT computed in the browser, so it reflects when the deployed
+// bundle was built, not when a visitor loaded the page. Lets the production canary (and
+// anyone else) tell a live deploy apart from a stale one stuck behind a cache.
+const BUILD_TIME = typeof __BUILD_TIME__ !== "undefined" ? __BUILD_TIME__ : "dev";
+
 /* ================= SHARED PIECES ================= */
 const chalk = "#EDF5EF";
 const dim = "rgba(237,245,239,0.7)";
@@ -2746,6 +2752,10 @@ function AppShell() {
       color: chalk, fontFamily: "'Barlow', sans-serif", padding: "0 0 40px",
     }}>
       <GlobalStyle />
+      {/* Present on every route, invisible to users — the production canary reads this. */}
+      <div data-testid="gibson-build-stamp" aria-hidden="true" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)" }}>
+        {`GIBSON-BUILD:${BUILD_TIME}`}
+      </div>
       <header className="gb-header" style={{ padding: "22px 18px 14px", maxWidth: 760, margin: "0 auto" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <LogoMark size={46} />

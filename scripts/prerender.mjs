@@ -37,6 +37,10 @@ await build({
   entryPoints: [entry], bundle: true, platform: "node", format: "cjs",
   loader: { ".jsx": "jsx" }, outfile: out, logLevel: "silent",
   nodePaths: [join(root, "node_modules")],
+  // Same build-time stamp vite.config.js injects into the client bundle (App.jsx
+  // BUILD_TIME) — a few ms apart from vite's own build() call within the same CI run,
+  // which doesn't matter for a canary that only needs day/hour-scale staleness detection.
+  define: { __BUILD_TIME__: JSON.stringify(new Date().toISOString()) },
 });
 
 // useLayoutEffect legitimately no-ops under renderToString; silence only that warning,
