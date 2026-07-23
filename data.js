@@ -603,7 +603,7 @@ const EURO = [
       { label: "2nd leg · home", date: "Thu 30 Jul · 19:45", dt: "2026-07-30T18:45:00Z", venue: "The Showgrounds" },
     ],
     prize: "Q2 entry as Irish Cup winners — a minimum €525,000 already banked",
-    note: "FIRST LEG: HJK Helsinki 5-0 Coleraine — a chastening night away from home leaves a mountain to climb in the second leg at The Showgrounds. Family affair either way: Coleraine's Kodi Lyons-Foster lined up against his brother Brooklyn, who's on HJK's books.",
+    note: "FIRST LEG: HJK Helsinki 5-0 Coleraine — a chastening night away from home leaves a mountain to climb in the second leg at The Showgrounds.",
   },
 ];
 
