@@ -610,10 +610,20 @@ const EURO = [
 // Northern Ireland's UEFA country coefficient — the rolling five-year total that
 // decides how many European places the league gets and how its clubs are seeded.
 export const EURO_COEFFICIENT = {
-  rank: 47,
-  points: 7.25,
+  rank: 50,
+  points: 6.250,
+  window: "22/23–26/27", // live 5-year rolling ranking
+  previousRank: 49, // down 1 place this round (no points figure given for the prior round)
+  neighbours: [
+    { rank: 48, country: "Estonia", points: 6.666 },
+    { rank: 49, country: "Gibraltar", points: 6.540 },
+    { rank: 50, country: "Northern Ireland", points: 6.250 },
+    { rank: 51, country: "Luxembourg", points: 6.125 },
+    { rank: 52, country: "Georgia", points: 6.000 },
+  ],
   lastSeason: { rank: 42, points: 8.33 },
-  note: "Every qualifying win earns coefficient points — the country's rank decides how many European places the league gets and how its clubs are seeded.",
+  source: "NI Coefficient tracker",
+  note: "Every qualifying win earns coefficient points — the country's rank decides how many European places the league gets and how its clubs are seeded. Live 5-year rolling ranking (22/23–26/27): down one place this round, sandwiched between 49th Gibraltar (6.540) and 51st Luxembourg (6.125).",
 };
 
 // 26/27 domestic fixtures not yet released — Europe fills the schedule for now
