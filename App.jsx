@@ -191,6 +191,18 @@ export function jsonLdForPath(path) {
   };
 }
 
+// Absolute og:image/twitter:image URL for a route: the dynamic /api/og card for club and
+// section routes, or null for the root (which keeps the static og-card.png fallback).
+export function ogImageForPath(path) {
+  const p = cleanPath(path);
+  if (p.startsWith("/club/")) {
+    const code = SLUG_TO_CLUB[p.slice(6)];
+    return code ? `${SITE_ORIGIN}/api/og?type=club&id=${code}` : null;
+  }
+  const section = { "/table": "table", "/fixtures": "fixtures", "/predictor": "predictor", "/stats": "stats" }[p];
+  return section ? `${SITE_ORIGIN}/api/og?type=section&id=${section}` : null;
+}
+
 // Initial path: the browser URL in the client, the injected route during prerender, else root.
 function initialPath() {
   try { if (typeof window !== "undefined" && window.location) return window.location.pathname; } catch {}
@@ -2843,7 +2855,7 @@ function AppShell() {
         </GibsonBoundary>
         )}
         <div style={{ textAlign: "center", padding: "26px 0 10px", fontSize: 12, color: "rgba(143,166,155,0.55)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
-          GIBSON 1.07 · build 21 JUL · 🏆
+          GIBSON 1.08 · build 23 JUL · 🏆
         </div>
         <div style={{ textAlign: "center", padding: "0 0 14px" }}>
           <ReportLink />
