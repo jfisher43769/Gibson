@@ -1,22 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Regenerated at build time by scripts/prerender.mjs from the route list; this source
-     copy is kept in sync so it is correct even before a build runs. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://gibson-one.vercel.app/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
-  <url><loc>https://gibson-one.vercel.app/table</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://gibson-one.vercel.app/fixtures</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://gibson-one.vercel.app/predictor</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://gibson-one.vercel.app/stats</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://gibson-one.vercel.app/club/larne</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://gibson-one.vercel.app/club/coleraine</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://gibson-one.vercel.app/club/glentoran</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://gibson-one.vercel.app/club/linfield</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://gibson-one.vercel.app/club/cliftonville</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://gibson-one.vercel.app/club/dungannon-swifts</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://gibson-one.vercel.app/club/ballymena-united</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://gibson-one.vercel.app/club/portadown</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://gibson-one.vercel.app/club/bangor</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://gibson-one.vercel.app/club/carrick-rangers</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://gibson-one.vercel.app/club/crusaders</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://gibson-one.vercel.app/club/limavady-united</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url>
+    <loc>https://gibson-one.vercel.app/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
 </urlset>
