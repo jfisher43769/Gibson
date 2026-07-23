@@ -57,5 +57,29 @@ check("public/calendar/all-fixtures.ics generated", existsSync(publicPath("calen
 const routeClubs = Object.keys(D.CLUBS).filter((k) => k !== "GLV");
 check("every current club has a public/calendar/<CODE>.ics", routeClubs.every((code) => existsSync(publicPath(`calendar/${code}.ics`))));
 
+// CLUB_META (scripts/fetch-wikidata.js) and the TRAVEL derived from it: every field is
+// either a verified value or an explicit null — a missing key entirely would mean the
+// script's shape drifted; a coordinate outside Northern Ireland would mean a club got
+// mismatched to the wrong Wikidata entity; a zero travel total would mean the haversine
+// math (or the fixture lookup feeding it) is broken, since no NIFL away trip is 0 miles.
+const CLUB_META_FIELDS = ["ground", "capacity", "lat", "lon", "founded", "website", "source"];
+check("every current club has CLUB_META with all fields present (value or explicit null)",
+  routeClubs.every((code) => {
+    const m = D.CLUB_META?.[code];
+    return m && CLUB_META_FIELDS.every((f) => f in m);
+  }));
+const NI_BOUNDS = { latMin: 53.9, latMax: 55.5, lonMin: -8.3, lonMax: -5.3 }; // keep in sync with scripts/fetch-wikidata.js
+check("every non-null CLUB_META coordinate falls within Northern Ireland's bounds",
+  routeClubs.every((code) => {
+    const m = D.CLUB_META?.[code];
+    if (!m || m.lat === null || m.lon === null) return true; // not yet sourced — nothing to check
+    return m.lat >= NI_BOUNDS.latMin && m.lat <= NI_BOUNDS.latMax && m.lon >= NI_BOUNDS.lonMin && m.lon <= NI_BOUNDS.lonMax;
+  }));
+check("every non-null TRAVEL total is non-zero",
+  routeClubs.every((code) => {
+    const t = D.TRAVEL?.clubs?.[code];
+    return !t || t.totalMiles > 0;
+  }));
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);
