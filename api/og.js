@@ -137,6 +137,21 @@ function sectionBody(id) {
   ];
 }
 
+// The root card ("?type=home"): the mark, the wordmark and the strapline, large and
+// centred — the site's own hero, not a small corner header like the club/section cards.
+function homeTree() {
+  return shell([
+    h(
+      "div",
+      { style: { display: "flex", flex: 1, flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "26px" } },
+      h("img", { src: logoDataUri(170), width: 170, height: 170 }),
+      h("div", { style: { fontSize: "108px", fontWeight: 800, letterSpacing: "2px", color: CHALK, lineHeight: 1 } }, "GIBSON"),
+      h("div", { style: { fontSize: "32px", color: DIM, textAlign: "center", maxWidth: "860px", lineHeight: 1.3 } }, "The Irish League, done properly.")
+    ),
+    footer(),
+  ]);
+}
+
 function footer() {
   return h(
     "div",
@@ -150,6 +165,16 @@ export default async function handler(req) {
   const { searchParams } = new URL(req.url);
   const type = searchParams.get("type");
   const id = searchParams.get("id");
+
+  const font = await loadCondensedFont(700);
+  const options = { width: 1200, height: 630 };
+  if (font) options.fonts = [font];
+
+  // The root card has its own large-centred layout (mark + wordmark + strapline), not
+  // the small-header-plus-body composition the other card types share.
+  if (type === "home") {
+    return new ImageResponse(homeTree(), options);
+  }
 
   let body;
   if (type === "club" && id && CLUBS[id] && id !== "GLV") {
@@ -167,10 +192,6 @@ export default async function handler(req) {
 
   const middle = h("div", { style: { display: "flex", flexDirection: "column" } }, ...body);
   const tree = shell([header(), middle, footer()]);
-
-  const font = await loadCondensedFont(700);
-  const options = { width: 1200, height: 630 };
-  if (font) options.fonts = [font];
 
   return new ImageResponse(tree, options);
 }

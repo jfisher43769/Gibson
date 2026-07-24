@@ -191,10 +191,13 @@ export function jsonLdForPath(path) {
   };
 }
 
-// Absolute og:image/twitter:image URL for a route: the dynamic /api/og card for club and
-// section routes, or null for the root (which keeps the static og-card.png fallback).
+// Absolute og:image/twitter:image URL for a route — every route gets the dynamic /api/og
+// card, including root (?type=home). A relative fallback (og-card.png) doesn't reliably
+// resolve for social scrapers without an og:url to resolve it against, which is why the
+// root card previously didn't render; every route here returns an absolute URL instead.
 export function ogImageForPath(path) {
   const p = cleanPath(path);
+  if (p === "/") return `${SITE_ORIGIN}/api/og?type=home`;
   if (p.startsWith("/club/")) {
     const code = SLUG_TO_CLUB[p.slice(6)];
     return code ? `${SITE_ORIGIN}/api/og?type=club&id=${code}` : null;
