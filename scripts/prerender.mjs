@@ -61,15 +61,18 @@ function pageHtml(path) {
   let doc = template
     .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(meta.title)}</title>`)
     .replace(/<meta name="description" content="[\s\S]*?"\s*\/>/, `<meta name="description" content="${esc(meta.description)}" />`);
-  // Per-route social card: point og:image + twitter:image at the dynamic /api/og card.
-  // The root has no card URL (ogImageForPath returns null) so it keeps og-card.png.
+  // Per-route social card: every route (including root, ?type=home) points og:image and
+  // twitter:image at the dynamic /api/og card — a relative fallback like og-card.png
+  // doesn't reliably resolve for social scrapers without an og:url to resolve it against,
+  // which is exactly why the root card previously didn't work.
   const ogImg = mod.ogImageForPath(path);
   if (ogImg) {
     doc = doc
       .replace(/<meta property="og:image" content="[\s\S]*?"\s*\/>/, `<meta property="og:image" content="${esc(ogImg)}" />`)
       .replace(/<meta name="twitter:image" content="[\s\S]*?"\s*\/>/, `<meta name="twitter:image" content="${esc(ogImg)}" />`);
   }
-  let head = `<link rel="canonical" href="${SITE}${path === "/" ? "/" : path}" />`;
+  const routeUrl = `${SITE}${path === "/" ? "/" : path}`;
+  let head = `<link rel="canonical" href="${routeUrl}" />\n    <meta property="og:url" content="${routeUrl}" />`;
   if (ld) head += `\n    <script type="application/ld+json">${JSON.stringify(ld)}</script>`;
   doc = doc.replace("</head>", `    ${head}\n  </head>`);
   // Inject the rendered app into #root — crawlers see content; the client re-renders on load.
