@@ -81,5 +81,20 @@ check("every non-null TRAVEL total is non-zero",
     return !t || t.totalMiles > 0;
   }));
 
+// Search-result imagery: a real favicon.ico + 96px icon must exist, and index.html must
+// declare each icon exactly once — a duplicate/conflicting <link rel="icon"> is exactly
+// the kind of thing that silently breaks which icon a browser or crawler picks.
+check("public/favicon.ico exists and looks like a real ICO (not empty/corrupt)", (() => {
+  try {
+    const buf = readFileSync(publicPath("favicon.ico"));
+    return buf.length > 100 && buf.readUInt16LE(2) === 1; // ICO type field
+  } catch { return false; }
+})());
+check("public/icon-96.png exists", existsSync(publicPath("icon-96.png")));
+const indexHtml = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+const iconHrefs = [...indexHtml.matchAll(/<link rel="icon"[^>]*href="([^"]+)"/g)].map((m) => m[1]);
+check("index.html declares each <link rel=\"icon\"> href exactly once (no duplicates)",
+  iconHrefs.length > 0 && new Set(iconHrefs).size === iconHrefs.length);
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);

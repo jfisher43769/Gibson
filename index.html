@@ -20,7 +20,9 @@
     <meta name="theme-color" content="#0B1512" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
-    <link rel="icon" type="image/png" href="/icon-192.png" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/icon-96.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -29,6 +31,7 @@
         "alternateName": "GIBSON — The Home of Irish League Stats",
         "url": "https://gibsonstats.com/",
         "description": "NIFL Premiership tables, fixtures, results, transfers, xG and player stats for all twelve clubs.",
+        "image": "https://gibsonstats.com/api/og?type=home",
         "applicationCategory": "SportsApplication",
         "operatingSystem": "Any",
         "browserRequirements": "Requires JavaScript",
@@ -40,6 +43,15 @@
           "alternateName": "Northern Ireland Football League Premiership",
           "sport": "Association football"
         }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "GIBSON",
+        "url": "https://gibsonstats.com/",
+        "logo": "https://gibsonstats.com/icon-192.png"
       }
     </script>
       <script defer src="/_vercel/insights/script.js"></script>
