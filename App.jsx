@@ -40,7 +40,7 @@ const GlobalStyle = () => (
 );
 
 import {
-  CLUBS, FINAL_PLACINGS, MID_TABLE, FULL_TABLE, PLAYERS, AXES, TRANSFERS, STATUS_META, ROLL_OF_HONOUR, ALL_TIME_TITLES, RECORDS, PREDICTOR_GW, store, KOFI_URL, EURO, CLUB_FIXTURES, FIXTURES_2627, POST_SPLIT_DATES, SUPPORT_TIERS, SOCIALS, SEASON_ARCHIVE, MARKET_VALUES, LEAGUE_FACTS, LEAGUE_LORE, INJURIES, TEAM_STATS_2526, DISCIPLINE, WINDOW, GOALS_STATS, GOALS_LEAGUE_AVG, XG_TEAMS, XG_PLAYERS, CLUB_TOP_SCORERS, EURO_COEFFICIENT, CLUB_META, TRAVEL, seasonLabel, SEASON, seasonStatus, seasonStartDisplay,
+  CLUBS, FINAL_PLACINGS, MID_TABLE, FULL_TABLE, PLAYERS, AXES, TRANSFERS, STATUS_META, ROLL_OF_HONOUR, ALL_TIME_TITLES, RECORDS, PREDICTOR_GW, store, KOFI_URL, EURO, CLUB_FIXTURES, FIXTURES_2627, POST_SPLIT_DATES, SUPPORT_TIERS, SOCIALS, SEASON_ARCHIVE, MARKET_VALUES, LEAGUE_FACTS, LEAGUE_LORE, INJURIES, TEAM_STATS_2526, DISCIPLINE, WINDOW, GOALS_STATS, GOALS_LEAGUE_AVG, XG_TEAMS, XG_PLAYERS, CLUB_TOP_SCORERS, EURO_COEFFICIENT, CLUB_META, TRAVEL, seasonLabel, SEASON, seasonStatus, seasonStartDisplay, liveSeasonId,
 } from "./data.js";
 
 
@@ -564,7 +564,7 @@ function TableView() {
                     <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#FFB627", fontVariantNumeric: "tabular-nums" }}>€{m.total.toFixed(2)}m</span>
                   </div>
                   <div style={{ height: 6, borderRadius: 3, background: faint, overflow: "hidden" }}>
-                    <div style={{ width: `${Math.max((m.total / MARKET_VALUES[0].total) * 100, 3)}%`, height: "100%", background: `linear-gradient(90deg, ${CLUBS[m.club].colors[0]}, ${CLUBS[m.club].colors[0]}AA)`, borderRadius: 3 }} />
+                    <div style={{ width: `${Math.max((m.total / (MARKET_VALUES[0]?.total || 1)) * 100, 3)}%`, height: "100%", background: `linear-gradient(90deg, ${CLUBS[m.club].colors[0]}, ${CLUBS[m.club].colors[0]}AA)`, borderRadius: 3 }} />
                   </div>
                 </div>
               </div>
@@ -624,7 +624,7 @@ function TableView() {
                   <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#FFB627", fontVariantNumeric: "tabular-nums" }}>€{m.total.toFixed(2)}m</span>
                 </div>
                 <div style={{ height: 6, borderRadius: 3, background: faint, overflow: "hidden" }}>
-                  <div style={{ width: `${Math.max((m.total / MARKET_VALUES[0].total) * 100, 3)}%`, height: "100%", background: `linear-gradient(90deg, ${CLUBS[m.club].colors[0]}, ${CLUBS[m.club].colors[0]}AA)`, borderRadius: 3 }} />
+                  <div style={{ width: `${Math.max((m.total / (MARKET_VALUES[0]?.total || 1)) * 100, 3)}%`, height: "100%", background: `linear-gradient(90deg, ${CLUBS[m.club].colors[0]}, ${CLUBS[m.club].colors[0]}AA)`, borderRadius: 3 }} />
                 </div>
               </div>
             </div>
@@ -712,10 +712,23 @@ function PlayerDetail({ player }) {
 }
 
 function DuelView() {
-  const [a, setA] = useState(PLAYERS[0].id);
-  const [b, setB] = useState(PLAYERS[1].id);
+  // Needs at least two rated players. After a season rollover PLAYERS is empty until the
+  // new season's ratings land, so bail out cleanly instead of indexing into nothing.
+  const [a, setA] = useState(() => PLAYERS[0]?.id ?? null);
+  const [b, setB] = useState(() => PLAYERS[1]?.id ?? null);
   const pA = PLAYERS.find((p) => p.id === a);
   const pB = PLAYERS.find((p) => p.id === b);
+  if (!pA || !pB) {
+    return (
+      <div className="gb-narrow" style={{ ...SURFACE.flat, borderRadius: 12, padding: "18px 16px", textAlign: "center" }}>
+        <div style={{ fontSize: 26, marginBottom: 8 }}>⚔️</div>
+        <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 18, textTransform: "uppercase", color: chalk, marginBottom: 6 }}>Duel needs two rated players</div>
+        <div style={{ fontSize: 13, color: dim, lineHeight: 1.5 }}>
+          GIBSON Index ratings for {SEASON.current.display} arrive once the season is under way.
+        </div>
+      </div>
+    );
+  }
   const colA = "#FFB627", colB = "#5EC8F2";
   const data = AXES.map((ax, i) => ({ axis: ax, A: pA.radar[i], B: pB.radar[i] }));
   const rows = [
@@ -1847,7 +1860,9 @@ function StatsView() {
         </div>
       </div>
       <SeasonSwitch value={season} onChange={setSeason} status={status} />
-      {season === SEASON.current.id ? <NoSeasonData status={status} what="Stats" /> : <StatsBody />}
+      {season === liveSeasonId() && GOALS_STATS.length > 0 && TEAM_STATS_2526.length > 0
+        ? <StatsBody />
+        : <NoSeasonData status={status} what="Stats" seasonId={season} />}
       <TravelCard />
       <div style={{ marginTop: 16 }}><ReportLink /></div>
     </div>
@@ -1857,9 +1872,11 @@ function StatsView() {
 // Last season's completed team-level numbers. Split out of StatsView so the season
 // selector can swap the whole body without nesting the entire view in a conditional.
 function StatsBody() {
-  const maxAvg = GOALS_STATS[0].avg;
+  // StatsView only renders this with data, but guard anyway — these `[0]` reads are what
+  // crashed the build when a season rollover emptied the live arrays.
+  const maxAvg = GOALS_STATS[0]?.avg || 1;
   const csSorted = [...GOALS_STATS].sort((x, y) => y.cs - x.cs).slice(0, 5);
-  const maxGoals = TEAM_STATS_2526[0].goals;
+  const maxGoals = TEAM_STATS_2526[0]?.goals || 1;
   return (
     <>
       <div className="gb-desk-2col">
@@ -2248,19 +2265,25 @@ function SeasonSwitch({ value, onChange, status }) {
 
 // Shown when the current season is selected but has no numbers behind it yet. Never
 // invents a placeholder stat — it says plainly what exists and when more arrives.
-function NoSeasonData({ status, what = "Stats" }) {
+function NoSeasonData({ status, what = "Stats", seasonId = SEASON.current.id }) {
+  const isCurrent = seasonId === SEASON.current.id;
+  const display = isCurrent ? SEASON.current.display : SEASON.previous.display;
+  // Two distinct reasons a season can have nothing to show, and they need different copy:
+  // the current season hasn't produced the numbers yet, or an older season's numbers have
+  // been rolled into SEASON_ARCHIVE and aren't wired back into these views yet.
+  const body = isCurrent
+    ? (status.gamesPlayed === 0
+        ? `The season kicks off on ${seasonStartDisplay()}. ${what} fill in here as results come in — until then, tap ${SEASON.previous.display} for last season's completed numbers.`
+        : `Only ${status.gamesPlayed} game${status.gamesPlayed === 1 ? "" : "s"} played so far — too early for these to mean much. Tap ${SEASON.previous.display} for last season's completed numbers.`)
+    : `${display} has been archived. Its completed numbers are kept in the season archive — tap ${SEASON.current.display} for the live season.`;
   return (
     <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "18px 16px", textAlign: "center" }}>
       <div style={{ fontSize: 26, marginBottom: 8 }}>⚽</div>
       <div style={{
         fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 18, textTransform: "uppercase",
         color: chalk, lineHeight: 1.15, marginBottom: 6,
-      }}>No {SEASON.current.display} {what.toLowerCase()} yet</div>
-      <div style={{ fontSize: 13, color: dim, lineHeight: 1.5, maxWidth: 380, margin: "0 auto" }}>
-        {status.gamesPlayed === 0
-          ? `The season kicks off on ${seasonStartDisplay()}. ${what} fill in here as results come in — until then, tap ${SEASON.previous.display} for last season's completed numbers.`
-          : `Only ${status.gamesPlayed} game${status.gamesPlayed === 1 ? "" : "s"} played so far — too early for these to mean much. Tap ${SEASON.previous.display} for last season's completed numbers.`}
-      </div>
+      }}>No {display} {what.toLowerCase()} yet</div>
+      <div style={{ fontSize: 13, color: dim, lineHeight: 1.5, maxWidth: 380, margin: "0 auto" }}>{body}</div>
     </div>
   );
 }
@@ -2436,7 +2459,9 @@ function PlayersView() {
   return (
     <div className="gb-narrow" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr)", gap: 18 }}>
       <SeasonSwitch value={season} onChange={setSeason} status={status} />
-      {season === SEASON.current.id ? <NoSeasonData status={status} what="Player stats" /> : <PlayersBody />}
+      {season === liveSeasonId() && PLAYERS.length > 0
+        ? <PlayersBody />
+        : <NoSeasonData status={status} what="Player stats" seasonId={season} />}
 
       {/* Treatment table — current injuries, not season-scoped, so it stays put whichever
           season is selected. */}
@@ -2469,7 +2494,7 @@ function PlayersView() {
 // Season-scoped player content: the GIBSON Index list, the selected player's detail card
 // and the discipline leaders. Split out so the season selector swaps it as one unit.
 function PlayersBody() {
-  const [selected, setSelected] = useState(PLAYERS[0].id);
+  const [selected, setSelected] = useState(() => PLAYERS[0]?.id ?? null);
   const [sort, setSort] = useState("rating");
   const player = PLAYERS.find((p) => p.id === selected);
   const sorted = useMemo(() => {
@@ -2747,9 +2772,9 @@ function ClubPage({ club, onBack }) {
       {/* Season selector — governs the two season-scoped sections below (Season + Squad).
           Club info, fixtures, transfers and honours aren't season stats, so they stay put. */}
       <SeasonSwitch value={season} onChange={setSeason} status={status} />
-      {season === SEASON.current.id ? (
-        <ClubSection title={`Season · ${SEASON.current.display}`}>
-          <NoSeasonData status={status} what="Stats" />
+      {!(season === liveSeasonId() && FULL_TABLE.length > 0) ? (
+        <ClubSection title={`Season · ${season === SEASON.current.id ? SEASON.current.display : SEASON.previous.display}`}>
+          <NoSeasonData status={status} what="Stats" seasonId={season} />
         </ClubSection>
       ) : (<>
       <ClubSection title={`Season · ${seasonLabel("XG_TEAMS")}`}>
