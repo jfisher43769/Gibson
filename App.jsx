@@ -40,7 +40,7 @@ const GlobalStyle = () => (
 );
 
 import {
-  CLUBS, FINAL_PLACINGS, MID_TABLE, FULL_TABLE, PLAYERS, AXES, TRANSFERS, STATUS_META, ROLL_OF_HONOUR, ALL_TIME_TITLES, RECORDS, PREDICTOR_GW, store, KOFI_URL, EURO, CLUB_FIXTURES, FIXTURES_2627, POST_SPLIT_DATES, SUPPORT_TIERS, SOCIALS, SEASON_ARCHIVE, MARKET_VALUES, LEAGUE_FACTS, LEAGUE_LORE, INJURIES, TEAM_STATS_2526, DISCIPLINE, WINDOW, GOALS_STATS, GOALS_LEAGUE_AVG, XG_TEAMS, XG_PLAYERS, EURO_COEFFICIENT, CLUB_META, TRAVEL,
+  CLUBS, FINAL_PLACINGS, MID_TABLE, FULL_TABLE, PLAYERS, AXES, TRANSFERS, STATUS_META, ROLL_OF_HONOUR, ALL_TIME_TITLES, RECORDS, PREDICTOR_GW, store, KOFI_URL, EURO, CLUB_FIXTURES, FIXTURES_2627, POST_SPLIT_DATES, SUPPORT_TIERS, SOCIALS, SEASON_ARCHIVE, MARKET_VALUES, LEAGUE_FACTS, LEAGUE_LORE, INJURIES, TEAM_STATS_2526, DISCIPLINE, WINDOW, GOALS_STATS, GOALS_LEAGUE_AVG, XG_TEAMS, XG_PLAYERS, EURO_COEFFICIENT, CLUB_META, TRAVEL, seasonLabel,
 } from "./data.js";
 
 
@@ -505,7 +505,7 @@ function TableView() {
         <div className="gb-desk-2col">
         <div>
         <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
-          Sports Direct Premiership · Final 2025/26
+          Sports Direct Premiership · {seasonLabel("FULL_TABLE")}
         </div>
         <div style={{ display: "grid", gap: 6 }}>
           {FULL_TABLE.map((row, i) => (
@@ -540,7 +540,7 @@ function TableView() {
 
         <div style={{ marginTop: 22 }}>
           <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
-            Squad Market Values 26/27 · Transfermarkt
+            Squad Market Values · {seasonLabel("MARKET_VALUES")} · Transfermarkt
           </div>
           <div style={{ display: "grid", gap: 8 }}>
             {MARKET_VALUES.map((m, i) => (
@@ -575,7 +575,7 @@ function TableView() {
       <div className="gb-desk-2col">
       <div>
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
-        Sports Direct Premiership · Final 2025/26
+        Sports Direct Premiership · {seasonLabel("FULL_TABLE")}
       </div>
       <div style={{ display: "grid", gap: 6 }}>
         {FINAL_PLACINGS.filter((r) => r.pos <= 4).map((r, i) => <Row key={r.club} {...r} i={i} />)}
@@ -600,7 +600,7 @@ function TableView() {
 
       <div style={{ marginTop: 22 }}>
         <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
-          Squad Market Values 26/27 · Transfermarkt
+          Squad Market Values · {seasonLabel("MARKET_VALUES")} · Transfermarkt
         </div>
         <div style={{ display: "grid", gap: 8 }}>
           {MARKET_VALUES.map((m, i) => (
@@ -678,7 +678,7 @@ function PlayerDetail({ player }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 14 }}>
         <div style={{ ...SURFACE.card, borderRadius: 12, padding: 8 }}>
-          <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", padding: "6px 8px" }}>Skill Radar · GIBSON Index beta</div>
+          <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", padding: "6px 8px" }}>Skill Radar · {seasonLabel("PLAYERS")} · beta</div>
           <div style={{ height: 240 }}>
             <ResponsiveContainer>
               <RadarChart data={radarData} outerRadius="75%">
@@ -742,6 +742,7 @@ function DuelView() {
       </div>
 
       <div style={{ ...SURFACE.card, borderRadius: 12, marginBottom: 14 }}>
+        <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", padding: "10px 12px 0" }}>Skill Radar · {seasonLabel("PLAYERS")}</div>
         <div style={{ height: 260 }}>
           <ResponsiveContainer>
             <RadarChart data={data} outerRadius="72%">
@@ -759,7 +760,7 @@ function DuelView() {
         </div>
       </div>
 
-      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Tale of the tape</div>
+      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Tale of the tape · {seasonLabel("PLAYERS")}</div>
       {rows.map(([label, va, vb]) => {
         const total = va + vb || 1;
         const aWins = va > vb;
@@ -1830,13 +1831,13 @@ function StatsView() {
         <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 20, textTransform: "uppercase", color: chalk, lineHeight: 1.1 }}>
           The Stats Lab ⚡
         </div>
-        <div style={{ fontSize: 12, color: dim, marginTop: 4 }}>25/26 season · verified team-level numbers</div>
+        <div style={{ fontSize: 12, color: dim, marginTop: 4 }}>{seasonLabel("GOALS_STATS")} season · verified team-level numbers</div>
       </div>
 
       <div className="gb-desk-2col">
       <div>
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
-        The Entertainment Index · goals per game in their matches
+        The Entertainment Index · goals per game in their matches · {seasonLabel("GOALS_STATS")}
       </div>
       <div style={{ display: "grid", gap: 8, marginBottom: 8 }}>
         {GOALS_STATS.map((t, i) => (
@@ -1864,7 +1865,7 @@ function StatsView() {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
         <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "12px" }}>
-          <div style={{ fontSize: 12, color: "#3DDC84", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>🧤 Clean sheet kings</div>
+          <div style={{ fontSize: 12, color: "#3DDC84", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>🧤 Clean sheet kings · {seasonLabel("GOALS_STATS")}</div>
           {csSorted.map((t) => (
             <div key={t.club} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
               <Crest club={t.club} size={15} />
@@ -1887,7 +1888,7 @@ function StatsView() {
       <div className="gb-desk-2col">
       <div>
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
-        The xG Lab · expected goals per 90
+        The xG Lab · expected goals per 90 · {seasonLabel("XG_TEAMS")}
       </div>
       <div style={{ display: "grid", gap: 8, marginBottom: 8 }}>
         {XG_TEAMS.map((t, i) => (
@@ -1925,7 +1926,7 @@ function StatsView() {
       <div>
 
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
-        Clinical XI · goals vs expected goals
+        Clinical XI · goals vs expected goals · {seasonLabel("XG_PLAYERS")}
       </div>
       <div style={{ display: "grid", gap: 6, marginBottom: 8 }}>
         {XG_PLAYERS.map((p, i) => {
@@ -1952,7 +1953,7 @@ function StatsView() {
       </div>
 
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
-        Goals scored & possession
+        Goals scored & possession · {seasonLabel("TEAM_STATS_2526")}
       </div>
       <div style={{ display: "grid", gap: 8 }}>
         {TEAM_STATS_2526.map((t, i) => (
@@ -2343,7 +2344,7 @@ function PlayersView() {
     <div className="gb-narrow" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr)", gap: 18 }}>
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-          <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>GIBSON Index · 25/26 · beta</div>
+          <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>GIBSON Index · {seasonLabel("PLAYERS")} · beta</div>
           <div style={{ display: "flex", gap: 4 }}>
             {["rating", "goals", "assists"].map((s) => (
               <button key={s} onClick={() => setSort(s)} style={{
@@ -2405,7 +2406,7 @@ function PlayersView() {
         <div style={{ fontSize: 12, color: dim, marginTop: 6 }}>Via Transfermarkt, July 2026.</div>
       </div>
       <div>
-        <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Discipline · 25/26 card leaders</div>
+        <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Discipline card leaders · {seasonLabel("DISCIPLINE")}</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "10px 12px" }}>
             <div style={{ fontSize: 12, color: "#FFB627", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>🟨 Most yellows</div>
@@ -2578,7 +2579,7 @@ function ClubPage({ club, onBack }) {
             <div style={{ minWidth: 0 }}>
               <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, textTransform: "uppercase", color: chalk, lineHeight: 1 }}>{c.name}</div>
               <div style={{ fontSize: 13, color: dim, marginTop: 4 }}>{c.ground}</div>
-              {row && row.note && <div style={{ fontSize: 12, color: "#FFB627", marginTop: 4 }}>{noteLabel[row.note]} · 2025/26</div>}
+              {row && row.note && <div style={{ fontSize: 12, color: "#FFB627", marginTop: 4 }}>{noteLabel[row.note]} · {seasonLabel("FULL_TABLE")}</div>}
             </div>
           </div>
           {row ? (
@@ -2623,7 +2624,7 @@ function ClubPage({ club, onBack }) {
       </ClubSection>
 
       {/* Season */}
-      <ClubSection title="Season · 25/26">
+      <ClubSection title={`Season · ${seasonLabel("XG_TEAMS")}`}>
         {xg ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 12 }}>
             {tile("xG for", xg.xg.toFixed(2), "#3DDC84")}
@@ -2639,7 +2640,7 @@ function ClubPage({ club, onBack }) {
             {goalsStat && tile("Clean sheets", `${goalsStat.cs}%`)}
           </div>
         )}
-        <div style={subhead}>Discipline · 25/26</div>
+        <div style={subhead}>Discipline · {seasonLabel("DISCIPLINE")}</div>
         {yellows.length || reds.length ? cardList(
           [...yellows.map((p) => [p, "🟨", "#FFB627"]), ...reds.map((p) => [p, "🟥", "#E8663C"])].map(([p, icon, col], i, arr) => (
             <div key={p.player + icon} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 13px", borderBottom: i < arr.length - 1 ? `1px solid ${faint}` : "none" }}>
@@ -2652,7 +2653,7 @@ function ClubPage({ club, onBack }) {
       </ClubSection>
 
       {/* Squad */}
-      <ClubSection title="Squad">
+      <ClubSection title={`Squad · ${seasonLabel("PLAYERS")}`}>
         {indexPlayers.length ? cardList(
           indexPlayers.map((p, i) => (
             <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderBottom: i < indexPlayers.length - 1 ? `1px solid ${faint}` : "none" }}>
@@ -2667,7 +2668,7 @@ function ClubPage({ club, onBack }) {
         ) : empty("No GIBSON Index players rated for this club yet.")}
 
         {scorers.length > 0 && (<>
-          <div style={subhead}>Goals vs expected</div>
+          <div style={subhead}>Goals vs expected · {seasonLabel("XG_PLAYERS")}</div>
           {cardList(scorers.map((p, i) => {
             const diff = p.goals - p.xg;
             return (
