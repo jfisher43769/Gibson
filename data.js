@@ -67,6 +67,55 @@ export function seasonLabel(exportName) {
   return `${display} · final`;
 }
 
+// How many games a club must have played before the current season's own numbers carry
+// enough signal to lead with. Below this, stats surfaces show last season's completed data
+// (clearly labelled) by default, with the current season one tap away.
+export const EARLY_SEASON_GAMES = 5;
+
+// Games played so far in the current season — DERIVED from results recorded against the
+// fixture list, never hardcoded, so it advances on its own as results land. A fixture
+// counts as played once it carries a `result: [home, away]` (same shape PREDICTOR_GW uses).
+// Uses the highest count any single club has reached, i.e. "how deep into the season are
+// we" — so one club with a postponed game can't hold the whole app in early-season mode.
+export function currentSeasonGamesPlayed() {
+  const played = {};
+  for (const round of FIXTURES_2627) {
+    for (const m of round.matches) {
+      if (!Array.isArray(m.result)) continue;
+      played[m.h] = (played[m.h] || 0) + 1;
+      played[m.a] = (played[m.a] || 0) + 1;
+    }
+  }
+  const counts = Object.values(played);
+  return counts.length ? Math.max(...counts) : 0;
+}
+
+const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+// "7 August", derived from SEASON.seasonStart so the strip copy can never drift from it.
+export function seasonStartDisplay() {
+  const d = new Date(`${SEASON.seasonStart}T00:00:00Z`);
+  return `${d.getUTCDate()} ${MONTH_NAMES[d.getUTCMonth()]}`;
+}
+
+// Which season a stats surface should lead with, plus the early-season strip copy.
+// Early season = the current campaign has fewer than EARLY_SEASON_GAMES games played;
+// until then last season's completed numbers are the more useful default.
+export function seasonStatus(now = Date.now()) {
+  const gamesPlayed = currentSeasonGamesPlayed();
+  const started = now >= Date.parse(`${SEASON.seasonStart}T00:00:00Z`);
+  const early = gamesPlayed < EARLY_SEASON_GAMES;
+  return {
+    gamesPlayed,
+    started,
+    early,
+    defaultSeason: early ? SEASON.previous.id : SEASON.current.id,
+    strip: started
+      ? `${gamesPlayed} game${gamesPlayed === 1 ? "" : "s"} played — early days`
+      : `${SEASON.current.display} starts ${seasonStartDisplay()}`,
+  };
+}
+
 // ===== 26/27 BoyleSports Premiership fixtures (official, July 2026) =====
 // All fixtures subject to change (broadcast selection + European involvement).
 // Default kick-off 3pm Saturday unless a match specifies d (date) or t (time).
@@ -74,7 +123,7 @@ export const FIXTURES_2627 = [
   { round: 1, date: "Sat 8 Aug", matches: [
     { h: "CLI", a: "CRU", d: "Fri 7 Aug", t: "7.45pm" },
     { h: "LIN", a: "BAL" }, { h: "CAR", a: "POR" }, { h: "DUN", a: "COL" }, { h: "GLE", a: "LIM" },
-    { h: "LAR", a: "BAN", d: "Sun 9 Aug" },
+    { h: "LAR", a: "BAN", d: "Tue 8 Sep" }, // rescheduled from Sun 9 Aug (NIFL, 27 Jul 2026)
   ]},
   { round: 2, date: "Sat 15 Aug", matches: [
     { h: "BAN", a: "CLI" }, { h: "COL", a: "LAR" }, { h: "CRU", a: "BAL" }, { h: "LIM", a: "CAR" }, { h: "LIN", a: "GLE" }, { h: "POR", a: "DUN" },
@@ -239,6 +288,17 @@ export const AXES = ["Shooting", "Creation", "Passing", "Dribbling", "Defending"
 // Summer 2026 window tracker — real, sourced stories. Update as fresh news breaks.
 // from/to use a NIFL club code, OR fromExternal/toExternal for clubs outside the league.
 export const TRANSFERS = [
+  { id: 42, date: "Jul", player: "Fraser Bryden", from: "CRU", toExternal: "Chesterfield", status: "departure", note: "Bryden makes the move to the EFL — the forward leaves Seaview for Chesterfield. Fee undisclosed." },
+  { id: 41, date: "Jul", player: "Conor Falls", from: "CLI", to: "POR", status: "done", note: "Centre-forward swaps Solitude for Shamrock Park. Fee undisclosed." },
+  { id: 40, date: "Jul", player: "Liam Jessop", fromExternal: "Chesterfield", to: "POR", status: "done", note: "Left winger joins Portadown on a free from Chesterfield." },
+  { id: 39, date: "Jul", player: "Dominic Martins", fromExternal: "Blyth Town", to: "POR", status: "done", note: "Defensive midfielder joins Portadown on a free from Blyth Town." },
+  { id: 38, date: "Jul", player: "Michael Leetch", fromExternal: "Ballyclare", to: "BAL", status: "done", note: "Right winger steps up to the Premiership with Ballymena United. Fee undisclosed." },
+  { id: 37, date: "Jul", player: "David Taylor", from: "BAL", toExternal: "Ballyclare", status: "departure", note: "Centre-forward leaves Ballymena United for Ballyclare. Fee undisclosed." },
+  { id: 36, date: "Jul", player: "Dean Ebbe", from: "BAL", toExternal: "Lucan United", status: "departure", note: "Centre-forward departs Ballymena United on a free, joining Lucan United." },
+  { id: 35, date: "Jul", player: "Patrick McEleney", from: "BAL", toExternal: "Retired", status: "departure", note: "The attacking midfielder calls time on his career after leaving Ballymena United." },
+  { id: 34, date: "Jul", player: "Lorcan Donnelly", from: "GLE", toExternal: "Glenavon (loan)", status: "departure", note: "Goalkeeper heads to Glenavon on loan for first-team minutes." },
+  { id: 33, date: "Jul", player: "Jude Johnson", from: "GLE", toExternal: "Glenavon (loan)", status: "departure", note: "Left winger joins Glenavon on loan — the second young Glen to make the move." },
+  { id: 32, date: "Jul", player: "Reece Bell & Jack Faloona", fromExternal: "Glentoran U18", to: "GLE", status: "done", note: "Two defensive midfielders promoted from the U18s to the Glentoran first-team squad." },
   { id: 30, date: "23 Jul", player: "Ollie Samuels", fromExternal: "Middlesbrough", to: "CLI", status: "done", note: "Left-back joins Cliftonville on loan from Middlesbrough." },
   { id: 29, date: "23 Jul", player: "Ryan McKay", from: "LIN", to: "CRU", status: "done", note: "Left-back moves to Seaview on loan from Linfield." },
   { id: 28, date: "23 Jul", player: "Shea Callister", fromExternal: "Derry City", to: "CRU", status: "done", note: "Goalkeeper joins Crusaders on loan from Derry City." },
@@ -476,28 +536,28 @@ export const WINDOW = [
     ins: [["Ryan Nolan", "Larne"], ["Kofi Moore", "Larne"]],
     outs: [["C. Allen", "Ballymena United"], ["J. Archer", "Ballymena United"], ["S. Whiteside", "Ballymena United"], ["C. McKee", "Ballymena United"], ["D. Walsh", "Ballymena United"], ["Ryan McKay", "Crusaders (loan)"]] },
   { club: "GLE",
-    ins: [["Greg Sloggett", "Boston United"], ["Zeno Ibsen Rossi", "Free agent (ex-Cliftonville)"], ["Rhys Walsh", "Sunderland"]],
-    outs: [["D. Amos", "Barrow"], ["Dylan Connolly", "Galway United"], ["A. Wightman", "Cliftonville"], ["C. Farley", "Warrenpoint"], ["C. Coll", "Strabane AFC"], ["C. Palmer", "Livingston"], ["Cillian McCann", "Newington"]] },
+    ins: [["Greg Sloggett", "Boston United"], ["Zeno Ibsen Rossi", "Free agent (ex-Cliftonville)"], ["Rhys Walsh", "Sunderland"], ["Reece Bell", "Glentoran U18"], ["Jack Faloona", "Glentoran U18"]],
+    outs: [["D. Amos", "Barrow"], ["Dylan Connolly", "Galway United"], ["A. Wightman", "Cliftonville"], ["C. Farley", "Warrenpoint"], ["C. Coll", "Strabane AFC"], ["C. Palmer", "Livingston"], ["Cillian McCann", "Newington"], ["Jude Johnson", "Glenavon (loan)"], ["Lorcan Donnelly", "Glenavon (loan)"]] },
   { club: "COL",
     ins: [["Jay Henderson", "Ross County"], ["Aidan Wilson", "Airdrieonians"], ["Ben Doherty", "Derry City"], ["Conor McMenamin", "St Mirren"], ["T. Brolly", "Loan return (Institute)"], ["C. McGrath", "Loan return (Moyola Park)"], ],
     outs: [["J. Glackin", "Dungannon"], ["S. Fallon", "Ballymena United"], ["G. Kelly", "Crusaders"], ["A. Tejada", "Moyola Park"], ["Jamie McGonigle", "Sligo Rovers (loan)"], ["Alfie Gaston", "Limavady United (loan)"]] },
   { club: "CRU",
     ins: [["A. Reid", "Airdrieonians"], ["G. Kelly", "Coleraine"], ["T. Maguire", "Dungannon"], ["O. Wardell", "FK Be1"], ["Shea Callister", "Derry City (loan)"], ["Ryan McKay", "Linfield (loan)"]],
-    outs: [["J. Forsythe", "Carrick Rangers"], ["Odhr\u00e1n McCart", "Moyola Park"], ["B. Hamilton", "Moyola Park"], ["Josh Owens", "Retired"], ["Jonny Tuffey", "Retired"], ["Musa Dibaga", "Dunfermline (fee undisclosed)"]] },
+    outs: [["J. Forsythe", "Carrick Rangers"], ["Odhr\u00e1n McCart", "Moyola Park"], ["B. Hamilton", "Moyola Park"], ["Josh Owens", "Retired"], ["Jonny Tuffey", "Retired"], ["Musa Dibaga", "Dunfermline (fee undisclosed)"], ["Fraser Bryden", "Chesterfield"]] },
   { club: "CLI",
     ins: [["Ben Quinn", "Portadown"], ["A. Wightman", "Glentoran"], ["K. McClelland", "Glenavon"], ["Dan O'Connor", "AFC Totton"], ["J. Thompson", "Ballymena United"], ["Ollie Samuels", "Middlesbrough (loan)"]],
-    outs: [["M. Glynn", "Ballymena United"], ["J. Addis", "Ballymena United"], ["R. Jordan", "Loughgall"], ["S. Robertson", "Torquay"], ["A. Carroll", "Warrenpoint"], ["C. Pepper", "Retired"]] },
+    outs: [["M. Glynn", "Ballymena United"], ["J. Addis", "Ballymena United"], ["R. Jordan", "Loughgall"], ["S. Robertson", "Torquay"], ["A. Carroll", "Warrenpoint"], ["C. Pepper", "Retired"], ["Conor Falls", "Portadown"]] },
   { club: "DUN",
     ins: [["M. McElhatton", "Dergview"], ["J. Glackin", "Coleraine"], ["B. McKeown", "Glenavon"], ["Kris Lowe", "Glenavon"], ["R. Devlin", "Dungannon U18"], ["T. Connolly", "Loan return (Ballinamallard)"]],
     outs: [["K. Ximenes", "Oxford SFC"], ["T. Taggert", "Oxford SFC"], ["O. Crowe", "Annagh United"], ["Leon Boyd", "Limavady United"], ["C. Marron", "Newry City"], ["T. Maguire", "Crusaders"], ["J. Knowles", "Without club"]] },
   { club: "BAL",
-    ins: [["C. Allen", "Linfield"], ["J. Archer", "Linfield"], ["S. Whiteside", "Linfield"], ["C. McKee", "Linfield"], ["D. Walsh", "Linfield"], ["J. Addis", "Cliftonville"], ["M. Glynn", "Cliftonville"], ["S. Fallon", "Coleraine"], ["Owen Mahoney", "Larne"]],
-    outs: [["R. McNickle", "Annagh United"], ["L. Tennant", "Portstewart"], ["S. McAuley", "Chimney Corner"], ["C. Loughran", "Portstewart"], ["A. Gawne", "Portstewart"], ["A. Jarvis", "Limavady United"], ["S. O'Donnell", "Limavady United"], ["D. Lafferty", "Limavady United"], ["Daire O'Connor", "Carrick Rangers"], ["J. Thompson", "Cliftonville"], ["Dylan McGeouch", "Gretna FC 2008"]] },
+    ins: [["C. Allen", "Linfield"], ["J. Archer", "Linfield"], ["S. Whiteside", "Linfield"], ["C. McKee", "Linfield"], ["D. Walsh", "Linfield"], ["J. Addis", "Cliftonville"], ["M. Glynn", "Cliftonville"], ["S. Fallon", "Coleraine"], ["Owen Mahoney", "Larne"], ["Michael Leetch", "Ballyclare"]],
+    outs: [["R. McNickle", "Annagh United"], ["L. Tennant", "Portstewart"], ["S. McAuley", "Chimney Corner"], ["C. Loughran", "Portstewart"], ["A. Gawne", "Portstewart"], ["A. Jarvis", "Limavady United"], ["S. O'Donnell", "Limavady United"], ["D. Lafferty", "Limavady United"], ["Daire O'Connor", "Carrick Rangers"], ["J. Thompson", "Cliftonville"], ["Dylan McGeouch", "Gretna FC 2008"], ["Patrick McEleney", "Retired"], ["Dean Ebbe", "Lucan United"], ["David Taylor", "Ballyclare"]] },
   { club: "CAR",
     ins: [["J. Forsythe", "Crusaders"], ["Jordan Hastings", "Larne"], ["Daire O'Connor", "Ballymena United"]],
     outs: [["Luke McCullough (loan info n/a)", "Matlock"]] },
   { club: "POR",
-    ins: [["M. Carson", "Torquay"], ["R. Breen", "East Kilbride"], ["Mikey Hewitt", "Queen of the South"], ["Sean O'Mahoney", "St Francis"]],
+    ins: [["M. Carson", "Torquay"], ["R. Breen", "East Kilbride"], ["Mikey Hewitt", "Queen of the South"], ["Sean O'Mahoney", "St Francis"], ["Conor Falls", "Cliftonville"], ["Liam Jessop", "Chesterfield"], ["Dominic Martins", "Blyth Town"]],
     outs: [["Ben Quinn", "Cliftonville"], ["Josh Ukek", "Larne"], ["Zach Cowan", "Oxford SFC"], ["Steven McCullough", "Bangor"], ["J. Gibson", "Without club"], ["Shay McCartan", "Without club"], ["Josh Carson", "Retired"], ["Gideon Tetteh", "Wexford FC"]] },
   { club: "BAN",
     ins: [["Lucas McRoberts", "Ayr United"], ["Steven McCullough", "Portadown"]],

@@ -40,7 +40,7 @@ const GlobalStyle = () => (
 );
 
 import {
-  CLUBS, FINAL_PLACINGS, MID_TABLE, FULL_TABLE, PLAYERS, AXES, TRANSFERS, STATUS_META, ROLL_OF_HONOUR, ALL_TIME_TITLES, RECORDS, PREDICTOR_GW, store, KOFI_URL, EURO, CLUB_FIXTURES, FIXTURES_2627, POST_SPLIT_DATES, SUPPORT_TIERS, SOCIALS, SEASON_ARCHIVE, MARKET_VALUES, LEAGUE_FACTS, LEAGUE_LORE, INJURIES, TEAM_STATS_2526, DISCIPLINE, WINDOW, GOALS_STATS, GOALS_LEAGUE_AVG, XG_TEAMS, XG_PLAYERS, EURO_COEFFICIENT, CLUB_META, TRAVEL, seasonLabel,
+  CLUBS, FINAL_PLACINGS, MID_TABLE, FULL_TABLE, PLAYERS, AXES, TRANSFERS, STATUS_META, ROLL_OF_HONOUR, ALL_TIME_TITLES, RECORDS, PREDICTOR_GW, store, KOFI_URL, EURO, CLUB_FIXTURES, FIXTURES_2627, POST_SPLIT_DATES, SUPPORT_TIERS, SOCIALS, SEASON_ARCHIVE, MARKET_VALUES, LEAGUE_FACTS, LEAGUE_LORE, INJURIES, TEAM_STATS_2526, DISCIPLINE, WINDOW, GOALS_STATS, GOALS_LEAGUE_AVG, XG_TEAMS, XG_PLAYERS, EURO_COEFFICIENT, CLUB_META, TRAVEL, seasonLabel, SEASON, seasonStatus, seasonStartDisplay,
 } from "./data.js";
 
 
@@ -1819,9 +1819,8 @@ function HistoryView() {
 }
 
 function StatsView() {
-  const maxAvg = GOALS_STATS[0].avg;
-  const csSorted = [...GOALS_STATS].sort((x, y) => y.cs - x.cs).slice(0, 5);
-  const maxGoals = TEAM_STATS_2526[0].goals;
+  const status = seasonStatus();
+  const [season, setSeason] = useState(status.defaultSeason);
   return (
     <div style={{ animation: "riseIn 0.4s ease-out" }}>
       <div style={{
@@ -1831,9 +1830,26 @@ function StatsView() {
         <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 20, textTransform: "uppercase", color: chalk, lineHeight: 1.1 }}>
           The Stats Lab ⚡
         </div>
-        <div style={{ fontSize: 12, color: dim, marginTop: 4 }}>{seasonLabel("GOALS_STATS")} season · verified team-level numbers</div>
+        <div style={{ fontSize: 12, color: dim, marginTop: 4 }}>
+          {season === SEASON.current.id ? SEASON.current.display : `${SEASON.previous.display} · last season`} · verified team-level numbers
+        </div>
       </div>
+      <SeasonSwitch value={season} onChange={setSeason} status={status} />
+      {season === SEASON.current.id ? <NoSeasonData status={status} what="Stats" /> : <StatsBody />}
+      <TravelCard />
+      <div style={{ marginTop: 16 }}><ReportLink /></div>
+    </div>
+  );
+}
 
+// Last season's completed team-level numbers. Split out of StatsView so the season
+// selector can swap the whole body without nesting the entire view in a conditional.
+function StatsBody() {
+  const maxAvg = GOALS_STATS[0].avg;
+  const csSorted = [...GOALS_STATS].sort((x, y) => y.cs - x.cs).slice(0, 5);
+  const maxGoals = TEAM_STATS_2526[0].goals;
+  return (
+    <>
       <div className="gb-desk-2col">
       <div>
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
@@ -1975,9 +1991,15 @@ function StatsView() {
         The quirk of 25/26: Coleraine outscored everyone — 10 more than champions Larne — and still finished second.
         All figures verified via AiScore and published stats tables, July 2026.
       </div>
+    </>
+  );
+}
 
-      {/* Longest Away Trips — derived from CLUB_META (Wikidata) coordinates + the 26/27
-          fixture list. Empty state until CLUB_META has real coordinates for every club. */}
+// Longest away trips — derived from CLUB_META (Wikidata) coordinates + the 26/27 fixture
+// list, so this is CURRENT-season data and sits outside the season selector's body: it's
+// equally valid whichever season is selected. Empty state until CLUB_META has coordinates.
+function TravelCard() {
+  return (
       <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "12px", marginTop: 16 }}>
         <div style={{ fontSize: 12, color: "#FFB627", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
           🚌 Longest away trips · 26/27
@@ -2012,9 +2034,6 @@ function StatsView() {
         )}
         <div style={{ fontSize: 11, color: "rgba(143,166,155,0.5)", marginTop: 6 }}>Straight-line distance from ground coordinates (Wikidata, CC0), not road/travel miles.</div>
       </div>
-
-      <div style={{ marginTop: 16 }}><ReportLink /></div>
-    </div>
   );
 }
 
@@ -2160,6 +2179,76 @@ function SubNav({ items, value, onChange }) {
           border: `1px solid ${value === id ? "#FFB627" : faint}`,
         }}>{label}</button>
       ))}
+    </div>
+  );
+}
+
+/* ================= SEASON SELECTOR =================
+   Every stats surface (Stats tab, Players, club pages) can switch between the current
+   season and last completed one. Which is shown by default comes from seasonStatus():
+   early in a new campaign there's little or no current-season data, so we lead with last
+   season's completed numbers — clearly labelled — and keep the current season one tap
+   away. Once EARLY_SEASON_GAMES games are played, current becomes the default. Games
+   played is derived from results in the fixture list, never hardcoded. */
+
+// The "2026/27 starts 7 August" / "3 games played — early days" banner. Only shown while
+// the season is still early; once real data has built up it would just be noise.
+function SeasonStrip({ status }) {
+  if (!status.early) return null;
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 8, marginBottom: 8,
+      background: "rgba(255,182,39,0.08)", border: "1px solid rgba(255,182,39,0.25)",
+      borderRadius: 10, padding: "8px 12px",
+    }}>
+      <span aria-hidden="true" style={{ fontSize: 13 }}>📅</span>
+      <span style={{
+        fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 13,
+        letterSpacing: "0.08em", textTransform: "uppercase", color: "#FFB627",
+      }}>{status.strip}</span>
+    </div>
+  );
+}
+
+function SeasonSwitch({ value, onChange, status }) {
+  const opts = [
+    [SEASON.current.id, SEASON.current.display],
+    [SEASON.previous.id, `${SEASON.previous.display} · last season`],
+  ];
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <SeasonStrip status={status} />
+      <div role="group" aria-label="Season" style={{ display: "flex", gap: 6 }}>
+        {opts.map(([id, label]) => (
+          <button key={id} onClick={() => onChange(id)} aria-pressed={value === id} style={{
+            flex: 1, padding: "8px 10px", borderRadius: 999, cursor: "pointer",
+            fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 13,
+            letterSpacing: "0.06em", textTransform: "uppercase",
+            background: value === id ? "#FFB627" : OVERLAY.fill,
+            color: value === id ? "#0B1512" : dim,
+            border: `1px solid ${value === id ? "#FFB627" : faint}`,
+          }}>{label}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Shown when the current season is selected but has no numbers behind it yet. Never
+// invents a placeholder stat — it says plainly what exists and when more arrives.
+function NoSeasonData({ status, what = "Stats" }) {
+  return (
+    <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "18px 16px", textAlign: "center" }}>
+      <div style={{ fontSize: 26, marginBottom: 8 }}>⚽</div>
+      <div style={{
+        fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 18, textTransform: "uppercase",
+        color: chalk, lineHeight: 1.15, marginBottom: 6,
+      }}>No {SEASON.current.display} {what.toLowerCase()} yet</div>
+      <div style={{ fontSize: 13, color: dim, lineHeight: 1.5, maxWidth: 380, margin: "0 auto" }}>
+        {status.gamesPlayed === 0
+          ? `The season kicks off on ${seasonStartDisplay()}. ${what} fill in here as results come in — until then, tap ${SEASON.previous.display} for last season's completed numbers.`
+          : `Only ${status.gamesPlayed} game${status.gamesPlayed === 1 ? "" : "s"} played so far — too early for these to mean much. Tap ${SEASON.previous.display} for last season's completed numbers.`}
+      </div>
     </div>
   );
 }
@@ -2330,6 +2419,44 @@ function HomeView({ goTo }) {
 }
 
 function PlayersView() {
+  const status = seasonStatus();
+  const [season, setSeason] = useState(status.defaultSeason);
+  return (
+    <div className="gb-narrow" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr)", gap: 18 }}>
+      <SeasonSwitch value={season} onChange={setSeason} status={status} />
+      {season === SEASON.current.id ? <NoSeasonData status={status} what="Player stats" /> : <PlayersBody />}
+
+      {/* Treatment table — current injuries, not season-scoped, so it stays put whichever
+          season is selected. */}
+      <div>
+        <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Treatment Table · current injuries</div>
+        <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden" }}>
+          {INJURIES.length === 0 && (
+            <div style={{ padding: "16px", fontSize: 12, color: dim, textAlign: "center" }}>
+              🟢 Treatment room's empty — every squad at full strength. Enjoy it while it lasts.
+            </div>
+          )}
+          {INJURIES.map((inj, i) => (
+            <div key={inj.player} style={{
+              display: "flex", alignItems: "center", gap: 10, padding: "9px 13px",
+              borderBottom: i < INJURIES.length - 1 ? `1px solid ${faint}` : "none",
+            }}>
+              <Crest club={inj.club} size={18} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: chalk, flex: 1 }}>{inj.player}</span>
+              <span style={{ fontSize: 12, color: "#E8663C" }}>✚ {inj.injury}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 12, color: dim, marginTop: 6 }}>Via Transfermarkt, July 2026.</div>
+      </div>
+      <div style={{ marginTop: 4 }}><ReportLink /></div>
+    </div>
+  );
+}
+
+// Season-scoped player content: the GIBSON Index list, the selected player's detail card
+// and the discipline leaders. Split out so the season selector swaps it as one unit.
+function PlayersBody() {
   const [selected, setSelected] = useState(PLAYERS[0].id);
   const [sort, setSort] = useState("rating");
   const player = PLAYERS.find((p) => p.id === selected);
@@ -2341,7 +2468,7 @@ function PlayersView() {
     return arr;
   }, [sort]);
   return (
-    <div className="gb-narrow" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr)", gap: 18 }}>
+    <>
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
           <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>GIBSON Index · {seasonLabel("PLAYERS")} · beta</div>
@@ -2385,27 +2512,6 @@ function PlayersView() {
       </div>
       <PlayerDetail player={player} />
       <div>
-        <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Treatment Table · current injuries</div>
-        <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden" }}>
-          {INJURIES.length === 0 && (
-            <div style={{ padding: "16px", fontSize: 12, color: dim, textAlign: "center" }}>
-              🟢 Treatment room's empty — every squad at full strength. Enjoy it while it lasts.
-            </div>
-          )}
-          {INJURIES.map((inj, i) => (
-            <div key={inj.player} style={{
-              display: "flex", alignItems: "center", gap: 10, padding: "9px 13px",
-              borderBottom: i < INJURIES.length - 1 ? `1px solid ${faint}` : "none",
-            }}>
-              <Crest club={inj.club} size={18} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: chalk, flex: 1 }}>{inj.player}</span>
-              <span style={{ fontSize: 12, color: "#E8663C" }}>✚ {inj.injury}</span>
-            </div>
-          ))}
-        </div>
-        <div style={{ fontSize: 12, color: dim, marginTop: 6 }}>Via Transfermarkt, July 2026.</div>
-      </div>
-      <div>
         <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Discipline card leaders · {seasonLabel("DISCIPLINE")}</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "10px 12px" }}>
@@ -2433,8 +2539,7 @@ function PlayersView() {
           Bangor's Lewis Harrison: 10 yellows AND 2 reds — the league's most booked man. Via AiScore.
         </div>
       </div>
-      <div style={{ marginTop: 4 }}><ReportLink /></div>
-    </div>
+    </>
   );
 }
 
@@ -2537,6 +2642,8 @@ function ClubPage({ club, onBack }) {
   const titles = ROLL_OF_HONOUR.filter((r) => r.club === club);
   const meta = CLUB_META[club]; // ground/capacity/founded/website — Wikidata (CC0), null until sourced
   const travel = TRAVEL.clubs[club]; // season away miles, derived from CLUB_META + FIXTURES_2627
+  const status = seasonStatus();
+  const [season, setSeason] = useState(status.defaultSeason);
   const noteLabel = { C: "Champions · Gibson Cup", IC: "Irish Cup winners", E: "Europe (automatic)", EPO: "Europe (play-off)", PO: "Relegation play-off", R: "Relegated" };
 
   const empty = (msg) => <div style={{ fontSize: 13, color: dim, fontStyle: "italic", padding: "8px 0" }}>{msg}</div>;
@@ -2624,6 +2731,14 @@ function ClubPage({ club, onBack }) {
       </ClubSection>
 
       {/* Season */}
+      {/* Season selector — governs the two season-scoped sections below (Season + Squad).
+          Club info, fixtures, transfers and honours aren't season stats, so they stay put. */}
+      <SeasonSwitch value={season} onChange={setSeason} status={status} />
+      {season === SEASON.current.id ? (
+        <ClubSection title={`Season · ${SEASON.current.display}`}>
+          <NoSeasonData status={status} what="Stats" />
+        </ClubSection>
+      ) : (<>
       <ClubSection title={`Season · ${seasonLabel("XG_TEAMS")}`}>
         {xg ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 12 }}>
@@ -2691,6 +2806,7 @@ function ClubPage({ club, onBack }) {
           ))
         ) : empty("No current injuries — squad at full strength.")}
       </ClubSection>
+      </>)}
 
       {/* Transfers */}
       <ClubSection title="Summer window 2026">
