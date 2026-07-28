@@ -109,5 +109,27 @@ check("every stats export is tagged in SEASON_TAGS with a resolvable season id",
 check("seasonLabel() returns a non-empty label for every tagged stats export",
   STATS_EXPORTS.every((name) => typeof D.seasonLabel(name) === "string" && D.seasonLabel(name).length > 0));
 
+// Early-season rule: games played must be DERIVED from results in the fixture list, never
+// hardcoded, and the threshold must actually gate which season the stats surfaces default
+// to. A hardcoded count would silently freeze the app in (or out of) early-season mode.
+check("EARLY_SEASON_GAMES is a sane positive threshold", Number.isInteger(D.EARLY_SEASON_GAMES) && D.EARLY_SEASON_GAMES > 0);
+check("currentSeasonGamesPlayed() is derived from FIXTURES_2627 results, not hardcoded", (() => {
+  const src = readFileSync(new URL("../data.js", import.meta.url), "utf8");
+  const fn = src.match(/export function currentSeasonGamesPlayed\(\)[\s\S]*?\n\}/)?.[0] || "";
+  // Must walk the fixture list and key off a result field — not return a literal.
+  return /FIXTURES_2627/.test(fn) && /\.result/.test(fn) && !/return\s+\d+\s*;/.test(fn);
+})());
+check("seasonStatus() gates defaultSeason on the games-played threshold", (() => {
+  const s = D.seasonStatus();
+  const expected = s.gamesPlayed < D.EARLY_SEASON_GAMES ? D.SEASON.previous.id : D.SEASON.current.id;
+  return s.defaultSeason === expected && s.early === (s.gamesPlayed < D.EARLY_SEASON_GAMES);
+})());
+check("seasonStatus() strip copy is non-empty in both pre-season and in-season states", (() => {
+  const start = Date.parse(`${D.SEASON.seasonStart}T00:00:00Z`);
+  const pre = D.seasonStatus(start - 86400000);
+  const during = D.seasonStatus(start + 86400000);
+  return pre.strip.includes(D.SEASON.current.display) && /game/.test(during.strip);
+})());
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);
