@@ -88,6 +88,21 @@ check("public/calendar/all-fixtures.ics generated", existsSync(publicPath("calen
 const routeClubs = Object.keys(D.CLUBS).filter((k) => k !== "GLV");
 check("every current club has a public/calendar/<CODE>.ics", routeClubs.every((code) => existsSync(publicPath(`calendar/${code}.ics`))));
 
+// og:description previously stayed the generic site-wide blurb on every prerendered route
+// (scripts/prerender.mjs only ever rewrote <meta name="description">) — so a shared club
+// page's link preview showed "...all twelve clubs" instead of the club's own description.
+// Requires npm run build to have run first, same as the sitemap checks above.
+check("prerendered club route's og:description matches its own meta description (not the site default)", (() => {
+  try {
+    const sourceHtml = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+    const genericOg = sourceHtml.match(/<meta property="og:description" content="([^"]*)"/)?.[1];
+    const html = readFileSync(new URL("../dist/club/larne/index.html", import.meta.url), "utf8");
+    const desc = html.match(/<meta name="description" content="([^"]*)"/)?.[1];
+    const og = html.match(/<meta property="og:description" content="([^"]*)"/)?.[1];
+    return !!desc && !!og && desc === og && og !== genericOg;
+  } catch { return false; }
+})());
+
 // CLUB_META (scripts/fetch-wikidata.js) and the TRAVEL derived from it: every field is
 // either a verified value or an explicit null — a missing key entirely would mean the
 // script's shape drifted; a coordinate outside Northern Ireland would mean a club got

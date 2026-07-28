@@ -63,7 +63,8 @@ function pageHtml(path) {
   const ld = mod.jsonLdForPath(path);
   let doc = template
     .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(meta.title)}</title>`)
-    .replace(/<meta name="description" content="[\s\S]*?"\s*\/>/, `<meta name="description" content="${esc(meta.description)}" />`);
+    .replace(/<meta name="description" content="[\s\S]*?"\s*\/>/, `<meta name="description" content="${esc(meta.description)}" />`)
+    .replace(/<meta property="og:description" content="[\s\S]*?"\s*\/>/, `<meta property="og:description" content="${esc(meta.description)}" />`);
   // Per-route social card: every route (including root, ?type=home) points og:image and
   // twitter:image at the dynamic /api/og card — a relative fallback like og-card.png
   // doesn't reliably resolve for social scrapers without an og:url to resolve it against,
