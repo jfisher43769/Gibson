@@ -2792,7 +2792,7 @@ function ClubPage({ club, onBack }) {
               <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 20, color: ratingColor(p.rating), fontVariantNumeric: "tabular-nums" }}>{p.rating.toFixed(1)}</div>
             </div>
           ))
-        ) : empty("No GIBSON Index players rated for this club yet.")}
+        ) : empty("GIBSON Index ratings are added club by club, not simulated — coverage builds up as the 2026/27 season is played.")}
 
         {scorers.length > 0 && (<>
           <div style={subhead}>Goals vs expected · {seasonLabel("XG_PLAYERS")}</div>
