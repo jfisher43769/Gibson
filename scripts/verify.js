@@ -96,5 +96,18 @@ const iconHrefs = [...indexHtml.matchAll(/<link rel="icon"[^>]*href="([^"]+)"/g)
 check("index.html declares each <link rel=\"icon\"> href exactly once (no duplicates)",
   iconHrefs.length > 0 && new Set(iconHrefs).size === iconHrefs.length);
 
+// Season labelling: every stats export a UI surface tags with SEASON_TAGS must actually
+// exist in data.js and resolve to a non-empty label — a typo'd export name here would
+// silently render an empty season label instead of failing loudly.
+const STATS_EXPORTS = ["FULL_TABLE", "MARKET_VALUES", "XG_TEAMS", "XG_PLAYERS", "TEAM_STATS_2526", "DISCIPLINE", "GOALS_STATS", "PLAYERS"];
+check("SEASON has current/previous/seasonStart", !!(D.SEASON?.current?.id && D.SEASON?.previous?.id && D.SEASON?.seasonStart));
+check("every stats export is tagged in SEASON_TAGS with a resolvable season id",
+  STATS_EXPORTS.every((name) => {
+    const id = D.SEASON_TAGS?.[name];
+    return id && (id === D.SEASON.current.id || id === D.SEASON.previous.id) && D[name] !== undefined;
+  }));
+check("seasonLabel() returns a non-empty label for every tagged stats export",
+  STATS_EXPORTS.every((name) => typeof D.seasonLabel(name) === "string" && D.seasonLabel(name).length > 0));
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);

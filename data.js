@@ -31,6 +31,41 @@ export const CLUBS = {
   LIM: { name: "Limavady United", ground: "Limavady Showgrounds", colors: ["#1D6FB8", "#FFFFFF"], pattern: "plain" },
 };
 
+// Season labelling foundation. `current` is the season about to kick off (seasonStart);
+// `previous` is the completed season the site's stats still describe. SEASON_TAGS maps
+// each season-scoped stats export to the season id it belongs to, so App.jsx can render a
+// season label wherever that export is shown instead of hand-typed "25/26" text that can
+// drift out of sync with the data. seasonLabel() is the single place that formats it.
+export const SEASON = {
+  current: { id: "2026-27", display: "2026/27" },
+  previous: { id: "2025-26", display: "2025/26" },
+  seasonStart: "2026-08-07",
+};
+
+// Every export a stats surface reads season-scoped data from, tagged with which season it
+// describes. All eight are last season's completed records — the 26/27 season itself
+// hasn't kicked off yet (SEASON.seasonStart), so there's nothing to tag "current" yet.
+export const SEASON_TAGS = {
+  FULL_TABLE: "2025-26",
+  MARKET_VALUES: "2025-26",
+  XG_TEAMS: "2025-26",
+  XG_PLAYERS: "2025-26",
+  TEAM_STATS_2526: "2025-26",
+  DISCIPLINE: "2025-26",
+  GOALS_STATS: "2025-26",
+  PLAYERS: "2025-26",
+};
+
+// Renders e.g. "2025/26 · final" for a completed season, or just "2026/27" once something
+// is tagged with the current (still in-progress) season id — "final" only ever describes a
+// season that's actually over.
+export function seasonLabel(exportName) {
+  const id = SEASON_TAGS[exportName];
+  if (!id) return "";
+  if (id === SEASON.current.id) return SEASON.current.display;
+  const display = id === SEASON.previous.id ? SEASON.previous.display : id;
+  return `${display} · final`;
+}
 
 // ===== 26/27 BoyleSports Premiership fixtures (official, July 2026) =====
 // All fixtures subject to change (broadcast selection + European involvement).
