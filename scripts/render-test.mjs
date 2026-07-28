@@ -32,7 +32,7 @@ try {
     outfile: out,
     logLevel: "silent",
     nodePaths: [join(root, "node_modules")],
-    define: { __BUILD_TIME__: JSON.stringify("render-test") },
+    define: { __BUILD_TIME__: JSON.stringify("render-test"), __APP_VERSION__: JSON.stringify("render-test") },
   });
   // useLayoutEffect legitimately no-ops under renderToString; silence only that warning
   const origError = console.error;

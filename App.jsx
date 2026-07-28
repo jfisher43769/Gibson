@@ -49,6 +49,18 @@ import {
 // bundle was built, not when a visitor loaded the page. Lets the production canary (and
 // anyone else) tell a live deploy apart from a stale one stuck behind a cache.
 const BUILD_TIME = typeof __BUILD_TIME__ !== "undefined" ? __BUILD_TIME__ : "dev";
+// Version comes from package.json via the same `define` plumbing, so the footer can't
+// drift from the package the way the old hand-typed "1.08 · build 23 JUL" did — that
+// string sat five days and six deploys stale and made a healthy deploy look broken.
+const APP_VERSION = typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "dev";
+// "28 JUL" from the build timestamp. BUILD_TIME is a sentinel ("dev"/"render-test") when
+// not built by vite, so fall back to showing that rather than an Invalid Date.
+const BUILD_STAMP = (() => {
+  const d = new Date(BUILD_TIME);
+  if (isNaN(d.getTime())) return String(BUILD_TIME).toUpperCase();
+  const M = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+  return `${d.getUTCDate()} ${M[d.getUTCMonth()]}`;
+})();
 
 /* ================= SHARED PIECES ================= */
 const chalk = "#EDF5EF";
@@ -534,7 +546,7 @@ function TableView() {
         </div>
         <div style={{ fontSize: 12, color: dim, marginTop: 10, lineHeight: 1.5 }}>
           Official final table (split format — Carrick matched Cliftonville's 53 points but finished 7th in the
-          bottom-six group). Verified · GIBSON 1.01.
+          bottom-six group). Verified.
         </div>
         </div>
 
@@ -3049,7 +3061,7 @@ function AppShell() {
         </GibsonBoundary>
         )}
         <div style={{ textAlign: "center", padding: "26px 0 10px", fontSize: 12, color: "rgba(143,166,155,0.55)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
-          GIBSON 1.08 · build 23 JUL · 🏆
+          GIBSON {APP_VERSION} · build {BUILD_STAMP} · 🏆
         </div>
         <div style={{ textAlign: "center", padding: "0 0 14px" }}>
           <ReportLink />

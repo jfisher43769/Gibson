@@ -21,9 +21,40 @@ allMatches.forEach(m => { counts[m.h] = (counts[m.h]||0)+1; counts[m.a] = (count
 check("every club plays exactly 33", Object.values(counts).every(n => n === 33));
 check("predictor fixtures have odds", D.PREDICTOR_GW.fixtures.every(f => f.odds?.home && f.odds?.draw && f.odds?.away));
 check("predictor results null or [h,a]", D.PREDICTOR_GW.fixtures.every(f => f.result === null || (Array.isArray(f.result) && f.result.length === 2)));
-check("no bookmaker names in odds notes", !JSON.stringify(D.PREDICTOR_GW).match(/bet365|paddy ?power|betfair|william ?hill|betmclean|ladbrokes/i));
+// CLAUDE.md rule 2 is app-wide: never add bookmaker names, logos, links or affiliate
+// codes. The old check only scanned PREDICTOR_GW, so a bookmaker name added anywhere else
+// in the data or the UI sailed straight through. Scan the whole shipped surface instead.
+// DELIBERATE EXCEPTION: "BoyleSports" is the official competition name (BoyleSports
+// Premiership) and is approved by the owner, so it is not in this pattern. Everything else
+// stays banned — this list is the guard, so add to it rather than relaxing the check.
+const BOOKMAKERS = /bet365|paddy ?power|betfair|william ?hill|betmclean|ladbrokes|sky ?bet|virgin ?bet|betfred|unibet|coral bookmakers|betway|betvictor/i;
+const shippedSources = ["../data.js", "../App.jsx", "../index.html"].map((p) => {
+  try { return readFileSync(new URL(p, import.meta.url), "utf8"); } catch { return ""; }
+});
+check("no bookmaker names anywhere in shipped data or UI (BoyleSports competition name allowed)",
+  shippedSources.every((src) => {
+    const hit = src.match(BOOKMAKERS);
+    if (hit) console.log(`      ↳ found: "${hit[0]}"`);
+    return !hit;
+  }));
+// Match affiliate/tracking LINK PARAMETERS, not the English word — "not affiliated with
+// the NIFL" in the disclaimer is the opposite of an affiliate link and must not trip this.
+check("no affiliate/tracking link parameters in shipped data or UI",
+  shippedSources.every((src) => !/[?&](aff|affid|aff_id|btag|utm_campaign|clickid)=/i.test(src)));
 check("FULL_TABLE has 12 rows / 38 played", !D.FULL_TABLE || (D.FULL_TABLE.length === 12 && D.FULL_TABLE.every(r => r.p === 38)));
 check("transfer clubs valid", D.TRANSFERS.every(t => (!t.from || D.CLUBS[t.from]) && (!t.to || D.CLUBS[t.to])));
+// TRANSFERS.id is used as a React key (and as the RSS guid). Duplicates make React reuse
+// the wrong DOM node when the feed re-filters — two entries shared id 17 until this check.
+check("TRANSFERS ids are unique (used as React keys + RSS guids)", (() => {
+  const ids = D.TRANSFERS.map((t) => t.id);
+  const dupes = [...new Set(ids.filter((v, i) => ids.indexOf(v) !== i))];
+  if (dupes.length) console.log(`      ↳ duplicate id(s): ${dupes.join(", ")}`);
+  return dupes.length === 0;
+})());
+check("PLAYERS ids are unique (used as React keys)", (() => {
+  const ids = D.PLAYERS.map((p) => p.id);
+  return new Set(ids).size === ids.length;
+})());
 check("WINDOW clubs valid", D.WINDOW.every(w => D.CLUBS[w.club]));
 
 // Every CLUB_FIXTURES/EURO-leg fixture needs a machine-readable dt (used to pick the
