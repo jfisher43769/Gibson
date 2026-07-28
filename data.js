@@ -428,12 +428,12 @@ export const LEAGUE_LORE = [
 // When results are known, fill in `result: [home, away]` on each fixture and redeploy —
 // saved predictions on each player's device are scored automatically.
 export const PREDICTOR_GW = {
-  id: "euro-week-3",
-  name: "Euro Week 3 · Q2 First Legs",
-  deadline: "Coleraine away in Helsinki · Thu 23 Jul, 5pm",
+  id: "euro-week-4",
+  name: "Euro Week 4 · Q2 Second Legs",
+  deadline: "Larne tonight · Coleraine Thursday",
   fixtures: [
-    { id: "f1", home: { club: "LAR" }, away: { external: "Red Star Belgrade" }, comp: "UCL Q2 · 1st leg · Inver Park", result: [0, 4], odds: { home: 8.0, draw: 5.0, away: 1.35 } },
-    { id: "f2", home: { external: "HJK Helsinki" }, away: { club: "COL" }, comp: "UECL Q2 · 1st leg · Helsinki", result: [5, 0], odds: { home: 1.9, draw: 3.6, away: 3.9 } },
+    { id: "f1", home: { external: "Red Star Belgrade" }, away: { club: "LAR" }, comp: "UCL Q2 · 2nd leg · Stadion Rajko Mitić · Larne trail 0–4 agg", result: null, odds: { home: 1.2, draw: 6.5, away: 12.0 } },
+    { id: "f2", home: { club: "COL" }, away: { external: "HJK Helsinki" }, comp: "UECL Q2 · 2nd leg · The Showgrounds · Coleraine trail 0–5 agg", result: null, odds: { home: 2.6, draw: 3.4, away: 2.5 } },
   ],
 };
 
