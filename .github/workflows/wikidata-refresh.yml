@@ -1,0 +1,95 @@
+name: Wikidata refresh
+
+# Runs scripts/fetch-wikidata.js on a GitHub runner and opens a PR with the result.
+#
+# Why this exists: agent sessions run behind an egress policy that blocks
+# query.wikidata.org, so the fetch can't be performed from there. Actions runners have
+# open internet (the production canary already relies on that), which makes this the
+# practical way to refresh CLUB_META — and it works from a phone: tap "Run workflow".
+#
+# It never pushes to main. It opens a PR so the diff can be read before anything deploys,
+# which matters because Wikidata is a public wiki: anyone can edit it, so a refresh could
+# legitimately fetch a value that is wrong or vandalised. Treat the PR diff as the review.
+#
+# The script itself is merge-safe (see PR #23): a field Wikidata has no value for keeps
+# whatever is already in data.js, so the hand-entered grounds/capacities and the owner's
+# verified coordinates survive a run, and it refuses to write at all if nothing resolves.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview only — log what would change, open no PR"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: wikidata-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.repository == 'jfisher43769/Gibson'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # Exits non-zero if every lookup fails, which fails the job rather than
+      # quietly opening an empty PR.
+      - name: Fetch from Wikidata
+        run: node scripts/fetch-wikidata.js ${{ inputs.dry_run && '--dry-run' || '' }}
+
+      # A refresh must not be allowed to break the site: same gate as every commit.
+      - name: Verify
+        if: ${{ !inputs.dry_run }}
+        run: |
+          npm run build
+          node scripts/verify.js
+          node scripts/render-test.mjs
+
+      - name: Open PR if anything changed
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Generated calendars are byte-stable now, so any diff here is real content.
+          if git diff --quiet -- data.js; then
+            echo "CLUB_META unchanged — Wikidata had nothing new. No PR opened."
+            exit 0
+          fi
+          BRANCH="automated/wikidata-refresh-${{ github.run_id }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add data.js public/calendar || true
+          git commit -m "Wikidata refresh: update CLUB_META" \
+            -m "Automated run of scripts/fetch-wikidata.js. Fields Wikidata had no value for keep their existing values; review the diff before merging."
+          git push -u origin "$BRANCH"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          cat > /tmp/pr-body.md <<EOF
+          Automated \`scripts/fetch-wikidata.js\` run ([workflow run]($RUN_URL)).
+
+          Build, \`verify.js\` and the render smoke test all passed before this PR was opened.
+
+          **Review the diff.** Wikidata is publicly editable, so a refresh can pull in a
+          value that is wrong or vandalised. Check especially that grounds, capacities and
+          coordinates still look right — the script preserves existing values where Wikidata
+          has none, but a value Wikidata *does* have will win.
+          EOF
+          sed -i 's/^          //' /tmp/pr-body.md
+          gh pr create \
+            --title "Wikidata refresh: update CLUB_META" \
+            --body-file /tmp/pr-body.md \
+            --base main --head "$BRANCH"
