@@ -6,18 +6,18 @@ import {
 /* ================= ROUTING (client + build-time prerender) ================= */
 export const SITE_ORIGIN = "https://gibsonstats.com";
 
-export const slugify = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+const slugify = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
 export const ROUTE_CLUBS = Object.keys(CLUBS).filter((k) => k !== "GLV"); // twelve current clubs
 
 export const CLUB_TO_SLUG = Object.fromEntries(ROUTE_CLUBS.map((k) => [k, slugify(CLUBS[k].name)]));
 
-export const SLUG_TO_CLUB = Object.fromEntries(ROUTE_CLUBS.map((k) => [CLUB_TO_SLUG[k], k]));
+const SLUG_TO_CLUB = Object.fromEntries(ROUTE_CLUBS.map((k) => [CLUB_TO_SLUG[k], k]));
 
 // Every route that gets a URL + its own prerendered HTML file.
 export const ALL_ROUTES = ["/", "/table", "/fixtures", "/predictor", "/stats", ...ROUTE_CLUBS.map((k) => `/club/${CLUB_TO_SLUG[k]}`)];
 
-export const cleanPath = (path) => ((path || "/").replace(/\/+$/, "") || "/");
+const cleanPath = (path) => ((path || "/").replace(/\/+$/, "") || "/");
 
 // Canonical URL path for the current app state.
 export function pathForState(s) {

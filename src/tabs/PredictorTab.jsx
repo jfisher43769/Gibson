@@ -17,11 +17,11 @@ const SHARE_HOST = SITE_ORIGIN.replace(/^https?:\/\//, "");
 // One-off pre-season prediction of the final 26/27 table. Saved to localStorage like
 // the gameweek picks; submissions lock after 7 August 2026 (season start). No scoring
 // logic yet — that ships at the season's end.
-export const TABLE_KEY = "gibson-table-2627";
+const TABLE_KEY = "gibson-table-2627";
 
-export const TABLE_LOCK = Date.parse("2026-08-08T00:00:00"); // locked once the date is after 7 Aug 2026
+const TABLE_LOCK = Date.parse("2026-08-08T00:00:00"); // locked once the date is after 7 Aug 2026
 
-export function TablePredictor() {
+function TablePredictor() {
   const CURRENT = Object.keys(CLUBS).filter((k) => k !== "GLV"); // twelve current clubs
   const lastRank = (k) => { const i = FULL_TABLE.findIndex((r) => r.club === k); return i < 0 ? 99 : i; };
   const DEFAULT_ORDER = [...CURRENT].sort((a, b) => lastRank(a) - lastRank(b)); // last season's finish, promoted club last

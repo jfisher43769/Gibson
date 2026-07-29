@@ -8,7 +8,15 @@ their own work. Follow it strictly.
 
 - `data.js` — ALL content (table, players, transfers, Euro ties, Predictor, kits history,
   market values, stats, prices). **Routine updates touch ONLY this file.**
-- `App.jsx` — all UI. Only change when explicitly asked for design/feature work.
+- `App.jsx` — app shell ONLY (~205 lines): navigation, top-level state, routing, boundary
+  wrapper. It is not where the UI lives. Only change for design/feature work, and then in:
+  - `src/tabs/` — one file per tab: HomeTab, MatchesTab, PredictorTab, StatsTab, MoreTab.
+  - `src/components/` — UI shared across tabs (Crest, Avatar, SeasonSwitch, Boundary,
+    Skeleton, Odds, LiveTeaser, BuildStamp, …).
+  - `src/lib/` — pure helpers: `theme.js` (all colours/surfaces — defined ONCE, imported,
+    never duplicated), `routes.js` (paths, per-route meta/JSON-LD/OG), `track.js`, `canvas.js`.
+  - `src/club/` — the club page and its sections.
+  - Imports are explicit; no barrel files. No component defined in two places.
 - `api/table.js`, `api/events.js` — Vercel serverless functions fetching TheSportsDB
   (league 4659) with hard validation and `{ok:false}` fallback. The app falls back to
   data.js whenever these fail. Do not remove the fallback pattern.
@@ -35,8 +43,8 @@ their own work. Follow it strictly.
 ## Verification before any commit
 
 - Parse check: the changed file must be syntactically valid (esbuild/node --check).
-- If App.jsx changed: full bundle must build (`vite build` or esbuild bundle with
-  react/recharts external).
+- If `App.jsx` or anything in `src/` changed: full bundle must build (`npm run build`), and
+  `node scripts/render-test.mjs` must pass — a green build alone does not prove the app mounts.
 - Cross-check any new stat against the source provided in the conversation.
 - Confirm no `odds` entry gained a bookmaker reference.
 - Diff should touch only the files the task required.
@@ -59,7 +67,7 @@ their own work. Follow it strictly.
 
 Work on a branch, then: routine updates (data.js edits, small fixes, copy tweaks) merge
 straight to main once verification passes — do not wait for the owner. Big changes
-(App.jsx restructures, new features, anything visual or structural) stay on the branch
+(module restructures, new features, anything visual or structural) stay on the branch
 with a PR and wait for the owner's explicit "merge". Vercel deploys main automatically.
 
 ## Stop criteria for agent sessions

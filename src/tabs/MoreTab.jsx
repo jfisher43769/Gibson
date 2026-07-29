@@ -7,7 +7,7 @@ import { ExternalBadge } from "../components/ExternalBadge.jsx";
 import { OVERLAY, SURFACE, chalk, dim, faint, rise } from "../lib/theme.js";
 import { track } from "../lib/track.js";
 
-export function ClubLedger() {
+function ClubLedger() {
   const [club, setClub] = useState("LAR");
   const w = WINDOW.find((x) => x.club === club);
   const List = ({ title, items, color }) => (

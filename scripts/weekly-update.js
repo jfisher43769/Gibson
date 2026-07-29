@@ -111,10 +111,25 @@ function planFills(feed) {
 // ---- 4. Rewrite data.js ----------------------------------------------------------------
 // Surgical: finds the fixture by its id string and replaces only that entry's
 // `result: null`. Never reformats the file or touches anything else on the line.
+//
+// The search is SCOPED to the PREDICTOR_GW literal, not the whole file. Fixture ids are
+// only unique within a gameweek — they are "f1", "f2" — so a bare file-wide indexOf would
+// happily patch an "f1" belonging to something else. Nothing else in data.js uses those ids
+// today, but season-rollover.js writes archive blocks, and the day one of those carries
+// fixtures this would corrupt the wrong record silently.
+function predictorBounds(src) {
+  const start = src.indexOf("export const PREDICTOR_GW");
+  if (start < 0) fail("could not find PREDICTOR_GW in data.js. Nothing written.");
+  const end = src.indexOf("\n};", start);
+  if (end < 0) fail("could not find the end of PREDICTOR_GW. Nothing written.");
+  return [start, end];
+}
+
 function applyFills(src, fills) {
   for (const fl of fills) {
-    const idIdx = src.indexOf(`id: "${fl.id}"`);
-    if (idIdx < 0) fail(`could not locate fixture id "${fl.id}" in data.js. Nothing written.`);
+    const [gwStart, gwEnd] = predictorBounds(src);
+    const idIdx = src.indexOf(`id: "${fl.id}"`, gwStart);
+    if (idIdx < 0 || idIdx > gwEnd) fail(`could not locate fixture id "${fl.id}" inside PREDICTOR_GW. Nothing written.`);
     const lineEnd = src.indexOf("\n", idIdx);
     const line = src.slice(idIdx, lineEnd);
     if (!/result:\s*null/.test(line)) fail(`fixture "${fl.id}" no longer reads "result: null" — refusing to overwrite. Nothing written.`);

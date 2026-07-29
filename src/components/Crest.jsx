@@ -9,7 +9,7 @@ import { chalk } from "../lib/theme.js";
 export const ClubNavContext = React.createContext(null);
 
 // GLV (Glenavon) is the archived, relegated club — no club page, so its crest stays static.
-export const hasClubPage = (club) => club !== "GLV";
+const hasClubPage = (club) => club !== "GLV";
 
 export function Crest({ club, size = 34, tappable = true }) {
   const openClub = useContext(ClubNavContext);

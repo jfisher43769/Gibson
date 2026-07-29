@@ -5,6 +5,12 @@ Reviewed against `.claude/skills/frontend-design/SKILL.md` (fetched from
 Scope: `App.jsx` only, current state on `main`. No code was changed to produce this
 review — findings only.
 
+> **Dated artifact.** This review was written when `App.jsx` was a single ~3,100-line file.
+> The UI has since been split into `src/tabs/`, `src/components/`, `src/lib/` and `src/club/`,
+> so the `App.jsx L…` references below no longer resolve — find the component by name instead
+> (`SURFACE` and the colour tokens now live in `src/lib/theme.js`). The design findings
+> themselves still stand; only the locations moved.
+
 The skill's core test for an interface like this is: *"Spend your boldness in one
 place, keep everything around it quiet."* Judged against that, and against its
 guidance on type pairing, structure-as-information, deliberate motion, and writing
