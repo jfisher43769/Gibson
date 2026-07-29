@@ -3,7 +3,7 @@
 // scripts/generate.js writes as the npm "prebuild" step (see .github/workflows/ci.yml,
 // which now builds before verifying for exactly this reason).
 import * as D from "../data.js";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 let fails = 0;
 const check = (name, ok) => { console.log(ok ? "  ✓" : "  ✗ FAIL", name); if (!ok) fails++; };
 
@@ -28,9 +28,29 @@ check("predictor results null or [h,a]", D.PREDICTOR_GW.fixtures.every(f => f.re
 // Premiership) and is approved by the owner, so it is not in this pattern. Everything else
 // stays banned — this list is the guard, so add to it rather than relaxing the check.
 const BOOKMAKERS = /bet365|paddy ?power|betfair|william ?hill|betmclean|ladbrokes|sky ?bet|virgin ?bet|betfred|unibet|coral bookmakers|betway|betvictor/i;
-const shippedSources = ["../data.js", "../App.jsx", "../index.html"].map((p) => {
-  try { return readFileSync(new URL(p, import.meta.url), "utf8"); } catch { return ""; }
+// Every file that ships to a browser. MUST include all of src/ — the UI moved out of
+// App.jsx into modules, and a list naming only App.jsx would leave these guards scanning an
+// almost-empty shell while the actual UI went unchecked.
+const srcRoot = new URL("../src/", import.meta.url);
+const walkSrc = (dir) => {
+  let out = [];
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const p = new URL(e.name + (e.isDirectory() ? "/" : ""), dir);
+    if (e.isDirectory()) out = out.concat(walkSrc(p));
+    else if (/\.jsx?$/.test(e.name)) out.push(p);
+  }
+  return out;
+};
+const shippedFiles = [
+  new URL("../data.js", import.meta.url),
+  new URL("../App.jsx", import.meta.url),
+  new URL("../index.html", import.meta.url),
+  ...(existsSync(srcRoot) ? walkSrc(srcRoot) : []),
+];
+const shippedSources = shippedFiles.map((p) => {
+  try { return readFileSync(p, "utf8"); } catch { return ""; }
 });
+check("shipped-source scan covers the src/ modules, not just App.jsx", shippedFiles.length > 20);
 check("no bookmaker names anywhere in shipped data or UI (BoyleSports competition name allowed)",
   shippedSources.every((src) => {
     const hit = src.match(BOOKMAKERS);
@@ -41,6 +61,19 @@ check("no bookmaker names anywhere in shipped data or UI (BoyleSports competitio
 // the NIFL" in the disclaimer is the opposite of an affiliate link and must not trip this.
 check("no affiliate/tracking link parameters in shipped data or UI",
   shippedSources.every((src) => !/[?&](aff|affid|aff_id|btag|utm_campaign|clickid)=/i.test(src)));
+
+// Share cards and share text must stamp the canonical SITE_ORIGIN, never window.location.
+// A card built on a Vercel preview URL, an old domain that still resolves, or a stale cached
+// tab would otherwise burn that wrong host into a PNG the user posts publicly — unfixable
+// once shared. This is exactly how the Predictor cards ended up advertising the old domain.
+check("share cards use the canonical domain, not window.location", (() => {
+  const offenders = shippedFiles
+    .map((p, i) => [p, shippedSources[i]])
+    .filter(([p, src]) => /toBlob|navigator\.share|shareText|fillText/.test(src) && /window\.location\.(host|origin|hostname)/.test(src))
+    .map(([p]) => p.pathname.split("/").slice(-2).join("/"));
+  if (offenders.length) console.log(`      ↳ ${offenders.join(", ")}`);
+  return offenders.length === 0;
+})());
 // Empty is legitimate immediately after season-rollover.js (live table reset, new season not
 // yet played). A populated table must still be a complete 12-row, 38-game final standings.
 check("FULL_TABLE has 12 rows / 38 played", !D.FULL_TABLE || D.FULL_TABLE.length === 0 || (D.FULL_TABLE.length === 12 && D.FULL_TABLE.every(r => r.p === 38)));

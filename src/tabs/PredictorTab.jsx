@@ -5,8 +5,14 @@ import {
 import { Crest } from "../components/Crest.jsx";
 import { OddsDisclaimer, OddsStrip } from "../components/Odds.jsx";
 import { roundRect } from "../lib/canvas.js";
+import { SITE_ORIGIN } from "../lib/routes.js";
 import { OVERLAY, SURFACE, chalk, dim, faint, rise } from "../lib/theme.js";
 import { track } from "../lib/track.js";
+
+// Share cards must advertise the canonical domain, NOT window.location — a card made on a
+// Vercel preview URL, an old domain still resolving, or a stale cached tab would otherwise
+// bake that wrong host into an image the user posts publicly, where it can't be corrected.
+const SHARE_HOST = SITE_ORIGIN.replace(/^https?:\/\//, "");
 
 // One-off pre-season prediction of the final 26/27 table. Saved to localStorage like
 // the gameweek picks; submissions lock after 7 August 2026 (season start). No scoring
@@ -66,8 +72,7 @@ export function TablePredictor() {
       ctx.fillText(CLUBS[code].name.toUpperCase(), 205, y + 38);
     });
     ctx.textAlign = "center"; ctx.fillStyle = "#FFB627"; ctx.font = "bold 28px 'Barlow Condensed','Arial Narrow',sans-serif";
-    let host = ""; try { host = window.location.host; } catch {}
-    ctx.fillText("🏆 GIBSON · " + host, W / 2, H - 36);
+    ctx.fillText("🏆 GIBSON · " + SHARE_HOST, W / 2, H - 36);
     cv.toBlob(async (blob) => {
       if (!blob) return;
       const file = new File([blob], "gibson-my-table.png", { type: "image/png" });
@@ -190,9 +195,7 @@ export function PredictorView() {
 
   const shareText = () => {
     const lines = PREDICTOR_GW.fixtures.map((f) => `${sideName(f.home)} ${picks[f.id][0]}-${picks[f.id][1]} ${sideName(f.away)}`);
-    let origin = "";
-    try { origin = window.location.origin; } catch {}
-    return `🏆 My GIBSON Predictor — ${PREDICTOR_GW.name}\n${lines.join("\n")}\nMake your own: ${origin}`;
+    return `🏆 My GIBSON Predictor — ${PREDICTOR_GW.name}\n${lines.join("\n")}\nMake your own: ${SITE_ORIGIN}`;
   };
   const copyPicks = async () => {
     try { await navigator.clipboard.writeText(shareText()); setCopied(true); setTimeout(() => setCopied(false), 2000); }
@@ -265,9 +268,7 @@ export function PredictorView() {
     // gibson footer
     ctx.fillStyle = "#FFB627";
     ctx.font = "bold 30px 'Barlow Condensed', 'Arial Narrow', sans-serif";
-    let origin = "";
-    try { origin = window.location.host; } catch {}
-    ctx.fillText("🏆 GIBSON · " + origin, W/2, H - 60);
+    ctx.fillText("🏆 GIBSON · " + SHARE_HOST, W/2, H - 60);
     // share
     cv.toBlob(async (blob) => {
       if (!blob) return;
