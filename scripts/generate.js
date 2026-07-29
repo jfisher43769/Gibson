@@ -21,7 +21,7 @@ mkdirSync(calendarDir, { recursive: true });
 // serves the page.
 const entry = join(tmpdir(), "gibson-generate-entry.jsx");
 const out = join(tmpdir(), "gibson-generate.cjs");
-writeFileSync(entry, `export { ALL_ROUTES, ROUTE_CLUBS, CLUB_TO_SLUG, SITE_ORIGIN } from "${root}/App.jsx";\n`);
+writeFileSync(entry, `export { ALL_ROUTES, ROUTE_CLUBS, CLUB_TO_SLUG, SITE_ORIGIN } from "${root}/src/lib/routes.js";\n`);
 await build({
   entryPoints: [entry], bundle: true, platform: "node", format: "cjs",
   loader: { ".jsx": "jsx" }, outfile: out, logLevel: "silent",
