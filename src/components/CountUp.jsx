@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { reducedMotion } from "../lib/theme.js";
 
-export function useCountUp(target, duration = 600) {
+function useCountUp(target, duration = 600) {
   const [v, setV] = useState(target);
   useEffect(() => {
     if (reducedMotion() || !Number.isFinite(target)) { setV(target); return; }

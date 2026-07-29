@@ -1,8 +1,8 @@
 # GIBSON — Design System
 
-Everything visual in the app is built from a small, fixed set of tokens defined at
-the top of `App.jsx` (search `SHARED PIECES`). This note documents them so future UI
-stays on-system. **When adding UI, reach for these first — don't invent a new
+Everything visual in the app is built from a small, fixed set of tokens defined in
+`src/lib/theme.js` — one file, imported everywhere, never re-declared. This note documents
+them so future UI stays on-system. **When adding UI, reach for these first — don't invent a new
 surface, size, or grey.** All content still lives in `data.js`; this file is about
 how that content is *presented*.
 

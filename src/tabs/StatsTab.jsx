@@ -14,7 +14,7 @@ import { ShotMap } from "../components/ShotMap.jsx";
 import { Sparkline } from "../components/Sparkline.jsx";
 import { SURFACE, chalk, dim, faint, ratingColor, rise } from "../lib/theme.js";
 
-export function PlayerDetail({ player }) {
+function PlayerDetail({ player }) {
   const c = CLUBS[player.club];
   const darkAccent = ["BAN", "CAR", "BAL", "COL", "LIN", "DUN", "GLV"].includes(player.club);
   const accent = player.club === "GLE" ? "#3DDC84" : darkAccent ? "#FFB627" : c.colors[0];
@@ -208,7 +208,7 @@ export function StatsView() {
 
 // Last season's completed team-level numbers. Split out of StatsView so the season
 // selector can swap the whole body without nesting the entire view in a conditional.
-export function StatsBody() {
+function StatsBody() {
   // StatsView only renders this with data, but guard anyway — these `[0]` reads are what
   // crashed the build when a season rollover emptied the live arrays.
   const maxAvg = GOALS_STATS[0]?.avg || 1;
@@ -364,7 +364,7 @@ export function StatsBody() {
 // Longest away trips — derived from CLUB_META (Wikidata) coordinates + the 26/27 fixture
 // list, so this is CURRENT-season data and sits outside the season selector's body: it's
 // equally valid whichever season is selected. Empty state until CLUB_META has coordinates.
-export function TravelCard() {
+function TravelCard() {
   return (
       <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "12px", marginTop: 16 }}>
         <div style={{ fontSize: 12, color: "#FFB627", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
@@ -443,7 +443,7 @@ export function PlayersView() {
 
 // Season-scoped player content: the GIBSON Index list, the selected player's detail card
 // and the discipline leaders. Split out so the season selector swaps it as one unit.
-export function PlayersBody() {
+function PlayersBody() {
   const [selected, setSelected] = useState(() => PLAYERS[0]?.id ?? null);
   const [sort, setSort] = useState("rating");
   const player = PLAYERS.find((p) => p.id === selected);

@@ -2,7 +2,7 @@ import React from "react";
 
 /* ================= APP ================= */
 // Full-app crash screen — mirrored by the pre-React window.onerror fallback in index.html
-export function CrashScreen({ minHeight = "100vh" }) {
+function CrashScreen({ minHeight = "100vh" }) {
   return (
     <div style={{ minHeight, background: "#0B1512", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center", fontFamily: "'Barlow', sans-serif" }}>
       <div style={{ fontSize: 44, marginBottom: 12 }}>🏆</div>
