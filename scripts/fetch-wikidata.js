@@ -109,9 +109,16 @@ async function resolveClub(code, name) {
   // club entry. These sides are separate teams with their own Wikidata items; GIBSON covers
   // the men's Premiership, so anything badged ladies/women/reserve/academy/youth/B-team is
   // not the entity we are looking for.
-  const OTHER_TEAM = /\b(ladies|women|women's|reserves?|academy|youth|under[- ]?\d+|u\d+|b team|ii)\b/i;
-  const firstTeam = candidates.filter(([, c]) => !OTHER_TEAM.test(c.label || ""));
-  if (firstTeam.length) candidates = firstTeam;
+  // NOTE the absence of a fallback. An earlier version kept the unfiltered list when the
+  // filter removed everything — and for Cliftonville the Ladies entity was the ONLY match,
+  // so the "safety net" handed back exactly the wrong club and published their website.
+  // Resolving nothing is strictly better than resolving the wrong team: a null field is
+  // handled gracefully by the UI, a wrong one is a published falsehood.
+  const OTHER_TEAM = /\b(ladies|women|womens|women's|reserves?|academy|youth|under[- ]?\d+|u\d+|b team|ii)\b/i;
+  candidates = candidates.filter(([, c]) => !OTHER_TEAM.test(c.label || ""));
+  if (candidates.length === 0) {
+    return { code, name, resolved: false, reason: "only non-first-team entities matched (ladies/reserve/youth) — refusing to use them" };
+  }
 
   if (candidates.length > 1) {
     const inNiOnly = candidates.filter(([, c]) => c.rows.some((r) => inNI(parseCoord(r.coord?.value))));
@@ -147,7 +154,14 @@ async function resolveClub(code, name) {
     lat: coord ? coord.lat : null,
     lon: coord ? coord.lon : null,
     founded: row.inception ? parseInt(row.inception.value.slice(0, 4), 10) : null,
-    website: row.website?.value || null,
+    // Belt and braces on top of the entity filter above: even a correctly-resolved club can
+    // carry a P856 pointing at a ladies/academy page. A URL that advertises another side is
+    // never the men's first-team site, so drop it rather than store it.
+    website: (() => {
+      const url = row.website?.value || null;
+      if (url && /ladies|women|reserves?|academy|youth|under-?\d+/i.test(url)) return null;
+      return url;
+    })(),
     nickname: c.rows.find((r) => r.nickname)?.nickname?.value || null,
     // Head coach is the one HIGH-CHURN field here — Wikidata can lag a sacking by weeks,
     // and a wrong manager is a visibly wrong fact. Stored so it can be surfaced, but treat
