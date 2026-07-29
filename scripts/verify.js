@@ -41,7 +41,9 @@ check("no bookmaker names anywhere in shipped data or UI (BoyleSports competitio
 // the NIFL" in the disclaimer is the opposite of an affiliate link and must not trip this.
 check("no affiliate/tracking link parameters in shipped data or UI",
   shippedSources.every((src) => !/[?&](aff|affid|aff_id|btag|utm_campaign|clickid)=/i.test(src)));
-check("FULL_TABLE has 12 rows / 38 played", !D.FULL_TABLE || (D.FULL_TABLE.length === 12 && D.FULL_TABLE.every(r => r.p === 38)));
+// Empty is legitimate immediately after season-rollover.js (live table reset, new season not
+// yet played). A populated table must still be a complete 12-row, 38-game final standings.
+check("FULL_TABLE has 12 rows / 38 played", !D.FULL_TABLE || D.FULL_TABLE.length === 0 || (D.FULL_TABLE.length === 12 && D.FULL_TABLE.every(r => r.p === 38)));
 check("transfer clubs valid", D.TRANSFERS.every(t => (!t.from || D.CLUBS[t.from]) && (!t.to || D.CLUBS[t.to])));
 // TRANSFERS.id is used as a React key (and as the RSS guid). Duplicates make React reuse
 // the wrong DOM node when the feed re-filters — two entries shared id 17 until this check.
@@ -208,8 +210,9 @@ check("seasonLabel() returns a non-empty label for every tagged stats export",
 // invented a figure (CLAUDE.md rule 1). Goals/apps must also stay internally consistent with
 // the published goals-per-match, which is how the screenshot readings were verified.
 check("CLUB_TOP_SCORERS entries are valid clubs with sane goals/apps and no xG", (() => {
+  // Empty is legitimate: season-rollover.js resets this to {} so last season's figures can't
+  // be relabelled with the new season. Any row that IS present must still be well-formed.
   const rows = Object.entries(D.CLUB_TOP_SCORERS || {});
-  if (!rows.length) return false;
   return rows.every(([code, s]) =>
     D.CLUBS[code] && typeof s.player === "string" && s.player.length > 0 &&
     Number.isInteger(s.apps) && s.apps > 0 &&
@@ -225,6 +228,25 @@ check("CLUB_TOP_SCORERS only covers clubs with no PLAYERS or XG_PLAYERS entries"
   const overlap = Object.keys(D.CLUB_TOP_SCORERS || {}).filter((c) => covered.has(c));
   if (overlap.length) console.log(`      ↳ also has Index/xG data: ${overlap.join(", ")}`);
   return overlap.length === 0;
+})());
+
+// Season tagging must stay airtight either side of a rollover (scripts/season-rollover.js).
+// Untagged live data is the dangerous case: the UI would render numbers with no season
+// attached, which is exactly how a stat ends up silently attributed to the wrong season.
+check("no stats export is untagged (every live export carries a season tag)",
+  STATS_EXPORTS.every((name) => typeof D.SEASON_TAGS?.[name] === "string" && D.SEASON_TAGS[name].length > 0));
+check("SEASON_TAGS has no stale keys (every tag names a real export)",
+  Object.keys(D.SEASON_TAGS || {}).every((name) => D[name] !== undefined));
+// liveSeasonId() returns null when the tags disagree — a half-finished rollover, where
+// some exports were retagged and others weren't. That must never ship.
+check("all live stats exports share one season id (no half-finished rollover)", D.liveSeasonId() !== null);
+// The tags on live data must name a season SEASON knows about. Pre-rollover that's
+// SEASON.previous (live data is last season's completed numbers, which is the state the
+// season selector is built around); once season-rollover.js runs it becomes SEASON.current.
+// Anything else means SEASON and the data have drifted apart.
+check("live stats season id matches SEASON.current (or SEASON.previous pre-rollover)", (() => {
+  const live = D.liveSeasonId();
+  return live === D.SEASON.current.id || live === D.SEASON.previous.id;
 })());
 
 // Early-season rule: games played must be DERIVED from results in the fixture list, never

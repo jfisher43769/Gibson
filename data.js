@@ -68,6 +68,15 @@ export function seasonLabel(exportName) {
   return `${display} · final`;
 }
 
+// The season the LIVE stats exports currently hold. Before a rollover that's the last
+// completed season; after scripts/season-rollover.js runs it becomes SEASON.current.
+// Returns null if the tags disagree, which means a rollover didn't finish — verify.js
+// fails on that rather than letting the UI guess.
+export function liveSeasonId() {
+  const ids = [...new Set(Object.values(SEASON_TAGS))];
+  return ids.length === 1 ? ids[0] : null;
+}
+
 // How many games a club must have played before the current season's own numbers carry
 // enough signal to lead with. Below this, stats surfaces show last season's completed data
 // (clearly labelled) by default, with the current season one tap away.
