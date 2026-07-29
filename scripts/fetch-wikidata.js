@@ -30,11 +30,15 @@ const HEADERS = {
 };
 // Generous NI bounding box (mainland UK/Ireland clubs sit well outside this).
 const NI_BOUNDS = { latMin: 53.9, latMax: 55.5, lonMin: -8.3, lonMax: -5.3 };
-// Order here is the order written into CLUB_META. `nickname` and `manager` were added after
-// the first run, so existing entries won't carry them until this script is run again — they
-// are therefore NOT in verify.js's required-field list, which still guards the original six.
-// Add them there only once a run has actually populated them for all twelve clubs.
-const FIELDS = ["ground", "capacity", "lat", "lon", "founded", "website", "nickname", "manager"];
+// Order here is the order written into CLUB_META.
+//
+// `manager` is DELIBERATELY NOT FETCHED. It was tried, and the very first live run returned
+// Stephen Baxter as manager of BOTH Carrick Rangers and Crusaders — one club's entry was
+// simply stale, which is the normal state of a high-churn field on a volunteer-edited wiki.
+// A wrong manager is a visibly wrong fact on a stats site, and nothing here can tell a stale
+// value from a current one, so the field is left to the owner. Only slow-moving facts
+// (founding year, official site, nickname) are ingested.
+const FIELDS = ["ground", "capacity", "lat", "lon", "founded", "website", "nickname"];
 
 const ROUTE_CLUBS = Object.keys(D.CLUBS).filter((k) => k !== "GLV"); // 12 current clubs
 
@@ -98,6 +102,16 @@ async function resolveClub(code, name) {
     byClub.get(qid).rows.push(r);
   }
   let candidates = [...byClub.entries()];
+
+  // Reject a club's OTHER teams before anything else. The name filter is a substring match,
+  // so "Cliftonville" matches Cliftonville Ladies just as well as the men's first team — and
+  // on the first live run it picked the Ladies entity and wrote their website into the men's
+  // club entry. These sides are separate teams with their own Wikidata items; GIBSON covers
+  // the men's Premiership, so anything badged ladies/women/reserve/academy/youth/B-team is
+  // not the entity we are looking for.
+  const OTHER_TEAM = /\b(ladies|women|women's|reserves?|academy|youth|under[- ]?\d+|u\d+|b team|ii)\b/i;
+  const firstTeam = candidates.filter(([, c]) => !OTHER_TEAM.test(c.label || ""));
+  if (firstTeam.length) candidates = firstTeam;
 
   if (candidates.length > 1) {
     const inNiOnly = candidates.filter(([, c]) => c.rows.some((r) => inNI(parseCoord(r.coord?.value))));

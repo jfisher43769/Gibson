@@ -238,6 +238,31 @@ check("no two clubs share the same ground coordinate", (() => {
 // (tested). Fine-grained accuracy rests on the owner verifying each coordinate against a map,
 // which is how the current twelve were sourced — not on this check.
 const MAX_GROUND_SEPARATION_MILES = 100;
+// A club's ladies/reserve/youth side has its own Wikidata item, and the name filter is a
+// substring match, so "Cliftonville" happily matches "Cliftonville Ladies" — which is exactly
+// what happened, writing the Ladies website into the men's club entry. GIBSON covers the
+// men's Premiership; a URL advertising another side means the wrong entity was resolved.
+check("no CLUB_META website points at a ladies/reserve/youth side", (() => {
+  const bad = routeClubs.filter((c) => /ladies|women|reserves?|academy|youth|under-?\d+/i.test(D.CLUB_META?.[c]?.website || ""));
+  if (bad.length) console.log(`      ↳ ${bad.map((c) => `${c}: ${D.CLUB_META[c].website}`).join(", ")}`);
+  return bad.length === 0;
+})());
+
+// One person cannot manage two clubs at once. Wikidata returned Stephen Baxter as manager of
+// both Carrick Rangers and Crusaders — one entry was simply stale. Manager is no longer
+// fetched for that reason, but the check stays: if the field ever comes back, by fetch or by
+// hand, a duplicate is the cheapest possible signal that one of them is out of date.
+check("no two clubs list the same manager", (() => {
+  const seen = new Map();
+  for (const c of routeClubs) {
+    const m = D.CLUB_META?.[c]?.manager;
+    if (!m) continue;
+    if (seen.has(m)) { console.log(`      ↳ "${m}" listed at both ${seen.get(m)} and ${c}`); return false; }
+    seen.set(m, c);
+  }
+  return true;
+})());
+
 check(`no two grounds are further apart than ${MAX_GROUND_SEPARATION_MILES} miles`, (() => {
   const R = 3958.8, rad = (d) => (d * Math.PI) / 180;
   const pts = routeClubs.map((c) => [c, D.CLUB_META?.[c]]).filter(([, m]) => m && m.lat !== null && m.lon !== null);
