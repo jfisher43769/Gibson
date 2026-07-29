@@ -84,9 +84,12 @@ jobs:
           Build, \`verify.js\` and the render smoke test all passed before this PR was opened.
 
           **Review the diff.** Wikidata is publicly editable, so a refresh can pull in a
-          value that is wrong or vandalised. Check especially that grounds, capacities and
-          coordinates still look right — the script preserves existing values where Wikidata
-          has none, but a value Wikidata *does* have will win.
+          value that is wrong or vandalised — it has already returned a coordinate placing
+          two NI grounds 5,260 miles apart.
+
+          The script fills gaps ONLY: an existing value is never overwritten, so grounds,
+          capacities and owner-verified coordinates cannot change here. Expect to see only
+          fields that were previously null being populated.
           EOF
           sed -i 's/^          //' /tmp/pr-body.md
           gh pr create \
