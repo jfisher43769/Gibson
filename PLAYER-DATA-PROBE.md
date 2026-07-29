@@ -128,6 +128,40 @@ _No player records were returned, so there is nothing to sample._
 
 _Sample values are third-party text, escaped and truncated for display._
 
+## 6. Player lookups seeded from event-derived team ids
+
+`lookup_all_teams.php?id=4659` is the broken endpoint (section 3), so no idTeam could be obtained through it and phase 2 above matched no club. This phase gets idTeam a different way: `idHomeTeam`/`idAwayTeam` read directly off the `eventspastleague`/`eventsnextleague` rows shown clean in section 2 — real fixtures, correct `idLeague`. Only ids from rows whose own `idLeague` self-reports `4659` were used.
+
+**4 distinct team id(s)** found this way:
+
+| idTeam | Name | Players |
+|---|---|---|
+| 133964 | Linfield | 10 |
+| 135944 | Dungannon Swifts | 1 |
+| 134063 | Cliftonville | 6 |
+| 134078 | Crusaders | 1 |
+
+Field population across all 18 player records returned this way:
+
+| Field | API key | Populated | Empty | % populated |
+|---|---|---|---|---|
+| name | `strPlayer` | 18 | 0 | 100% |
+| position | `strPosition` | 18 | 0 | 100% |
+| date of birth | `dateBorn` | 18 | 0 | 100% |
+| nationality | `strNationality` | 18 | 0 | 100% |
+| squad number | `strNumber` | 8 | 10 | 44% |
+| description | `strDescriptionEN` | 9 | 9 | 50% |
+| image | `strThumb` | 10 | 8 | 56% |
+
+Sample records:
+
+- **Andrew Waterworth** — position `Forward`, born `1986-04-11`, nationality `Northern Ireland`, squad number `(empty)`, image `present`
+  - description: (empty)
+- **Bastien Hery** — position `Midfielder`, born `1992-03-23`, nationality `Madagascar`, squad number `(empty)`, image `present`
+  - description: Bastien Charles Patrick Héry (born 23 March 1992) is a French professional footballer who plays as a midfielder for League of Ireland Premier Division club Waterford.
+
+_Sample values are third-party text, escaped and truncated for display._
+
 ---
 
 ## Reader's note (written by hand, not machine-generated)
@@ -174,3 +208,53 @@ Either would establish real `idTeam` values, after which the original question �
 player data complete enough to build squads from — could finally be answered. Both are
 diagnostics; neither has been built, and no ingestion should follow without the usual
 `idLeague` validation on whatever comes back.
+
+---
+
+## Reader's note, part 2 — the event-derived route was tried, and answers the question
+
+The suggestion above ("if squad data is wanted later") was superseded before it needed
+following up. Rather than `search_all_teams.php` or `searchteams.php`, this run took a
+route that was already sitting in the data: `idHomeTeam`/`idAwayTeam` on the very
+`eventspastleague`/`eventsnextleague` rows section 2 had already shown to be clean.
+
+**It worked, in the sense that mattered least, and failed in the sense that mattered most.**
+
+`lookup_all_players.php` accepted all four ids and returned real Northern Irish
+Premiership players — Andrew Waterworth at Linfield is a real, correct record. So the
+*mechanism* is sound: a working, guard-compatible path from a clean endpoint to real player
+data exists, and it required no change to the broken `lookup_all_teams.php` call at all.
+
+But the *data* fails the original question on two independent grounds:
+
+1. **Squads are far too thin to be squads.** 10, 6, 1 and 1 players for the four clubs
+   reached. A Premiership squad runs to 20–30 players; even Linfield's best case is a
+   third of that, and two of the four clubs returned almost nothing. This is not a
+   sampling artifact — every player TheSportsDB has on file for that team id was
+   returned, and it is not enough to render a squad list without it looking obviously
+   broken to a visitor who knows the club.
+
+2. **At least one record is internally wrong.** Bastien Hery was returned for Crusaders
+   (idTeam `134078`), but his own `strDescriptionEN` describes him playing for **Waterford**
+   in the **League of Ireland** — a different club in a different country's league entirely.
+   Whatever produced that team-to-player association is not reliable. This is exactly the
+   class of error CLAUDE.md rule 1 exists to keep off the site ("never invent statistics...
+   a wrong number on a stats site destroys trust") — except here GIBSON would not even be
+   inventing it, just relaying it uncritically from an upstream source that is itself wrong.
+
+### Verdict, updated
+
+Not "blocked by one broken endpoint" any more — the mechanism to reach real player data
+is proven and endpoint-clean. It is now **"reachable, but not trustworthy or complete
+enough to ship."** Both faults would need independent resolution before any ingestion:
+completeness (most of a squad is simply absent) and correctness (at least one record
+describes the wrong club). Neither is a validation rule that can be written cheaply —
+"is this squad complete" and "does this bio match this club" are not shape checks, they
+are content judgements, which is exactly the kind of untrusted-input situation CLAUDE.md
+says to treat with suspicion rather than code around.
+
+No change of recommendation: squad lists stay off the site, and nothing here should be
+written to `data.js`. If this is revisited, spot-checking a handful of returned players
+against a source the owner trusts (a club's own site, Transfermarkt) before writing
+anything would be the minimum bar — the same standard already applied to every other stat
+in this app.
