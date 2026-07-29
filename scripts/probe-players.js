@@ -78,16 +78,26 @@ if (!Array.isArray(rawTeams)) {
   process.exit(1);
 }
 
-const wrongLeague = rawTeams.filter((t) => t && t.idLeague !== undefined && String(t.idLeague) !== LEAGUE_ID).length;
+// A PROBE MUST SHOW ITS EVIDENCE. An earlier version filtered on idLeague first and
+// reported "0 usable" without saying what the 24 returned rows actually were — which
+// answers nothing. So: keep every structurally-valid row, record what league id each
+// carries, and let the report show the discrepancy rather than swallow it.
+//
+// This is NOT a relaxation of CLAUDE.md rule 3. That rule governs what may be TRUSTED and
+// written into the app; nothing here is written anywhere. The league-id mismatch is
+// surfaced as a headline finding precisely because it would block ingestion.
 const teams = rawTeams
   .filter((t) => t && typeof t === "object")
-  .filter((t) => t.idLeague === undefined || String(t.idLeague) === LEAGUE_ID)
   .filter((t) => filled(t.idTeam) && filled(t.strTeam))
-  .map((t) => ({ id: String(t.idTeam), name: String(t.strTeam) }));
+  .map((t) => ({ id: String(t.idTeam), name: String(t.strTeam), league: filled(t.idLeague) ? String(t.idLeague) : "(absent)", leagueName: filled(t.strLeague) ? String(t.strLeague) : "(absent)" }));
 
-console.log(`  ${rawTeams.length} rows returned, ${teams.length} usable${wrongLeague ? `, ${wrongLeague} rejected as wrong league` : ""}`);
+const leagueIds = [...new Set(teams.map((t) => t.league))];
+const onLeague = teams.filter((t) => t.league === LEAGUE_ID).length;
+console.log(`  ${rawTeams.length} rows returned, ${teams.length} structurally valid`);
+console.log(`  idLeague values present: ${leagueIds.join(", ")} (${onLeague} row(s) carry ${LEAGUE_ID})`);
 
-// Map our club codes onto whatever names the feed uses.
+// Match our club codes onto whatever names the feed uses, REGARDLESS of idLeague — the
+// point is to find out whether the squads exist at all. Any mismatch is reported per club.
 const matched = {};
 const usedTeamIds = new Set();
 for (const code of CURRENT) {
@@ -145,6 +155,14 @@ else if (withPlayers.length < CURRENT.length / 2) verdict = `**NOT USABLE as a s
 else if (nameOk < 95 || posOk < 60) verdict = `**PARTIAL.** ${withPlayers.length}/${CURRENT.length} clubs have squads, but field coverage is patchy (name ${nameOk}%, position ${posOk}%) — usable as a starting point only, with per-record checking.`;
 else verdict = `**USABLE as a squad-list source.** ${withPlayers.length}/${CURRENT.length} clubs returned players with name ${nameOk}% and position ${posOk}% populated.`;
 
+// The league-id discrepancy is a blocker in its own right, independent of coverage. CLAUDE.md
+// rule 3 exists because this feed has served the wrong league before; if rows queried by
+// league 4659 come back tagged as something else, no amount of good player data can be
+// ingested until that is understood.
+if (onLeague < teams.length) {
+  verdict += `\n\n⚠ **Blocking caveat regardless of the above:** only ${onLeague} of ${teams.length} rows returned by \`lookup_all_teams.php?id=${LEAGUE_ID}\` actually carry \`idLeague === "${LEAGUE_ID}"\` (values seen: ${leagueIds.map((v) => `\`${v}\``).join(", ")}). CLAUDE.md rule 3 requires that check before any of this is trusted, so this must be explained before ingestion — see the full team table below.`;
+}
+
 // ---- 5. Report -------------------------------------------------------------------------
 const L = [];
 L.push("# GIBSON — TheSportsDB player-data probe");
@@ -159,19 +177,26 @@ L.push(verdict);
 L.push("");
 L.push("## Teams response");
 L.push("");
-L.push(`- ${rawTeams.length} rows returned, ${teams.length} usable after shape validation.`);
-if (wrongLeague) L.push(`- ⚠ ${wrongLeague} row(s) rejected for not carrying \`idLeague === "${LEAGUE_ID}"\`.`);
-L.push(`- ${found.length} of the ${CURRENT.length} current Premiership clubs were matched.`);
-if (unmatchedFeedTeams.length) L.push(`- ${unmatchedFeedTeams.length} team(s) in the feed matched no current club: ${unmatchedFeedTeams.map((t) => `\`${clean(t.name, 40)}\``).join(", ")}.`);
+L.push(`- ${rawTeams.length} rows returned, ${teams.length} structurally valid.`);
+L.push(`- \`idLeague\` values present: ${leagueIds.map((v) => `\`${clean(v, 20)}\``).join(", ")} — **${onLeague} of ${teams.length} rows carry \`${LEAGUE_ID}\`**.`);
+L.push(`- ${found.length} of the ${CURRENT.length} current Premiership clubs matched by name.`);
+if (unmatchedFeedTeams.length) L.push(`- ${unmatchedFeedTeams.length} returned team(s) matched no current club: ${unmatchedFeedTeams.map((t) => `\`${clean(t.name, 40)}\``).join(", ")}.`);
 L.push("");
-L.push("| Club | Found as | idTeam | Players |");
+L.push("Every team row the endpoint returned, exactly as received:");
+L.push("");
+L.push("| Team name | idTeam | idLeague | strLeague |");
 L.push("|---|---|---|---|");
+for (const t of teams) L.push(`| ${clean(t.name, 40)} | ${clean(t.id, 12)} | \`${clean(t.league, 20)}\` | ${clean(t.leagueName, 40)} |`);
+L.push("");
+L.push("| Club | Found as | idTeam | idLeague | Players |");
+L.push("|---|---|---|---|---|");
 for (const code of CURRENT) {
   const r = results[code];
   const name = r.team ? clean(r.team.name, 40) : "— not found —";
   const id = r.team ? r.team.id : "—";
+  const lg = r.team ? `\`${clean(r.team.league, 20)}\`${r.team.league === LEAGUE_ID ? "" : " ⚠"}` : "—";
   const count = r.error ? `⚠ ${clean(r.error, 40)}` : String((r.players || []).length);
-  L.push(`| ${CLUBS[code].name} (${code}) | ${name} | ${id} | ${count} |`);
+  L.push(`| ${CLUBS[code].name} (${code}) | ${name} | ${id} | ${lg} | ${count} |`);
 }
 L.push("");
 if (missing.length) { L.push(`**Not found in the teams response:** ${missing.map((c) => `${CLUBS[c].name} (${c})`).join(", ")}.`); L.push(""); }
