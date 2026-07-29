@@ -145,7 +145,7 @@ check("index.html declares each <link rel=\"icon\"> href exactly once (no duplic
 // Season labelling: every stats export a UI surface tags with SEASON_TAGS must actually
 // exist in data.js and resolve to a non-empty label — a typo'd export name here would
 // silently render an empty season label instead of failing loudly.
-const STATS_EXPORTS = ["FULL_TABLE", "MARKET_VALUES", "XG_TEAMS", "XG_PLAYERS", "TEAM_STATS_2526", "DISCIPLINE", "GOALS_STATS", "PLAYERS"];
+const STATS_EXPORTS = ["FULL_TABLE", "MARKET_VALUES", "XG_TEAMS", "XG_PLAYERS", "TEAM_STATS_2526", "DISCIPLINE", "GOALS_STATS", "PLAYERS", "CLUB_TOP_SCORERS"];
 check("SEASON has current/previous/seasonStart", !!(D.SEASON?.current?.id && D.SEASON?.previous?.id && D.SEASON?.seasonStart));
 check("every stats export is tagged in SEASON_TAGS with a resolvable season id",
   STATS_EXPORTS.every((name) => {
@@ -154,6 +154,31 @@ check("every stats export is tagged in SEASON_TAGS with a resolvable season id",
   }));
 check("seasonLabel() returns a non-empty label for every tagged stats export",
   STATS_EXPORTS.every((name) => typeof D.seasonLabel(name) === "string" && D.seasonLabel(name).length > 0));
+
+// CLUB_TOP_SCORERS is Transfermarkt all-competitions data with NO published xG, while
+// XG_PLAYERS is league-only FootyStats data. Keeping them separate is the whole point of the
+// export: if an xG field ever appears here, someone has either merged the two sources or
+// invented a figure (CLAUDE.md rule 1). Goals/apps must also stay internally consistent with
+// the published goals-per-match, which is how the screenshot readings were verified.
+check("CLUB_TOP_SCORERS entries are valid clubs with sane goals/apps and no xG", (() => {
+  const rows = Object.entries(D.CLUB_TOP_SCORERS || {});
+  if (!rows.length) return false;
+  return rows.every(([code, s]) =>
+    D.CLUBS[code] && typeof s.player === "string" && s.player.length > 0 &&
+    Number.isInteger(s.apps) && s.apps > 0 &&
+    Number.isInteger(s.goals) && s.goals > 0 && s.goals <= s.apps * 5 &&
+    Number.isInteger(s.minsPerGoal) && s.minsPerGoal > 0 &&
+    !("xg" in s) && !("xG" in s));
+})());
+// A club with GIBSON Index ratings or league xG scorers doesn't need this fallback block —
+// two scorer lists from different sources on one page is how a reader ends up comparing an
+// all-competitions total against a league-only one.
+check("CLUB_TOP_SCORERS only covers clubs with no PLAYERS or XG_PLAYERS entries", (() => {
+  const covered = new Set([...D.PLAYERS.map((p) => p.club), ...D.XG_PLAYERS.map((p) => p.club)]);
+  const overlap = Object.keys(D.CLUB_TOP_SCORERS || {}).filter((c) => covered.has(c));
+  if (overlap.length) console.log(`      ↳ also has Index/xG data: ${overlap.join(", ")}`);
+  return overlap.length === 0;
+})());
 
 // Early-season rule: games played must be DERIVED from results in the fixture list, never
 // hardcoded, and the threshold must actually gate which season the stats surfaces default

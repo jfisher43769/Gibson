@@ -54,6 +54,7 @@ export const SEASON_TAGS = {
   DISCIPLINE: "2025-26",
   GOALS_STATS: "2025-26",
   PLAYERS: "2025-26",
+  CLUB_TOP_SCORERS: "2025-26",
 };
 
 // Renders e.g. "2025/26 · final" for a completed season, or just "2026/27" once something
@@ -617,6 +618,32 @@ export const XG_PLAYERS = [
   { name: "Eamon Fyfe", club: "POR", xg: 7.68, goals: 14 },
   { name: "William Patching", club: "COL", xg: 7.18, goals: 12 },
 ];
+
+// Club top scorer 25/26 — Transfermarkt "Top goalscorers" (owner screenshots, Jul 2026).
+// Covers the clubs with no GIBSON Index and no XG_PLAYERS entries, so their Squad section
+// has real content instead of only an empty state.
+//
+// BAN is deliberately ABSENT despite a screenshot being supplied. Bangor already has a
+// league scorer in XG_PLAYERS (Daniel Purkis, 16 goals), and 16 league goals cannot fit
+// inside the 10-goal ALL-COMPETITIONS total the Transfermarkt row gave for Ben Arthurs —
+// so the two cannot both describe Bangor's 25/26. Rather than ship a contradiction, Bangor
+// keeps its existing league+xG entry. Re-add only if the season split is confirmed.
+//
+// IMPORTANT — this is an ALL COMPETITIONS total (Transfermarkt's own filter), and that view
+// publishes no xG. XG_PLAYERS is league-only on a FootyStats basis, so these two must never
+// be merged or compared: no xG figure may be derived for these players, and none is stored.
+// `apps`/`minsPerGoal` are Transfermarkt's own; goals ÷ apps reproduces their published
+// goals-per-match for all five rows, which is how these readings were checked.
+//
+// LIM played 25/26 in the CHAMPIONSHIP (they won it and came up), so Butcher's figures are
+// second-tier — `comp` carries that caveat through to the UI so it can never read as a
+// Premiership return. Clubs without a `comp` played in the Premiership.
+export const CLUB_TOP_SCORERS = {
+  CLI: { player: "Joe Gormley", apps: 24, goals: 8, minsPerGoal: 123 },
+  DUN: { player: "Junior Ogedi-Uzokwe", apps: 20, goals: 7, minsPerGoal: 242 },
+  BAL: { player: "Igor Rutkowski", apps: 11, goals: 9, minsPerGoal: 102 },
+  LIM: { player: "John Butcher", apps: 30, goals: 14, minsPerGoal: 163, comp: "Championship" },
+};
 
 // ===== Season Archive =====
 // Verified season snapshots. Add full 12-row tables later if you source them.
