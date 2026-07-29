@@ -57,6 +57,53 @@ check("PLAYERS ids are unique (used as React keys)", (() => {
 })());
 check("WINDOW clubs valid", D.WINDOW.every(w => D.CLUBS[w.club]));
 
+// TRANSFERS (the curated news feed) and WINDOW (the full club-by-club ledger) must agree —
+// the Cliftonville incident (McMaster/Bannon/McCay shown as feed items with no WINDOW entry
+// at all) is the bug class this guards against. Match loosely on surname (+ first initial
+// when both sides have one), since WINDOW abbreviates first names ("J. Knowles") while
+// TRANSFERS spells them out, and a combined feed entry ("Allen, Archer, Whiteside...") lists
+// several players in one `player` string.
+const windowByClub = Object.fromEntries(D.WINDOW.map((w) => [w.club, w]));
+const nameKey = (raw) => {
+  const tokens = raw.toLowerCase().replace(/[^a-z\s]/g, " ").replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+  if (!tokens.length) return null;
+  return { surname: tokens[tokens.length - 1], initial: tokens.length > 1 ? tokens[0][0] : null };
+};
+const namesMatch = (a, b) => {
+  const ka = nameKey(a), kb = nameKey(b);
+  if (!ka || !kb || ka.surname !== kb.surname) return false;
+  return !ka.initial || !kb.initial || ka.initial === kb.initial;
+};
+const splitPlayers = (name) => name.split(/,| & /).map((s) => s.trim()).filter(Boolean);
+
+const feedMismatches = [];
+for (const t of D.TRANSFERS) {
+  if (t.status !== "done" && t.status !== "departure") continue; // rumours/contracts aren't ledger moves
+  for (const p of splitPlayers(t.player)) {
+    if (t.to && !(windowByClub[t.to]?.ins.some(([n]) => namesMatch(n, p))))
+      feedMismatches.push(`id${t.id} "${p}" has no WINDOW ${t.to}.ins entry`);
+    if (t.from && !(windowByClub[t.from]?.outs.some(([n]) => namesMatch(n, p))))
+      feedMismatches.push(`id${t.id} "${p}" has no WINDOW ${t.from}.outs entry`);
+  }
+}
+check("every done/departure TRANSFERS item has a matching WINDOW ledger entry", feedMismatches.length === 0);
+if (feedMismatches.length) console.log("      ↳ " + feedMismatches.join("\n      ↳ "));
+
+// The reverse direction: WINDOW is the exhaustive squad ledger, TRANSFERS is a curated
+// highlights feed (CLAUDE.md: "Editorial stays editorial... never auto-generate"), so most
+// fringe ins/outs (loan returns, non-first-team moves) never get a news item — that's normal,
+// not drift. This is a ratchet, not a zero check: it catches new WINDOW entries added without
+// either a TRANSFERS item or a deliberate bump here. Raise the number only after confirming a
+// new gap is a genuine non-headline move (check it against TRANSFERS first) — see the PR that
+// added this check for the full list of the 82 pre-existing gaps it was set from.
+const WINDOW_ONLY_BASELINE = 82;
+let windowOnly = 0;
+for (const w of D.WINDOW) {
+  for (const [name] of w.ins) if (!D.TRANSFERS.some((t) => t.to === w.club && splitPlayers(t.player).some((p) => namesMatch(p, name)))) windowOnly++;
+  for (const [name] of w.outs) if (!D.TRANSFERS.some((t) => t.from === w.club && splitPlayers(t.player).some((p) => namesMatch(p, name)))) windowOnly++;
+}
+check(`WINDOW-only entries with no TRANSFERS item stay within the known baseline (${windowOnly}/${WINDOW_ONLY_BASELINE})`, windowOnly <= WINDOW_ONLY_BASELINE);
+
 // Every CLUB_FIXTURES/EURO-leg fixture needs a machine-readable dt (used to pick the
 // Home tab's next match) whose calendar day/month agrees with the human display date —
 // a mismatch here means the wrong fixture could get featured as "next".
