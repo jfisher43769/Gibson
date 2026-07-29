@@ -25,7 +25,8 @@ const out = join(tmpdir(), "gibson-prerender.cjs");
 writeFileSync(entry, `
 import React from "react";
 import { renderToString } from "react-dom/server";
-import App, { ALL_ROUTES, metaForPath, jsonLdForPath, ogImageForPath } from "${root}/App.jsx";
+import App from "${root}/App.jsx";
+import { ALL_ROUTES, metaForPath, jsonLdForPath, ogImageForPath } from "${root}/src/lib/routes.js";
 export function renderRoute(path) {
   globalThis.__GIBSON_ROUTE__ = path;
   const html = renderToString(React.createElement(App));
