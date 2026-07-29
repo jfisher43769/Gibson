@@ -209,6 +209,48 @@ check("every non-null TRAVEL total is non-zero",
     return !t || t.totalMiles > 0;
   }));
 
+// TRAVEL is all-or-nothing by design: computeTravel() nulls EVERY club's total if even one
+// opponent is missing coordinates, because a partial total would understate a club's season.
+// So a single removed/blanked coordinate silently switches the whole feature off across the
+// site rather than degrading one club. This check makes that failure loud.
+check("TRAVEL is fully computed for all 12 clubs (one missing coordinate blanks them all)",
+  routeClubs.every((code) => D.TRAVEL?.clubs?.[code]) && D.TRAVEL?.leagueAverageMiles > 0);
+
+// Two clubs sharing a coordinate means a copy-paste slip, and it would silently report a
+// 0-mile away trip between them.
+check("no two clubs share the same ground coordinate", (() => {
+  const seen = new Map();
+  for (const code of routeClubs) {
+    const m = D.CLUB_META?.[code];
+    if (!m || m.lat === null || m.lon === null) continue;
+    const key = `${m.lat},${m.lon}`;
+    if (seen.has(key)) { console.log(`      ↳ ${seen.get(key)} and ${code} share ${key}`); return false; }
+    seen.set(key, code);
+  }
+  return true;
+})());
+
+// Northern Ireland is roughly 110 miles at its longest diagonal, and no two NIFL grounds sit
+// near those extremes. This catches a coordinate that survives the bounding-box check but is
+// still grossly wrong — opposite-corner placements, transpositions, a ground dropped in the
+// sea off Donegal. LIMIT OF THIS CHECK, stated plainly: it does NOT catch a small slip. A
+// one-digit longitude error moves a ground ~36 miles and every pair stays under the limit
+// (tested). Fine-grained accuracy rests on the owner verifying each coordinate against a map,
+// which is how the current twelve were sourced — not on this check.
+const MAX_GROUND_SEPARATION_MILES = 100;
+check(`no two grounds are further apart than ${MAX_GROUND_SEPARATION_MILES} miles`, (() => {
+  const R = 3958.8, rad = (d) => (d * Math.PI) / 180;
+  const pts = routeClubs.map((c) => [c, D.CLUB_META?.[c]]).filter(([, m]) => m && m.lat !== null && m.lon !== null);
+  for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
+    const [ca, a] = pts[i], [cb, b] = pts[j];
+    const dLat = rad(b.lat - a.lat), dLon = rad(b.lon - a.lon);
+    const s = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2;
+    const miles = R * 2 * Math.asin(Math.sqrt(s));
+    if (miles > MAX_GROUND_SEPARATION_MILES) { console.log(`      ↳ ${ca}–${cb} = ${miles.toFixed(0)} mi`); return false; }
+  }
+  return true;
+})());
+
 // Search-result imagery: a real favicon.ico + 96px icon must exist, and index.html must
 // declare each icon exactly once — a duplicate/conflicting <link rel="icon"> is exactly
 // the kind of thing that silently breaks which icon a browser or crawler picks.
