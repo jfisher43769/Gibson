@@ -5,6 +5,11 @@
 // Answers one question: does TheSportsDB carry enough player data to build squad lists
 // for the twelve Premiership clubs? It writes a human-readable report and NOTHING else.
 //
+// Two routes to a squad are tried. Route A: lookup_all_teams.php by club name (found to be
+// mis-served — see the report's section 3). Route B: idHomeTeam/idAwayTeam read directly off
+// eventspastleague/eventsnextleague, which were shown clean elsewhere in this probe — a
+// second, independent path to real idTeam values that doesn't touch the broken endpoint.
+//
 // THIS SCRIPT NEVER TOUCHES data.js. It has no write path to it, imports it read-only for
 // the club list, and the only file it produces is the markdown report.
 //
@@ -148,6 +153,16 @@ for (const id of [LEAGUE_ID, ...(CANDIDATE_ID && CANDIDATE_ID !== LEAGUE_ID ? [C
         entry.leagueNames = [...new Set(valid.map((e) => (e.strLeague !== undefined ? String(e.strLeague) : "(absent)")))];
         entry.onTarget = valid.filter((e) => String(e.idLeague) === id).length;
         entry.sample = valid.slice(0, 3).map((e) => `${e.strHomeTeam ?? "?"} v ${e.strAwayTeam ?? "?"} (${e.dateEvent ?? "?"})`);
+        // Raw idHomeTeam/idAwayTeam per row, kept alongside the row's OWN idLeague — a
+        // second, independent route to real idTeam values that does not go through
+        // lookup_all_teams.php (the endpoint already shown to be mis-served).
+        entry.pairs = valid.map((e) => ({
+          idLeague: e.idLeague !== undefined ? String(e.idLeague) : "(absent)",
+          homeId: filled(e.idHomeTeam) ? String(e.idHomeTeam) : null,
+          homeName: filled(e.strHomeTeam) ? String(e.strHomeTeam) : null,
+          awayId: filled(e.idAwayTeam) ? String(e.idAwayTeam) : null,
+          awayName: filled(e.strAwayTeam) ? String(e.strAwayTeam) : null,
+        }));
       }
     }
     eventProbes.push(entry);
@@ -241,6 +256,50 @@ for (const code of CURRENT) {
   results[code] = { team, players };
   console.log(`${players.length} players`);
 }
+
+// ---- 2b. A second route to real team ids: eventspastleague/eventsnextleague -------------
+// Phase 2 was blocked because lookup_all_teams.php?id=4659 returns English League 1, so no
+// club matched by name and no idTeam was ever obtained. But the earlier probe showed
+// eventspastleague/eventsnextleague are CLEAN for the same id — real fixtures, correct
+// idLeague. Those rows carry idHomeTeam/idAwayTeam directly. Extract them here, independent
+// of the broken endpoint, and use them to attempt the player lookup a different way.
+//
+// TRUST: only pairs from the eventProbes entry that queried LEAGUE_ID itself (never the
+// candidate-id entry, even though today they are the same id), and only rows whose OWN
+// idLeague self-reports "4659" — never trust a team id lifted from a wrong-league row.
+const eventTeams = new Map(); // idTeam -> name
+for (const e of eventProbes) {
+  if (e.id !== LEAGUE_ID || !e.pairs) continue;
+  for (const p of e.pairs) {
+    if (p.idLeague !== LEAGUE_ID) continue;
+    if (p.homeId && p.homeName) eventTeams.set(p.homeId, p.homeName);
+    if (p.awayId && p.awayName) eventTeams.set(p.awayId, p.awayName);
+  }
+}
+const eventTeamList = [...eventTeams.entries()].map(([id, name]) => ({ id, name }));
+console.log(`\nDistinct team ids from eventspastleague/eventsnextleague (league ${LEAGUE_ID}): ${eventTeamList.length}`);
+for (const t of eventTeamList) console.log(`  ${t.id}  ${t.name}`);
+
+const eventTeamResults = [];
+for (const t of eventTeamList) {
+  await sleep(REQUEST_GAP_MS);
+  process.stdout.write(`  ${t.name} (${t.id})... `);
+  const res = await getJson(`${BASE}/lookup_all_players.php?id=${t.id}`, `event-${t.id}`);
+  if (res.error) { eventTeamResults.push({ ...t, error: res.error }); console.log(res.error); continue; }
+  const list = res.json.player;
+  if (list === null) { eventTeamResults.push({ ...t, players: [], note: "API returned player: null (no squad on record)" }); console.log("0 players (null)"); continue; }
+  if (!Array.isArray(list)) { eventTeamResults.push({ ...t, error: `'player' was ${typeof list}, not an array` }); console.log("bad shape"); continue; }
+  const players = list.filter((p) => p && typeof p === "object");
+  eventTeamResults.push({ ...t, players });
+  console.log(`${players.length} players`);
+}
+const eventAllPlayers = eventTeamResults.flatMap((r) => r.players || []);
+const eventFieldStats = FIELDS.map(([label, key]) => {
+  const n = eventAllPlayers.filter((p) => filled(p[key])).length;
+  return { label, key, filled: n, empty: eventAllPlayers.length - n };
+});
+const eventSampleFrom = eventTeamResults.find((r) => (r.players || []).length);
+const eventSamples = (eventSampleFrom?.players || []).slice(0, 2);
 
 // ---- 3. Field population ---------------------------------------------------------------
 const allPlayers = Object.values(results).flatMap((r) => r.players || []);
@@ -378,6 +437,37 @@ L.push("## Sample records");
 L.push("");
 if (!samples.length) L.push("_No player records were returned, so there is nothing to sample._");
 for (const p of samples) {
+  L.push(`- **${clean(p.strPlayer, 60)}** — position \`${clean(p.strPosition, 40)}\`, born \`${clean(p.dateBorn, 20)}\`, nationality \`${clean(p.strNationality, 40)}\`, squad number \`${clean(p.strNumber, 10)}\`, image \`${filled(p.strThumb) ? "present" : "(empty)"}\``);
+  L.push(`  - description: ${clean(p.strDescriptionEN, 200)}`);
+}
+L.push("");
+L.push("_Sample values are third-party text, escaped and truncated for display._");
+L.push("");
+
+L.push("## 6. Player lookups seeded from event-derived team ids");
+L.push("");
+L.push(`\`lookup_all_teams.php?id=${LEAGUE_ID}\` is the broken endpoint (section 3), so no idTeam could be obtained through it and phase 2 above matched no club. This phase gets idTeam a different way: \`idHomeTeam\`/\`idAwayTeam\` read directly off the \`eventspastleague\`/\`eventsnextleague\` rows shown clean in section 2 — real fixtures, correct \`idLeague\`. Only ids from rows whose own \`idLeague\` self-reports \`${LEAGUE_ID}\` were used.`);
+L.push("");
+L.push(`**${eventTeamList.length} distinct team id(s)** found this way:`);
+L.push("");
+L.push("| idTeam | Name | Players |");
+L.push("|---|---|---|");
+for (const t of eventTeamResults) {
+  const count = t.error ? `⚠ ${clean(t.error, 40)}` : t.note ? clean(t.note, 40) : String((t.players || []).length);
+  L.push(`| ${clean(t.id, 12)} | ${clean(t.name, 40)} | ${count} |`);
+}
+L.push("");
+L.push(`Field population across all ${eventAllPlayers.length} player records returned this way:`);
+L.push("");
+L.push("| Field | API key | Populated | Empty | % populated |");
+L.push("|---|---|---|---|---|");
+const pctEvent = (n) => (eventAllPlayers.length ? Math.round((n / eventAllPlayers.length) * 100) : 0);
+for (const f of eventFieldStats) L.push(`| ${f.label} | \`${f.key}\` | ${f.filled} | ${f.empty} | ${pctEvent(f.filled)}% |`);
+L.push("");
+L.push("Sample records:");
+L.push("");
+if (!eventSamples.length) L.push("_No player records were returned, so there is nothing to sample._");
+for (const p of eventSamples) {
   L.push(`- **${clean(p.strPlayer, 60)}** — position \`${clean(p.strPosition, 40)}\`, born \`${clean(p.dateBorn, 20)}\`, nationality \`${clean(p.strNationality, 40)}\`, squad number \`${clean(p.strNumber, 10)}\`, image \`${filled(p.strThumb) ? "present" : "(empty)"}\``);
   L.push(`  - description: ${clean(p.strDescriptionEN, 200)}`);
 }
