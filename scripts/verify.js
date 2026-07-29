@@ -343,10 +343,16 @@ check("block-rewriting scripts locate markers by index, not an unescaped RegExp"
 // fetch-wikidata.js used to rewrite CLUB_META wholesale, so a run with no network replaced
 // every hand-entered ground and capacity with null. It now merges and refuses to write when
 // nothing resolved; these are the two markers of that behaviour.
-check("fetch-wikidata.js merges rather than overwrites, and bails when nothing resolves", (() => {
+// FILL GAPS ONLY is the load-bearing rule, not a nicety: the first live run had Wikidata
+// return a coordinate placing two NI grounds 5,260 miles apart, which a fetched-wins merge
+// would have written straight over an owner-verified value. The merge must therefore prefer
+// the EXISTING value (`prev[f] ... : r[f]`), never the fetched one.
+check("fetch-wikidata.js fills gaps only, never overwrites, and bails when nothing resolves", (() => {
   let src = "";
   try { src = readFileSync(new URL("./fetch-wikidata.js", import.meta.url), "utf8"); } catch { return false; }
-  return /mergeWithExisting/.test(src) && /refusing to touch data\.js/.test(src);
+  const fillsGapsOnly = /\(prev\[f\] \?\? null\) !== null \? prev\[f\] : \(r\[f\] \?\? null\)/.test(src);
+  if (!fillsGapsOnly) console.log("      ↳ merge no longer prefers the existing value");
+  return fillsGapsOnly && /mergeWithExisting/.test(src) && /refusing to touch data\.js/.test(src);
 })());
 
 // Early-season rule: games played must be DERIVED from results in the fixture list, never
