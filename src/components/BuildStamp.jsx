@@ -8,11 +8,11 @@ export const BUILD_TIME = typeof __BUILD_TIME__ !== "undefined" ? __BUILD_TIME__
 // Version comes from package.json via the same `define` plumbing, so the footer can't
 // drift from the package the way the old hand-typed "1.08 · build 23 JUL" did — that
 // string sat five days and six deploys stale and made a healthy deploy look broken.
-export const APP_VERSION = typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "dev";
+const APP_VERSION = typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "dev";
 
 // "28 JUL" from the build timestamp. BUILD_TIME is a sentinel ("dev"/"render-test") when
 // not built by vite, so fall back to showing that rather than an Invalid Date.
-export const BUILD_STAMP = (() => {
+const BUILD_STAMP = (() => {
   const d = new Date(BUILD_TIME);
   if (isNaN(d.getTime())) return String(BUILD_TIME).toUpperCase();
   const M = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];

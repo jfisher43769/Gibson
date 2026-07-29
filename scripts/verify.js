@@ -51,6 +51,20 @@ const shippedSources = shippedFiles.map((p) => {
   try { return readFileSync(p, "utf8"); } catch { return ""; }
 });
 check("shipped-source scan covers the src/ modules, not just App.jsx", shippedFiles.length > 20);
+
+// CLAUDE.md is loaded on EVERY task, so a stale architecture section misdirects all future
+// work. It described App.jsx as "all UI" for a while after the split had moved the UI into
+// src/ — the doc update was written on the original refactor branch and lost when that
+// refactor was rebuilt from a newer main. Cheap structural check so it cannot drift silently.
+check("CLAUDE.md describes the real architecture (src/ modules, App.jsx as shell)", (() => {
+  let doc = "";
+  try { doc = readFileSync(new URL("../CLAUDE.md", import.meta.url), "utf8"); } catch { return false; }
+  const mentionsModules = ["src/tabs/", "src/components/", "src/lib/", "src/club/"].every((d) => doc.includes(d));
+  const callsAppJsxAllUi = /`App\.jsx`\s*—\s*all UI/.test(doc);
+  if (!mentionsModules) console.log("      ↳ CLAUDE.md no longer names all four src/ directories");
+  if (callsAppJsxAllUi) console.log('      ↳ CLAUDE.md still calls App.jsx "all UI"');
+  return mentionsModules && !callsAppJsxAllUi;
+})());
 check("no bookmaker names anywhere in shipped data or UI (BoyleSports competition name allowed)",
   shippedSources.every((src) => {
     const hit = src.match(BOOKMAKERS);
@@ -138,6 +152,29 @@ for (const w of D.WINDOW) {
   for (const [name] of w.outs) if (!D.TRANSFERS.some((t) => t.from === w.club && splitPlayers(t.player).some((p) => namesMatch(p, name)))) windowOnly++;
 }
 check(`WINDOW-only entries with no TRANSFERS item stay within the known baseline (${windowOnly}/${WINDOW_ONLY_BASELINE})`, windowOnly <= WINDOW_ONLY_BASELINE);
+
+// The TheSportsDB club-name vocabulary exists in THREE files: api/table.js, api/events.js
+// and scripts/weekly-update.js. They are not shared via an import on purpose — api/* are
+// Vercel serverless functions, and making them depend on a repo module changes what gets
+// bundled into the deployed function, which cannot be tested from here. The cost of that
+// choice is drift: add a club to one copy and forget the others and the live table silently
+// stops mapping it. This check is what pays for the duplication.
+check("the three TheSportsDB CLUB_MAP copies are identical", (() => {
+  const norm = (p) => {
+    let src = "";
+    try { src = readFileSync(new URL(p, import.meta.url), "utf8"); } catch { return null; }
+    const m = src.match(/const CLUB_MAP = \[([\s\S]*?)\];/);
+    return m ? m[1].replace(/\s+/g, "") : null;
+  };
+  const copies = { "api/table.js": norm("../api/table.js"), "api/events.js": norm("../api/events.js"), "scripts/weekly-update.js": norm("./weekly-update.js") };
+  const missing = Object.entries(copies).filter(([, v]) => v === null).map(([k]) => k);
+  if (missing.length) { console.log(`      ↳ could not read CLUB_MAP from: ${missing.join(", ")}`); return false; }
+  const distinct = [...new Set(Object.values(copies))];
+  if (distinct.length > 1) {
+    console.log(`      ↳ copies differ — ${Object.entries(copies).map(([k, v]) => `${k}:${v.length}ch`).join(", ")}`);
+  }
+  return distinct.length === 1;
+})());
 
 // Every CLUB_FIXTURES/EURO-leg fixture needs a machine-readable dt (used to pick the
 // Home tab's next match) whose calendar day/month agrees with the human display date —
