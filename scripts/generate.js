@@ -144,8 +144,20 @@ function fixturesFor(club) {
     }));
 }
 
+// DTSTAMP is DERIVED FROM THE FIXTURE DATA, never the wall clock. These .ics files are
+// committed, so a clock-based stamp made every single build rewrite all 13 of them with
+// nothing but a timestamp change — churn that has to be discarded by hand each time and
+// that can hide a genuine fixture diff. Deriving it means rebuilding unchanged data
+// produces byte-identical files, and the stamp only moves when a fixture actually does.
+// (RFC 5545 just requires a valid UTC timestamp; it need not be the moment of generation.)
+function stampFor(events) {
+  const latest = events.reduce((max, e) => (e.dt > max ? e.dt : max), "");
+  const d = new Date(latest || "2026-07-01T00:00:00Z");
+  return icsDate(isNaN(d.getTime()) ? new Date("2026-07-01T00:00:00Z") : d);
+}
+
 function icsCalendar(events, calName) {
-  const now = icsDate(new Date());
+  const now = stampFor(events);
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",

@@ -282,6 +282,31 @@ check("live stats season id matches SEASON.current (or SEASON.previous pre-rollo
   return live === D.SEASON.current.id || live === D.SEASON.previous.id;
 })());
 
+// Generator scripts that rewrite a marked block in data.js must locate it by INDEX, not by
+// a RegExp built from the marker text. The CLUB_META markers contain "(auto-generated)", so
+// a RegExp turned those parentheses into a capture group: includes() matched, replace()
+// silently no-opped, and fetch-wikidata.js reported "Wrote CLUB_META" having written
+// nothing — which is why that block could never be refreshed.
+check("block-rewriting scripts locate markers by index, not an unescaped RegExp", (() => {
+  const offenders = ["fetch-wikidata.js", "season-rollover.js", "weekly-update.js"].filter((f) => {
+    let src = "";
+    try { src = readFileSync(new URL(`./${f}`, import.meta.url), "utf8"); } catch { return false; }
+    return /new RegExp\(`\$\{(startMarker|endMarker)\}/.test(src);
+  });
+  if (offenders.length) console.log(`      ↳ ${offenders.join(", ")}`);
+  return offenders.length === 0;
+})());
+
+// Data-writing scripts must be able to fail without destroying what's already in data.js.
+// fetch-wikidata.js used to rewrite CLUB_META wholesale, so a run with no network replaced
+// every hand-entered ground and capacity with null. It now merges and refuses to write when
+// nothing resolved; these are the two markers of that behaviour.
+check("fetch-wikidata.js merges rather than overwrites, and bails when nothing resolves", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("./fetch-wikidata.js", import.meta.url), "utf8"); } catch { return false; }
+  return /mergeWithExisting/.test(src) && /refusing to touch data\.js/.test(src);
+})());
+
 // Early-season rule: games played must be DERIVED from results in the fixture list, never
 // hardcoded, and the threshold must actually gate which season the stats surfaces default
 // to. A hardcoded count would silently freeze the app in (or out of) early-season mode.
