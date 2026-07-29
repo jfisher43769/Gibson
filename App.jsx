@@ -40,7 +40,7 @@ const GlobalStyle = () => (
 );
 
 import {
-  CLUBS, FINAL_PLACINGS, MID_TABLE, FULL_TABLE, PLAYERS, AXES, TRANSFERS, STATUS_META, ROLL_OF_HONOUR, ALL_TIME_TITLES, RECORDS, PREDICTOR_GW, store, KOFI_URL, EURO, CLUB_FIXTURES, FIXTURES_2627, POST_SPLIT_DATES, SUPPORT_TIERS, SOCIALS, SEASON_ARCHIVE, MARKET_VALUES, LEAGUE_FACTS, LEAGUE_LORE, INJURIES, TEAM_STATS_2526, DISCIPLINE, WINDOW, GOALS_STATS, GOALS_LEAGUE_AVG, XG_TEAMS, XG_PLAYERS, EURO_COEFFICIENT, CLUB_META, TRAVEL, seasonLabel, SEASON, seasonStatus, seasonStartDisplay,
+  CLUBS, FINAL_PLACINGS, MID_TABLE, FULL_TABLE, PLAYERS, AXES, TRANSFERS, STATUS_META, ROLL_OF_HONOUR, ALL_TIME_TITLES, RECORDS, PREDICTOR_GW, store, KOFI_URL, EURO, CLUB_FIXTURES, FIXTURES_2627, POST_SPLIT_DATES, SUPPORT_TIERS, SOCIALS, SEASON_ARCHIVE, MARKET_VALUES, LEAGUE_FACTS, LEAGUE_LORE, INJURIES, TEAM_STATS_2526, DISCIPLINE, WINDOW, GOALS_STATS, GOALS_LEAGUE_AVG, XG_TEAMS, XG_PLAYERS, CLUB_TOP_SCORERS, EURO_COEFFICIENT, CLUB_META, TRAVEL, seasonLabel, SEASON, seasonStatus, seasonStartDisplay,
 } from "./data.js";
 
 
@@ -2648,6 +2648,7 @@ function ClubPage({ club, onBack }) {
   const reds = DISCIPLINE.reds.filter((p) => p.club === club);
   const indexPlayers = PLAYERS.filter((p) => p.club === club).sort((a, b) => b.rating - a.rating);
   const scorers = XG_PLAYERS.filter((p) => p.club === club);
+  const topScorer = CLUB_TOP_SCORERS[club];
   const injuries = INJURIES.filter((p) => p.club === club);
   const win = WINDOW.find((w) => w.club === club);
   const feed = TRANSFERS.filter((t) => t.from === club || t.to === club);
@@ -2793,6 +2794,27 @@ function ClubPage({ club, onBack }) {
             </div>
           ))
         ) : empty("GIBSON Index ratings are added club by club, not simulated — coverage builds up as the 2026/27 season is played.")}
+
+        {/* Club top scorer — Transfermarkt, all competitions. Deliberately separate from the
+            xG block below: that one is league-only FootyStats data, and this view publishes
+            no xG, so the two must never be shown as comparable. */}
+        {topScorer && (<>
+          <div style={subhead}>Top scorer · {seasonLabel("CLUB_TOP_SCORERS")}</div>
+          {cardList(
+            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 13px" }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: chalk }}>{topScorer.player}</div>
+                <div style={{ fontSize: 12, color: dim }}>
+                  {topScorer.apps} apps · a goal every {topScorer.minsPerGoal} mins
+                </div>
+              </div>
+              <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 22, color: "#3DDC84", fontVariantNumeric: "tabular-nums" }}>{topScorer.goals}</div>
+            </div>
+          )}
+          <div style={{ fontSize: 11, color: "rgba(143,166,155,0.5)", marginTop: 6 }}>
+            All competitions{topScorer.comp ? ` · ${topScorer.comp}` : ""} · Transfermarkt
+          </div>
+        </>)}
 
         {scorers.length > 0 && (<>
           <div style={subhead}>Goals vs expected · {seasonLabel("XG_PLAYERS")}</div>
