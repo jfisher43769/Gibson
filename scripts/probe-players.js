@@ -65,8 +65,100 @@ async function getJson(url, label) {
   }
 }
 
+// ---- 0. Which league id does TheSportsDB actually use for the NIFL Premiership? ---------
+// The first run of this probe found that lookup_all_teams.php?id=4659 returns English
+// League 1. Before anything else, establish whether 4659 is simply the WRONG ID (our bug)
+// or a right id being mis-served (their bug) — those have opposite fixes, and every other
+// question here depends on the answer.
+//
+// Reported RAW: the full unfiltered row count for each endpoint, then every Northern
+// Ireland league found, before any judgement about which one we want.
+const leagueProbe = { all: null, search: null, niLeagues: [], candidate: null };
+
+console.log("Discovering leagues...");
+const allLeaguesRes = await getJson(`${BASE}/all_leagues.php`, "all_leagues");
+if (allLeaguesRes.error) {
+  leagueProbe.all = { error: allLeaguesRes.error };
+  console.log(`  all_leagues.php: ${allLeaguesRes.error}`);
+} else {
+  const rows = allLeaguesRes.json.leagues;
+  leagueProbe.all = Array.isArray(rows)
+    ? { rawCount: rows.length, rows: rows.filter((l) => l && typeof l === "object") }
+    : { error: `'leagues' was ${rows === null ? "null" : typeof rows}, not an array` };
+  console.log(`  all_leagues.php: ${leagueProbe.all.rawCount ?? "—"} rows`);
+}
+
+await sleep(REQUEST_GAP_MS);
+const searchRes = await getJson(`${BASE}/search_all_leagues.php?c=Northern%20Ireland`, "search_leagues");
+if (searchRes.error) {
+  leagueProbe.search = { error: searchRes.error };
+  console.log(`  search_all_leagues.php?c=Northern Ireland: ${searchRes.error}`);
+} else {
+  // This endpoint uses `countries` as its container, not `leagues`.
+  const rows = searchRes.json.countries ?? searchRes.json.leagues;
+  leagueProbe.search = Array.isArray(rows)
+    ? { rawCount: rows.length, rows: rows.filter((l) => l && typeof l === "object") }
+    : { error: `container was ${rows === null ? "null" : typeof rows}, not an array` };
+  console.log(`  search_all_leagues.php?c=Northern Ireland: ${leagueProbe.search.rawCount ?? "—"} rows`);
+}
+
+// Pool every league either endpoint associates with Northern Ireland, and every league whose
+// name looks Northern Irish, so the report can show the full field rather than one guess.
+const NI_NAME = /northern ireland|nifl|irish (league|premiership)|premiership/i;
+const poolRows = [...(leagueProbe.all?.rows || []), ...(leagueProbe.search?.rows || [])];
+const seenLeagueIds = new Set();
+for (const l of poolRows) {
+  const id = l.idLeague !== undefined ? String(l.idLeague) : "";
+  const name = l.strLeague !== undefined ? String(l.strLeague) : "";
+  const country = l.strCountry !== undefined ? String(l.strCountry) : "";
+  const isNI = country.toLowerCase() === "northern ireland" || (country === "" && NI_NAME.test(name));
+  if (!isNI || !id || seenLeagueIds.has(id)) continue;
+  seenLeagueIds.add(id);
+  leagueProbe.niLeagues.push({ id, name, country: country || "(absent)", sport: l.strSport ? String(l.strSport) : "(absent)" });
+}
+// Best candidate for the top flight: a Northern Ireland league whose name reads as the
+// Premiership. Reported as a candidate, not a conclusion.
+leagueProbe.candidate = leagueProbe.niLeagues.find((l) => /premiership|premier/i.test(l.name))
+  || leagueProbe.niLeagues[0] || null;
+console.log(`  Northern Ireland leagues found: ${leagueProbe.niLeagues.length}`);
+if (leagueProbe.candidate) console.log(`  candidate top flight: ${leagueProbe.candidate.id} "${leagueProbe.candidate.name}"`);
+
+const CANDIDATE_ID = leagueProbe.candidate?.id || null;
+
+// ---- 0b. Do the live endpoints suffer the same substitution? ----------------------------
+// api/table.js and api/events.js are what the SITE depends on. If they are also being served
+// another league, their idLeague guard rejects everything and the app silently falls back to
+// data.js forever while appearing healthy — no error, no signal. Probe both ids, both
+// endpoints, and report the raw shape of each.
+const eventProbes = [];
+for (const id of [LEAGUE_ID, ...(CANDIDATE_ID && CANDIDATE_ID !== LEAGUE_ID ? [CANDIDATE_ID] : [])]) {
+  for (const ep of ["eventspastleague", "eventsnextleague"]) {
+    await sleep(REQUEST_GAP_MS);
+    const res = await getJson(`${BASE}/${ep}.php?id=${id}`, `${ep}-${id}`);
+    const entry = { endpoint: ep, id };
+    if (res.error) entry.error = res.error;
+    else {
+      const rows = res.json.events;
+      if (rows === null) entry.note = "events: null (no data)";
+      else if (!Array.isArray(rows)) entry.error = `'events' was ${typeof rows}, not an array`;
+      else {
+        const valid = rows.filter((e) => e && typeof e === "object");
+        entry.rawCount = rows.length;
+        entry.leagueIds = [...new Set(valid.map((e) => (e.idLeague !== undefined ? String(e.idLeague) : "(absent)")))];
+        entry.leagueNames = [...new Set(valid.map((e) => (e.strLeague !== undefined ? String(e.strLeague) : "(absent)")))];
+        entry.onTarget = valid.filter((e) => String(e.idLeague) === id).length;
+        entry.sample = valid.slice(0, 3).map((e) => `${e.strHomeTeam ?? "?"} v ${e.strAwayTeam ?? "?"} (${e.dateEvent ?? "?"})`);
+      }
+    }
+    eventProbes.push(entry);
+    console.log(`  ${ep}.php?id=${id}: ${entry.error || entry.note || `${entry.rawCount} rows, leagues ${entry.leagueIds.join("/")}, ${entry.onTarget} on target`}`);
+  }
+}
+
 // ---- 1. Teams in the league ------------------------------------------------------------
-console.log(`Probing TheSportsDB league ${LEAGUE_ID} — teams...`);
+// Probe the ORIGINAL id first (that is the one the app is wired to), then the candidate.
+console.log(`\nProbing teams for league ${LEAGUE_ID}...`);
+await sleep(REQUEST_GAP_MS);
 const teamsRes = await getJson(`${BASE}/lookup_all_teams.php?id=${LEAGUE_ID}`, "teams");
 if (teamsRes.error) {
   console.error(`\n✗ Could not retrieve teams: ${teamsRes.error}. Nothing written.\n`);
@@ -96,15 +188,42 @@ const onLeague = teams.filter((t) => t.league === LEAGUE_ID).length;
 console.log(`  ${rawTeams.length} rows returned, ${teams.length} structurally valid`);
 console.log(`  idLeague values present: ${leagueIds.join(", ")} (${onLeague} row(s) carry ${LEAGUE_ID})`);
 
-// Match our club codes onto whatever names the feed uses, REGARDLESS of idLeague — the
-// point is to find out whether the squads exist at all. Any mismatch is reported per club.
-const matched = {};
-const usedTeamIds = new Set();
-for (const code of CURRENT) {
-  const hit = teams.find((t) => t.name.toLowerCase().includes(TOKEN[code]));
-  if (hit) { matched[code] = hit; usedTeamIds.add(hit.id); }
+// Now the same call against the candidate id discovered in phase 0.
+let candTeams = null;
+if (CANDIDATE_ID && CANDIDATE_ID !== LEAGUE_ID) {
+  await sleep(REQUEST_GAP_MS);
+  console.log(`Probing teams for candidate league ${CANDIDATE_ID}...`);
+  const r = await getJson(`${BASE}/lookup_all_teams.php?id=${CANDIDATE_ID}`, "cand-teams");
+  if (r.error) { candTeams = { error: r.error }; }
+  else if (!Array.isArray(r.json.teams)) { candTeams = { error: `'teams' was ${r.json.teams === null ? "null" : typeof r.json.teams}, not an array` }; }
+  else {
+    const rows = r.json.teams;
+    const list = rows.filter((t) => t && typeof t === "object").filter((t) => filled(t.idTeam) && filled(t.strTeam))
+      .map((t) => ({ id: String(t.idTeam), name: String(t.strTeam), league: filled(t.idLeague) ? String(t.idLeague) : "(absent)", leagueName: filled(t.strLeague) ? String(t.strLeague) : "(absent)" }));
+    candTeams = { rawCount: rows.length, list, onLeague: list.filter((t) => t.league === CANDIDATE_ID).length };
+  }
+  console.log(`  ${candTeams.error || `${candTeams.rawCount} rows, ${candTeams.onLeague} carry ${CANDIDATE_ID}`}`);
 }
-const unmatchedFeedTeams = teams.filter((t) => !usedTeamIds.has(t.id));
+
+// Squad lookups run against whichever source actually contains our clubs. If the candidate
+// id returns the real Premiership, that is where the player data question gets answered.
+const matchIn = (list) => {
+  const m = {};
+  for (const code of CURRENT) {
+    const hit = list.find((t) => t.name.toLowerCase().includes(TOKEN[code]));
+    if (hit) m[code] = hit;
+  }
+  return m;
+};
+const matchedOriginal = matchIn(teams);
+const matchedCandidate = candTeams?.list ? matchIn(candTeams.list) : {};
+const useCandidate = Object.keys(matchedCandidate).length > Object.keys(matchedOriginal).length;
+const sourceList = useCandidate ? candTeams.list : teams;
+const SOURCE_ID = useCandidate ? CANDIDATE_ID : LEAGUE_ID;
+const matched = useCandidate ? matchedCandidate : matchedOriginal;
+const usedTeamIds = new Set(Object.values(matched).map((t) => t.id));
+const unmatchedFeedTeams = sourceList.filter((t) => !usedTeamIds.has(t.id));
+console.log(`Squad lookups will use league ${SOURCE_ID} (${Object.keys(matched).length}/${CURRENT.length} clubs matched there)`);
 
 // ---- 2. Players per team ---------------------------------------------------------------
 const results = {};
@@ -175,9 +294,55 @@ L.push("## Verdict");
 L.push("");
 L.push(verdict);
 L.push("");
-L.push("## Teams response");
+L.push("## 1. Which league id does TheSportsDB use for Northern Ireland?");
 L.push("");
-L.push(`- ${rawTeams.length} rows returned, ${teams.length} structurally valid.`);
+L.push(`- \`all_leagues.php\` — ${leagueProbe.all?.error ? `⚠ ${leagueProbe.all.error}` : `**${leagueProbe.all.rawCount} leagues returned in total** (raw, before any filtering)`}.`);
+L.push(`- \`search_all_leagues.php?c=Northern%20Ireland\` — ${leagueProbe.search?.error ? `⚠ ${leagueProbe.search.error}` : `**${leagueProbe.search.rawCount} rows returned** (raw)`}.`);
+L.push("");
+if (!leagueProbe.niLeagues.length) {
+  L.push("**No Northern Ireland league was found by either endpoint.**");
+} else {
+  L.push(`Every league either endpoint associates with Northern Ireland (${leagueProbe.niLeagues.length}):`);
+  L.push("");
+  L.push("| idLeague | Name | Country | Sport |");
+  L.push("|---|---|---|---|");
+  for (const l of leagueProbe.niLeagues) L.push(`| \`${clean(l.id, 12)}\` | ${clean(l.name, 50)} | ${clean(l.country, 30)} | ${clean(l.sport, 20)} |`);
+  L.push("");
+  if (leagueProbe.candidate) {
+    L.push(`**Candidate top flight:** \`${clean(leagueProbe.candidate.id, 12)}\` — ${clean(leagueProbe.candidate.name, 50)}.`);
+    L.push(leagueProbe.candidate.id === LEAGUE_ID
+      ? `That is the id the app already uses (\`${LEAGUE_ID}\`), so the id is right and the endpoint is mis-serving it.`
+      : `⚠ The app uses \`${LEAGUE_ID}\`, which is **not** this id.`);
+  }
+}
+L.push("");
+L.push("## 2. Live endpoints — is the site's own data path affected?");
+L.push("");
+L.push("`api/table.js` and `api/events.js` depend on these. Raw row counts and the league ids actually present in each response:");
+L.push("");
+L.push("| Endpoint | Requested id | Rows returned | idLeague values present | On target | strLeague |");
+L.push("|---|---|---|---|---|---|");
+for (const e of eventProbes) {
+  const rows = e.error ? `⚠ ${clean(e.error, 30)}` : e.note ? clean(e.note, 30) : String(e.rawCount);
+  const ids = e.leagueIds ? e.leagueIds.map((v) => `\`${clean(v, 12)}\``).join(", ") : "—";
+  const names = e.leagueNames ? e.leagueNames.map((v) => clean(v, 30)).join(", ") : "—";
+  const on = e.onTarget === undefined ? "—" : `${e.onTarget}${e.onTarget === 0 && e.rawCount ? " ⚠" : ""}`;
+  L.push(`| \`${e.endpoint}.php\` | \`${e.id}\` | ${rows} | ${ids} | ${on} | ${names} |`);
+}
+L.push("");
+for (const e of eventProbes) {
+  if (e.sample?.length) { L.push(`Sample from \`${e.endpoint}.php?id=${e.id}\`: ${e.sample.map((s) => `\`${clean(s, 60)}\``).join(", ")}.`); L.push(""); }
+}
+L.push("## 3. Teams response");
+L.push("");
+L.push(`- \`lookup_all_teams.php?id=${LEAGUE_ID}\` (the id the app uses): ${rawTeams.length} rows returned, ${teams.length} structurally valid.`);
+if (candTeams) {
+  L.push(candTeams.error
+    ? `- \`lookup_all_teams.php?id=${CANDIDATE_ID}\` (candidate): ⚠ ${candTeams.error}`
+    : `- \`lookup_all_teams.php?id=${CANDIDATE_ID}\` (candidate): ${candTeams.rawCount} rows returned, ${candTeams.onLeague} carrying \`${CANDIDATE_ID}\`, ${Object.keys(matchedCandidate).length}/${CURRENT.length} of our clubs matched.`);
+}
+L.push(`- Squad lookups below used league \`${SOURCE_ID}\`.`);
+L.push("");
 L.push(`- \`idLeague\` values present: ${leagueIds.map((v) => `\`${clean(v, 20)}\``).join(", ")} — **${onLeague} of ${teams.length} rows carry \`${LEAGUE_ID}\`**.`);
 L.push(`- ${found.length} of the ${CURRENT.length} current Premiership clubs matched by name.`);
 if (unmatchedFeedTeams.length) L.push(`- ${unmatchedFeedTeams.length} returned team(s) matched no current club: ${unmatchedFeedTeams.map((t) => `\`${clean(t.name, 40)}\``).join(", ")}.`);
