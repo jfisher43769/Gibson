@@ -354,15 +354,16 @@ export function SupportView() {
           { v: "1.01", when: "Jul 2026", title: "The complete foundation", desc: "Official 25/26 archive, Stats Lab with xG, full 26/27 fixture browser, Predictor share cards and the live-data layer — shipped.", status: "done" },
           { v: "1.05", when: "Jul 2026", title: "Cleaner GIBSON", desc: "Five-tab navigation, Home screen, readability pass — shipped.", status: "done" },
           { v: "1.07", when: "Jul 2026", title: "Club pages: every club, one tap", desc: "A full page for all twelve clubs — season, squad, transfers, fixtures and honours — reachable from any shield in the app.", status: "done" },
-          { v: "1.1", when: "Aug 2026", title: "Season one kicks off", desc: "Global Predictor leaderboard, live 26/27 table, and GIBSON on the Play Store.", status: "next" },
+          { v: "1.1", when: "Jul 2026", title: "Every club, one tap from Home", desc: "A club-selector strip on the Home tab, automatic crest text contrast, and name labels on every club picker in the app.", status: "done" },
+          { v: "1.11", when: "Aug 2026", title: "Season one kicks off", desc: "Global Predictor leaderboard, live 26/27 table, and GIBSON on the Play Store.", status: "next" },
           { v: "1.2", when: "When funded", title: "Live scores", desc: "In-play scores every two minutes. Unlocks when Ko-fi support covers the data feed — one Season Ticket flips the switch.", status: "planned" },
           { v: "v1.2", when: "Pre-season", title: "Fixtures & Predictor gameweeks", desc: "26/27 fixture list, opening-day countdown, and weekly Predictor rounds all season long.", status: "planned" },
           { v: "v1.3", when: "In season", title: "Weekly GIBSON Index", desc: "Ratings updated every matchweek, plus a Team of the Week in the Stats Lab.", status: "planned" },
           { v: "v2.0", when: "Future", title: "Accounts, Premium & leaderboards", desc: "Sign in, save your club, follow players, and battle the whole league on global Predictor leaderboards.", status: "planned" },
-        ].map((r, i) => (
+        ].map((r, i, arr) => (
           <div key={r.v} style={{
             display: "flex", gap: 12, padding: "12px 0",
-            borderBottom: i < 3 ? `1px solid ${faint}` : "none",
+            borderBottom: i < arr.length - 1 && arr[i].status === "done" && arr[i + 1].status !== "done" ? `1px solid ${faint}` : "none",
           }}>
             <div style={{
               fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 15, flexShrink: 0, width: 44,
