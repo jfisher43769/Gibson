@@ -459,14 +459,20 @@ export function FixturesView({ fixedClub } = {}) {
           </div>
         </div>
       )}
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 6, marginBottom: 14 }}>
         {Object.keys(CLUBS).filter((k) => k !== "GLV").map((k) => (
           <button key={k} onClick={() => setClub(k)} aria-label={CLUBS[k].name} style={{
-            padding: 3, borderRadius: 10, cursor: "pointer",
+            padding: "6px 3px", borderRadius: 10, cursor: "pointer",
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4,
             background: club === k ? "rgba(255,182,39,0.14)" : "transparent",
             border: `1px solid ${club === k ? "rgba(255,182,39,0.5)" : faint}`,
           }}>
-            <Crest club={k} size={26} tappable={false} />
+            <Crest club={k} size={24} tappable={false} />
+            <span style={{
+              fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 10, lineHeight: 1.1, textAlign: "center",
+              color: club === k ? "#FFB627" : chalk,
+              display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+            }}>{CLUBS[k].name}</span>
           </button>
         ))}
       </div>

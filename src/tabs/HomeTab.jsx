@@ -74,10 +74,14 @@ export function HomeView({ goTo }) {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 8, marginBottom: 18 }}>
           {Object.keys(CLUBS).filter((k) => k !== "GLV").map((k) => (
             <button key={k} onClick={() => openClub(k)} aria-label={`Open ${CLUBS[k].name} club page`} style={{
-              ...SURFACE.card, borderRadius: 12, padding: "8px 4px", cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center", minHeight: 48,
+              ...SURFACE.card, borderRadius: 12, padding: "8px 3px 7px", cursor: "pointer",
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, minHeight: 48,
             }}>
-              <Crest club={k} size={30} tappable={false} />
+              <Crest club={k} size={26} tappable={false} />
+              <span style={{
+                fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 10.5, color: chalk, textAlign: "center", lineHeight: 1.1,
+                display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+              }}>{CLUBS[k].name}</span>
             </button>
           ))}
         </div>

@@ -4,6 +4,7 @@
 // which now builds before verifying for exactly this reason).
 import * as D from "../data.js";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { contrastRatio, contrastText, chalk, DARK_TEXT, relativeLuminance } from "../src/lib/theme.js";
 let fails = 0;
 const check = (name, ok) => { console.log(ok ? "  ✓" : "  ✗ FAIL", name); if (!ok) fails++; };
 
@@ -437,6 +438,24 @@ check("seasonStatus() strip copy is non-empty in both pre-season and in-season s
   const pre = D.seasonStatus(start - 86400000);
   const during = D.seasonStatus(start + 86400000);
   return pre.strip.includes(D.SEASON.current.display) && /game/.test(during.strip);
+})());
+
+// Crest text colour is now computed (contrastText), not a hand-maintained per-club
+// whitelist — guard that the computed choice is actually the better of the two options,
+// and that every current club clears a 3:1 floor (WCAG's "large text" minimum; crest
+// codes are short and bold, never body copy).
+check("crest text colour is the higher-contrast option and clears 3:1 for every current club", (() => {
+  const lChalk = relativeLuminance(chalk);
+  const lDark = relativeLuminance(DARK_TEXT);
+  return Object.entries(D.CLUBS).filter(([code]) => code !== "GLV").every(([, c]) => {
+    const lBg = relativeLuminance(c.colors[0]);
+    const ratioChalk = contrastRatio(lChalk, lBg);
+    const ratioDark = contrastRatio(lDark, lBg);
+    const best = Math.max(ratioChalk, ratioDark);
+    const chosen = contrastText(c.colors[0]);
+    const chosenRatio = chosen === chalk ? ratioChalk : ratioDark;
+    return chosenRatio === best && chosenRatio >= 3.0;
+  });
 })());
 
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
