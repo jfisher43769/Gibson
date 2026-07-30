@@ -298,6 +298,7 @@ export const AXES = ["Shooting", "Creation", "Passing", "Dribbling", "Defending"
 // Summer 2026 window tracker — real, sourced stories. Update as fresh news breaks.
 // from/to use a NIFL club code, OR fromExternal/toExternal for clubs outside the league.
 export const TRANSFERS = [
+  { id: 44, date: "Jul", player: "Eoghan McCawl", from: "CAR", toExternal: "Dundela", status: "departure", note: "Attacking midfielder leaves Carrick Rangers for Dundela on a free." },
   { id: 42, date: "Jul", player: "Fraser Bryden", from: "CRU", toExternal: "Chesterfield", status: "departure", note: "Bryden makes the move to the EFL — the forward leaves Seaview for Chesterfield. Fee undisclosed." },
   { id: 41, date: "Jul", player: "Conor Falls", from: "CLI", to: "POR", status: "done", note: "Centre-forward swaps Solitude for Shamrock Park. Fee undisclosed." },
   { id: 40, date: "Jul", player: "Liam Jessop", fromExternal: "Chesterfield", to: "POR", status: "done", note: "Left winger joins Portadown on a free from Chesterfield." },
@@ -565,7 +566,7 @@ export const WINDOW = [
     outs: [["R. McNickle", "Annagh United"], ["L. Tennant", "Portstewart"], ["S. McAuley", "Chimney Corner"], ["C. Loughran", "Portstewart"], ["A. Gawne", "Portstewart"], ["A. Jarvis", "Limavady United"], ["S. O'Donnell", "Limavady United"], ["D. Lafferty", "Limavady United"], ["Daire O'Connor", "Carrick Rangers"], ["J. Thompson", "Cliftonville"], ["Dylan McGeouch", "Gretna FC 2008"], ["Patrick McEleney", "Retired"], ["Dean Ebbe", "Lucan United"], ["David Taylor", "Ballyclare"]] },
   { club: "CAR",
     ins: [["J. Forsythe", "Crusaders"], ["Jordan Hastings", "Larne"], ["Daire O'Connor", "Ballymena United"]],
-    outs: [["Luke McCullough (loan info n/a)", "Matlock"], ["Ethan Boyle", "CK United"]] },
+    outs: [["Luke McCullough (loan info n/a)", "Matlock"], ["Ethan Boyle", "CK United"], ["Eoghan McCawl", "Dundela"]] },
   { club: "POR",
     ins: [["M. Carson", "Torquay"], ["R. Breen", "East Kilbride"], ["Mikey Hewitt", "Queen of the South"], ["Sean O'Mahoney", "St Francis"], ["Conor Falls", "Cliftonville"], ["Liam Jessop", "Chesterfield"], ["Dominic Martins", "Blyth Town"]],
     outs: [["Ben Quinn", "Cliftonville"], ["Josh Ukek", "Larne"], ["Zach Cowan", "Oxford SFC"], ["Steven McCullough", "Bangor"], ["J. Gibson", "Without club"], ["Shay McCartan", "Without club"], ["Josh Carson", "Retired"], ["Gideon Tetteh", "Wexford FC"]] },
