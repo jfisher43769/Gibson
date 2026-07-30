@@ -1,12 +1,13 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   CLUBS, CLUB_FIXTURES, FIXTURES_2627, LEAGUE_LORE, PREDICTOR_GW, STATUS_META, TRANSFERS,
 } from "../../data.js";
+import { ClubNavContext, Crest } from "../components/Crest.jsx";
 import { CountUp } from "../components/CountUp.jsx";
-import { Crest } from "../components/Crest.jsx";
 import { SURFACE, chalk, dim, faint } from "../lib/theme.js";
 
 export function HomeView({ goTo }) {
+  const openClub = useContext(ClubNavContext);
   const now = Date.now();
   // A kick-off within the last 2.5h still counts as "the match" rather than being
   // skipped as past — the result usually isn't in data.js yet when it's still live.
@@ -68,6 +69,19 @@ export function HomeView({ goTo }) {
         <div style={{ height: 2, width: 130, margin: "13px auto 9px", background: "#FFB627", opacity: 0.7, borderRadius: 1 }} />
         <div style={{ fontSize: 12, color: dim }}>{board.sub}</div>
       </div>
+      {openClub && (<>
+        <div style={{ ...label, marginBottom: 8 }}>Your club</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 8, marginBottom: 18 }}>
+          {Object.keys(CLUBS).filter((k) => k !== "GLV").map((k) => (
+            <button key={k} onClick={() => openClub(k)} aria-label={`Open ${CLUBS[k].name} club page`} style={{
+              ...SURFACE.card, borderRadius: 12, padding: "8px 4px", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center", minHeight: 48,
+            }}>
+              <Crest club={k} size={30} tappable={false} />
+            </button>
+          ))}
+        </div>
+      </>)}
       {(restEuro.length > 0 || heroFix) && (<>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
           <div style={{ ...label, marginBottom: 0 }}>Next up</div>
