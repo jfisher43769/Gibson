@@ -443,7 +443,7 @@ export const PREDICTOR_GW = {
   name: "Euro Week 4 · Q2 Second Legs",
   deadline: "Larne tonight · Coleraine Thursday",
   fixtures: [
-    { id: "f1", home: { external: "Red Star Belgrade" }, away: { club: "LAR" }, comp: "UCL Q2 · 2nd leg · Stadion Rajko Mitić · Larne trail 0–4 agg", result: null, odds: { home: 1.2, draw: 6.5, away: 12.0 } },
+    { id: "f1", home: { external: "Red Star Belgrade" }, away: { club: "LAR" }, comp: "UCL Q2 · 2nd leg · Stadion Rajko Mitić · Larne trail 0–4 agg", result: [5, 0], odds: { home: 1.2, draw: 6.5, away: 12.0 } },
     { id: "f2", home: { club: "COL" }, away: { external: "HJK Helsinki" }, comp: "UECL Q2 · 2nd leg · The Showgrounds · Coleraine trail 0–5 agg", result: null, odds: { home: 2.6, draw: 3.4, away: 2.5 } },
   ],
 };
@@ -698,14 +698,13 @@ export // Odds are informational only — plain numbers, no bookmaker branding, 
 // Leave as null until you have a source you trust. See Playbook section 8.
 const EURO = [
   {
-    club: "LAR", comp: "Champions League", round: "Second qualifying round",
-    opp: "Red Star Belgrade", oppCountry: "Serbia", odds: null,
+    club: "LAR", comp: "Europa League", round: "Third qualifying round",
+    opp: "FC Iberia 1999", oppCountry: "Georgia", odds: null,
     legs: [
-      { label: "1st leg · home", date: "Tue 21 Jul", dt: "2026-07-21T18:45:00Z", venue: "Inver Park" },
-      { label: "2nd leg · away", date: "Wed 29 Jul · 19:00", dt: "2026-07-29T18:00:00Z", venue: "Belgrade" },
+      { label: "1st leg · home", date: "Tue 4 Aug · 20:00", dt: "2026-08-04T19:00:00Z", venue: "Inver Park" },
     ],
-    prize: "Winner reaches UCL Q3 — and the loser still drops into Conference League Q3",
-    note: "FIRST LEG: Larne 0-4 Red Star Belgrade at Inver Park — Duarte with two (26', 67' pen), Kostov (55') and Cham (85') giving the Serbian giants a commanding lead. A mountain to climb in Belgrade, but the European summer isn't over: the loser of the tie parachutes into Conference League Q3.",
+    prize: "Winner advances to the UEL play-off round; the loser drops into the UECL play-off round",
+    note: "OUT OF THE CHAMPIONS LEAGUE, ON TO THE EUROPA LEAGUE: Red Star Belgrade finished the job in Belgrade, winning the second leg 5-0 (Katai 3', Arnautović 45' & 60', Loizou 49', Bukari 79') for a 9-0 aggregate. Larne's European summer continues regardless — re-seeded into UEFA Europa League Q3, hosting Georgian side FC Iberia 1999 at Inver Park on Tuesday 4 August, 8pm. Tickets on sale now.",
   },
   {
     club: "GLE", comp: "Conference League", round: "First qualifying round",
@@ -764,7 +763,8 @@ export const CLUB_FIXTURES = {
     { date: "8 Jul", dt: "2026-07-08T18:45:00Z", res: "0–1 W", opp: "Tre Fiori (a) — Lusty 45'", comp: "UCL Q1 · 1st leg" },
     { date: "14 Jul", dt: "2026-07-14T18:45:00Z", res: "2–1 W", opp: "Tre Fiori (h)", comp: "UCL Q1 · 2nd leg · 3–1 agg" },
     { date: "21 Jul", dt: "2026-07-21T18:45:00Z", res: "0–4 L", opp: "Red Star Belgrade", comp: "UCL Q2 · 1st leg · Inver Park" },
-    { date: "29 Jul", dt: "2026-07-29T18:00:00Z", opp: "Red Star Belgrade", comp: "UCL Q2 · 2nd leg · Belgrade · 7pm" },
+    { date: "29 Jul", dt: "2026-07-29T18:00:00Z", res: "0–5 L", opp: "Red Star Belgrade (a) — Katai 3', Arnautović 45' & 60', Loizou 49', Bukari 79'", comp: "UCL Q2 · 2nd leg · Belgrade · 0–9 agg · eliminated" },
+    { date: "4 Aug", dt: "2026-08-04T19:00:00Z", opp: "FC Iberia 1999 (h)", comp: "UEL Q3 · 1st leg · Inver Park · 8pm" },
   ],
   GLE: [
     { date: "9 Jul", dt: "2026-07-09T19:30:00Z", res: "1–2 L", opp: "RFS (h) — Ibsen Rossi 38'", comp: "UECL Q1 · 1st leg" },
