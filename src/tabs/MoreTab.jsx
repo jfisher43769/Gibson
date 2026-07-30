@@ -27,14 +27,20 @@ function ClubLedger() {
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
         Full window · club by club
       </div>
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 6, marginBottom: 12 }}>
         {WINDOW.map((x) => (
           <button key={x.club} onClick={() => setClub(x.club)} aria-label={CLUBS[x.club].name} style={{
-            padding: 3, borderRadius: 10, cursor: "pointer",
+            padding: "6px 3px", borderRadius: 10, cursor: "pointer",
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4,
             background: club === x.club ? "rgba(255,182,39,0.14)" : "transparent",
             border: `1px solid ${club === x.club ? "rgba(255,182,39,0.5)" : faint}`,
           }}>
             <Crest club={x.club} size={24} tappable={false} />
+            <span style={{
+              fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 10, lineHeight: 1.1, textAlign: "center",
+              color: club === x.club ? "#FFB627" : chalk,
+              display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+            }}>{CLUBS[x.club].name}</span>
           </button>
         ))}
       </div>

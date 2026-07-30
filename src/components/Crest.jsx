@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import {
   CLUBS,
 } from "../../data.js";
-import { chalk } from "../lib/theme.js";
+import { contrastText } from "../lib/theme.js";
 
 // Club-page navigation: any Crest can open a club page via this context. Provided at
 // the app root; null when unavailable (SSR/render test), so Crest degrades to static.
@@ -29,7 +29,7 @@ export function Crest({ club, size = 34, tappable = true }) {
         {c.pattern === "plain" && <path d="M3 26 H37 V24 H3 Z" fill={c2} />}
       </g>
       <text x="20" y="21" textAnchor="middle"
-        fill={["BAN", "CAR", "BAL"].includes(club) ? "#10241B" : chalk}
+        fill={contrastText(c1)}
         fontFamily="'Barlow Condensed', sans-serif" fontWeight="800" fontSize="10">
         {club}
       </text>

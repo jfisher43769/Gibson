@@ -38,3 +38,25 @@ export const reducedMotion = () => {
 export const ratingColor = (r) => (r >= 8 ? "#3DDC84" : r >= 7.3 ? "#FFB627" : "#8FA69B");
 
 export const formColor = (f) => (f === "W" ? "#3DDC84" : f === "D" ? "#FFB627" : "#E8663C");
+
+// WCAG relative luminance of a "#rrggbb" colour — https://www.w3.org/TR/WCAG20/#relativeluminancedef
+export const relativeLuminance = (hex) => {
+  const [r, g, b] = hex.replace("#", "").match(/.{2}/g).map((h) => {
+    const v = parseInt(h, 16) / 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+
+export const contrastRatio = (l1, l2) => (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+export const DARK_TEXT = "#10241B";
+const chalkLuminance = relativeLuminance(chalk);
+const darkTextLuminance = relativeLuminance(DARK_TEXT);
+
+// Picks chalk (near-white) or near-black, whichever has the higher WCAG contrast ratio
+// against the given fill colour — an automatic replacement for a hand-maintained list of
+// "these club colours need dark text" exceptions, so it stays correct as club colours change.
+export const contrastText = (fillHex) => {
+  const l = relativeLuminance(fillHex);
+  return contrastRatio(chalkLuminance, l) >= contrastRatio(l, darkTextLuminance) ? chalk : DARK_TEXT;
+};
