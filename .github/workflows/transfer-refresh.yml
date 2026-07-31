@@ -1,0 +1,111 @@
+name: Daily transfers
+
+# Reads the twelve clubs' own websites plus the NIFL site each morning and opens a PR with
+# any move the club ITSELF reports as completed in the last 3 days.
+#
+# 07:00 UTC = 8am BST, which is the clock that matters: both transfer windows that generate
+# announcements (summer, and the run-up to deadline day) sit in British Summer Time. In deep
+# winter this lands at 7am GMT, which is harmless for a daily sweep.
+#
+# IT OPENS A PR, IT NEVER PUSHES TO MAIN. Transfers are the most editorial thing in the app —
+# CLAUDE.md rule 4 puts them squarely in the owner's hands — and the routine is reading other
+# people's prose to decide what is true. The diff is the review, and the PR body lists the
+# source URL for every entry so each one can be checked against the club's own page in a tap.
+#
+# REQUIRES the ANTHROPIC_API_KEY repository secret. Deciding whether "joins" means a completed
+# signing or "joins a growing list of targets" is a reading task, not a pattern match, so the
+# extraction step is a model call. Without the secret the job fails loudly and writes nothing,
+# which is the correct outcome — see the script header for why the model is never the thing
+# that is trusted.
+
+on:
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview only — log what would be added, write nothing, open no PR"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: transfer-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.repository == 'jfisher43769/Gibson'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Read club sites and add confirmed transfers
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/transfer-update.js ${{ inputs.dry_run && '--dry-run' || '' }}
+
+      # Same gate as every commit. A transfer addition must not be able to break the site,
+      # and verify.js is what proves TRANSFERS and WINDOW are still in step with each other.
+      - name: Verify
+        if: ${{ !inputs.dry_run }}
+        run: |
+          npm run build
+          node scripts/verify.js
+          node scripts/render-test.mjs
+
+      - name: Open PR if anything was added
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- data.js; then
+            echo "Nothing confirmed in the last 3 days. No PR opened."
+            exit 0
+          fi
+          BRANCH="automated/transfers-${{ github.run_id }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add data.js
+          git commit -m "Daily transfers: add confirmed moves from club announcements" \
+            -m "Automated run of scripts/transfer-update.js. Additions only — no existing entry was modified. Check each source URL before merging."
+          git push -u origin "$BRANCH"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          {
+            echo "Automated \`scripts/transfer-update.js\` run ([workflow run]($RUN_URL))."
+            echo
+            echo "Build, \`verify.js\` and the render smoke test all passed before this PR was opened,"
+            echo "so TRANSFERS and WINDOW are in step."
+            echo
+            echo "**Check each entry against its \`source\` URL before merging.** Every added row"
+            echo "carries the club page it came from and \`auto: true\`. These were read off other"
+            echo "people's prose, so the source link is the proof, not the note text."
+            echo
+            echo "Additions only — the script has no code path that edits or deletes an existing"
+            echo "entry, so nothing entered by hand can have been overwritten here."
+            echo
+            echo "### Added"
+            echo '```'
+            git show --no-color -U0 HEAD -- data.js | grep '^+' | grep -v '^+++' | sed 's/^+//'
+            echo '```'
+          } > /tmp/pr-body.md
+          if ! gh pr create \
+            --title "Daily transfers: confirmed moves from club announcements" \
+            --body-file /tmp/pr-body.md \
+            --base main --head "$BRANCH"; then
+            echo "::warning::Could not open the PR automatically — the branch is pushed, open it here:"
+            echo "${{ github.server_url }}/${{ github.repository }}/compare/main...$BRANCH?expand=1"
+            exit 1
+          fi

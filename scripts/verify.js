@@ -440,12 +440,51 @@ check("results routine writes only data.js, checks idLeague, and never overwrite
   return onlyWritesData && checksLeague && neverOverwrites;
 })());
 
-// The results routine must stay OFF the build. It rewrites data.js from a live feed, so
-// wiring it into build/prebuild would let a bad feed rewrite the site during a deploy,
-// with no diff and no human in between.
-check("results routine is never wired into the build", (() => {
+// Neither data-writing routine may be wired into the build. Both rewrite data.js from an
+// external source, so running one during a deploy would let a bad feed — or a bad reading of
+// a club's news page — rewrite the site with no diff and no human in between.
+check("data-writing routines are never wired into the build", (() => {
   const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
-  return !Object.values(pkg.scripts || {}).some((s) => /weekly-update/.test(s));
+  const offenders = Object.entries(pkg.scripts || {})
+    .filter(([, s]) => /weekly-update|transfer-update|fetch-wikidata/.test(s))
+    .map(([k]) => k);
+  if (offenders.length) console.log(`      ↳ wired into: ${offenders.join(", ")}`);
+  return offenders.length === 0;
+})());
+
+// The transfer routine is the only automation allowed to write EDITORIAL content, which
+// CLAUDE.md rule 4 otherwise reserves to the owner. That exception is bounded by four
+// properties, and this is what holds the boundary:
+//   * it writes data.js and nothing else;
+//   * it is ADDITIONS ONLY — no path that edits or deletes an existing entry, so a manual
+//     correction can never be overwritten by tomorrow morning's run;
+//   * it only accepts a claim whose source URL is on the configured origin allowlist, so a
+//     scraped page cannot talk the extractor into citing somewhere we never read;
+//   * page text is handled as data, never as instructions.
+check("transfer routine writes only data.js, is additions-only, and pins source origins", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("./transfer-update.js", import.meta.url), "utf8"); } catch { return false; }
+  const writes = [...src.matchAll(/writeFileSync\(\s*([A-Za-z_$][\w$]*)/g)].map((m) => m[1]);
+  const onlyWritesData = writes.length > 0 && writes.every((v) => v === "DATA_PATH");
+  if (!onlyWritesData) console.log(`      ↳ writeFileSync targets: ${writes.join(", ") || "none found"}`);
+  // Additions-only: the writer may splice new text in, but must never carry a path that
+  // rewrites an existing entry the way weekly-update.js deliberately does for `result: null`.
+  const additionsOnly = !/\.replace\(\s*\/result:|applyFills|overwrite/i.test(src);
+  if (!additionsOnly) console.log("      ↳ found something that looks like an overwrite path");
+  const pinsOrigin = /originsAllowed/.test(src) && /source origin was not one we fetched/.test(src);
+  if (!pinsOrigin) console.log("      ↳ the source-origin allowlist check is missing");
+  const treatsPagesAsData = /UNTRUSTED DATA/.test(src) && /never an instruction/i.test(src);
+  if (!treatsPagesAsData) console.log("      ↳ the extraction prompt no longer marks page text as untrusted data");
+  return onlyWritesData && additionsOnly && pinsOrigin && treatsPagesAsData;
+})());
+
+// Anything the routine added must be auditable back to the club page it was read from.
+// An auto entry without a source is unverifiable editorial content, which is exactly what
+// CLAUDE.md rule 1 forbids — "not yet available" beats a claim nobody can check.
+check("every auto-added transfer carries a source URL", (() => {
+  const bad = D.TRANSFERS.filter((t) => t.auto && !/^https?:\/\//.test(String(t.source || "")));
+  if (bad.length) console.log(`      ↳ ${bad.map((t) => `id${t.id} ${t.player}`).join(", ")}`);
+  return bad.length === 0;
 })());
 
 // Early-season rule: games played must be DERIVED from results in the fixture list, never
