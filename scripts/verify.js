@@ -418,6 +418,36 @@ check("fetch-wikidata.js fills gaps only, never overwrites, and bails when nothi
   return fillsGapsOnly && /mergeWithExisting/.test(src) && /refusing to touch data\.js/.test(src);
 })());
 
+// The results routine (scripts/weekly-update.js, run on a schedule by
+// .github/workflows/results-refresh.yml) writes scorelines straight into data.js from a
+// community-edited feed. Three properties keep that safe, and all three are load-bearing:
+//   * it writes data.js and NOTHING else — the workflow commits only data.js, so a second
+//     write target would land changes nobody reviews;
+//   * every event must carry idLeague === "4659" — TheSportsDB has served cached ENGLISH
+//     league data in place of 4659, which is the whole reason this guard exists;
+//   * it only ever replaces `result: null`, so a figure the owner entered by hand can
+//     never be overwritten by the feed.
+check("results routine writes only data.js, checks idLeague, and never overwrites a result", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("./weekly-update.js", import.meta.url), "utf8"); } catch { return false; }
+  const writes = [...src.matchAll(/writeFileSync\(\s*([A-Za-z_$][\w$]*)/g)].map((m) => m[1]);
+  const onlyWritesData = writes.length > 0 && writes.every((v) => v === "DATA_PATH");
+  if (!onlyWritesData) console.log(`      ↳ writeFileSync targets: ${writes.join(", ") || "none found"}`);
+  const checksLeague = /String\(e\.idLeague\) !== LEAGUE_ID/.test(src) && /LEAGUE_ID = "4659"/.test(src);
+  if (!checksLeague) console.log("      ↳ the idLeague === 4659 guard is missing or changed shape");
+  const neverOverwrites = /result:\\s\*null/.test(src) && /refusing to overwrite/.test(src);
+  if (!neverOverwrites) console.log("      ↳ the 'only replace result: null' guard is missing");
+  return onlyWritesData && checksLeague && neverOverwrites;
+})());
+
+// The results routine must stay OFF the build. It rewrites data.js from a live feed, so
+// wiring it into build/prebuild would let a bad feed rewrite the site during a deploy,
+// with no diff and no human in between.
+check("results routine is never wired into the build", (() => {
+  const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+  return !Object.values(pkg.scripts || {}).some((s) => /weekly-update/.test(s));
+})());
+
 // Early-season rule: games played must be DERIVED from results in the fixture list, never
 // hardcoded, and the threshold must actually gate which season the stats surfaces default
 // to. A hardcoded count would silently freeze the app in (or out of) early-season mode.

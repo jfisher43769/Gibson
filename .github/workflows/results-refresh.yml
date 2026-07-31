@@ -1,0 +1,120 @@
+name: Results refresh
+
+# The mechanical half of the Sunday ritual (CLAUDE.md), on a schedule.
+#
+# scripts/weekly-update.js already implements the whole job — fetch finished league 4659
+# matches, validate them hard, fill `result: [h, a]` on any PREDICTOR_GW fixture still
+# sitting at null. What it lacked was a way to RUN. It was manual-only, and the owner
+# works phone-only, so in practice it only ran when an agent session happened to run it.
+# This workflow is that missing half: it runs the script on a GitHub runner (open
+# internet — agent sessions sit behind an egress policy that 403s thesportsdb.com) and
+# opens a PR with the diff.
+#
+# It never pushes to main and never merges. Results are the numbers the whole site is
+# trusted for, and the feed is a community-edited database that has previously served
+# cached ENGLISH league data in place of 4659 — so a human reads the diff before it
+# deploys. That incident is why the script's idLeague check is not optional.
+#
+# It commits data.js and nothing else, deliberately. Generated files (rss.xml, the .ics
+# calendars) are rebuilt from data.js by the prebuild step on every Vercel deploy, and
+# keeping them out means the PR diff is purely "which scorelines changed" with no
+# regenerated noise to read past.
+
+on:
+  schedule:
+    # 20:00 UTC every Sunday, Aug-Dec and Jan-Apr — after the weekend's matches, and only
+    # in season (CLAUDE.md: the ritual runs Aug-Apr). Cron here is always UTC.
+    # NOTE: GitHub only runs scheduled workflows from the default branch, and disables
+    # them after 60 days with no repository activity.
+    - cron: "0 20 * 8-12,1-4 0"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview only — log what would be filled, write nothing, open no PR"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: results-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.repository == 'jfisher43769/Gibson'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # Exits non-zero on any doubt (bad payload, unreachable feed, a fixture whose
+      # "result: null" has changed under it). A failed job is the correct outcome there —
+      # far better than a PR full of numbers nobody can vouch for.
+      - name: Fill results from the feed
+        run: node scripts/weekly-update.js ${{ inputs.dry_run && '--dry-run' || '' }}
+
+      # A results fill must not be allowed to break the site: the same gate every commit
+      # goes through. Runs even when nothing was filled, so a green run also proves main
+      # is still healthy.
+      - name: Verify
+        if: ${{ !inputs.dry_run }}
+        run: |
+          npm run build
+          node scripts/verify.js
+          node scripts/render-test.mjs
+
+      - name: Open PR if any result changed
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # data.js only — see the header note on generated files.
+          if git diff --quiet -- data.js; then
+            echo "No fixture moved off result: null — nothing to review. No PR opened."
+            exit 0
+          fi
+          BRANCH="automated/results-refresh-${{ github.run_id }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add data.js
+          git commit -m "Results refresh: fill PREDICTOR_GW results from the feed" \
+            -m "Automated run of scripts/weekly-update.js. Only fixtures previously at result: null were touched; review the scorelines before merging."
+          git push -u origin "$BRANCH"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          cat > /tmp/pr-body.md <<EOF
+          Automated \`scripts/weekly-update.js\` run ([workflow run]($RUN_URL)).
+
+          Build, \`verify.js\` and the render smoke test all passed before this PR was opened.
+
+          **Check the scorelines against a second source before merging.** TheSportsDB is
+          community-edited and has previously served cached English league data in place of
+          league 4659 — every event here had to carry \`idLeague === "4659"\`, but that guard
+          cannot tell a correct 4659 scoreline from a wrong one.
+
+          The script only fills fixtures that were at \`result: null\`; a result already in
+          data.js is never overwritten, so nothing the owner entered by hand can change
+          here. Only \`data.js\` is committed — generated files rebuild on deploy.
+          EOF
+          sed -i 's/^          //' /tmp/pr-body.md
+          if ! gh pr create \
+            --title "Results refresh: fill PREDICTOR_GW results" \
+            --body-file /tmp/pr-body.md \
+            --base main --head "$BRANCH"; then
+            # Repo setting "Allow GitHub Actions to create and approve pull requests"
+            # (Settings -> Actions -> General -> Workflow permissions) blocks this. The
+            # branch is pushed either way, so surface a link the owner can open on a phone.
+            echo "::warning::Could not open the PR automatically — the branch is pushed, open it here:"
+            echo "${{ github.server_url }}/${{ github.repository }}/compare/main...$BRANCH?expand=1"
+            exit 1
+          fi
