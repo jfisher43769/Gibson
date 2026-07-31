@@ -66,6 +66,11 @@ const fail = (msg) => { console.error(`\n✗ ${msg}\n`); process.exit(1); };
 // REPORTED, not guessed at: fetching a wrong domain and believing it is worse than a gap.
 const NIFL_SOURCE = { code: "NIFL", url: "https://www.nifootballleague.com/news" };
 
+// Signature of a lapsed club domain turned affiliate farm. Deliberately about CASINO/BONUS
+// furniture rather than the bookmaker names verify.js bans, because a parked domain reads
+// like a casino toplist, not like a betting sponsor.
+const SPAM = /non ?gamstop|free spins|welcome bonus|no[- ]deposit|casino/i;
+
 function sources() {
   const out = [];
   const missing = [];
@@ -112,6 +117,16 @@ async function loadPages() {
       if (!r.ok) { console.log(`  ✗ ${s.code}: HTTP ${r.status}`); continue; }
       const text = toText(await r.text()).slice(0, 20000);
       if (!text) { console.log(`  ✗ ${s.code}: empty after strip`); continue; }
+      // A club domain can lapse and come back as affiliate spam — limavadyunitedfc.co.uk was
+      // serving "Non GamStop casino" content the first time this routine ran. Two reasons to
+      // drop such a page rather than read it: nothing on it is a real club announcement, and
+      // CLAUDE.md rule 2 keeps gambling material out of this project entirely. Loud, because a
+      // hijacked club domain is also a link the site itself may still be pointing users at.
+      if (SPAM.test(text)) {
+        console.log(`  ⚠ ${s.code}: page reads as gambling/affiliate spam, not club news — SKIPPED`);
+        console.log(`     ${s.url} may no longer be under the club's control; CLUB_META needs checking.`);
+        continue;
+      }
       pages.push({ ...s, text });
     } catch (e) {
       console.log(`  ✗ ${s.code}: ${String((e && e.message) || e)}`);
