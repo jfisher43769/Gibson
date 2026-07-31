@@ -286,6 +286,30 @@ check("no CLUB_META website points at a ladies/reserve/youth side", (() => {
   return bad.length === 0;
 })());
 
+// A lapsed club domain is worse than a missing one: ClubPage renders website as "Official
+// website ↗", so when limavadyunitedfc.co.uk was repointed at casino affiliate content the
+// site was sending visitors there — against rule 2, and to "Non GamStop" operators, which are
+// specifically the ones outside the UK self-exclusion scheme.
+//
+// This check is what makes nulling the field STICK. fetch-wikidata.js fills gaps only, so a
+// null website is precisely the shape it refills, and Wikidata still holds the old URL. With
+// this guard the next refresh fails its own verify step rather than opening a PR that quietly
+// restores the link.
+check("no CLUB_META website uses a domain known to have lapsed", (() => {
+  const lapsed = D.LAPSED_CLUB_DOMAINS || [];
+  if (!lapsed.length) return true;
+  const bad = [];
+  for (const c of routeClubs) {
+    const site = D.CLUB_META?.[c]?.website;
+    if (!site) continue;
+    let host = "";
+    try { host = new URL(site).hostname.replace(/^www\./, "").toLowerCase(); } catch { host = String(site).toLowerCase(); }
+    if (lapsed.some((d) => host === d.toLowerCase() || host.endsWith(`.${d.toLowerCase()}`))) bad.push(`${c}: ${site}`);
+  }
+  if (bad.length) console.log(`      ↳ ${bad.join(", ")} — see LAPSED_CLUB_DOMAINS in data.js`);
+  return bad.length === 0;
+})());
+
 // One person cannot manage two clubs at once. Wikidata returned Stephen Baxter as manager of
 // both Carrick Rangers and Crusaders — one entry was simply stale. Manager is no longer
 // fetched for that reason, but the check stays: if the field ever comes back, by fetch or by

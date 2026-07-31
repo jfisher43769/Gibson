@@ -948,13 +948,34 @@ export const CLUB_META = {
     lat: 55.052522,
     lon: -6.937221,
     founded: 1884,
-    website: "https://limavadyunitedfc.co.uk/",
+    // DELIBERATELY null — see LAPSED_CLUB_DOMAINS below. limavadyunitedfc.co.uk was the
+    // club's site (and is still what Wikidata returns) but the domain has lapsed and now
+    // serves casino affiliate content. ClubPage renders website as "Official website ↗",
+    // so leaving it set pointed our visitors at it. Restore only with a URL that has been
+    // opened and checked by a human.
+    website: null,
     nickname: null,
     seated: 274,
     capacityUnconfirmed: true,
-    source: "Wikipedia, 2025–26 NIFL Premiership season page, retrieved 23 July 2026 (capacity unconfirmed); founded, website from Wikidata (CC0)",
+    source: "Wikipedia, 2025–26 NIFL Premiership season page, retrieved 23 July 2026 (capacity unconfirmed); founded from Wikidata (CC0); website withheld — domain lapsed to affiliate spam, checked 31 July 2026",
   },
 };
+
+// Domains that WERE a club's official site and are not any more. A lapsed football domain
+// tends to get bought and repointed at affiliate spam, which is how limavadyunitedfc.co.uk
+// came to serve "Non GamStop casino" pages while ClubPage was still linking to it as
+// "Official website ↗" — squarely against rule 2, and worse than a broken link.
+//
+// This list exists because nulling the field alone would not hold. scripts/fetch-wikidata.js
+// FILLS GAPS ONLY, so a null website is exactly the shape it refills — and Wikidata still
+// carries the old URL, so the next refresh would quietly put it back. verify.js fails on any
+// CLUB_META.website matching this list, which makes that refresh fail its own verify step
+// instead of opening a PR that reintroduces the link.
+//
+// Removing an entry here is a claim that a human has opened the URL and seen a real club site.
+export const LAPSED_CLUB_DOMAINS = [
+  "limavadyunitedfc.co.uk", // checked 31 July 2026 — casino affiliate content, not the club
+];
 // === CLUB_META END ===
 
 // Season travel, derived from CLUB_META coordinates + FIXTURES_2627 — computed here
