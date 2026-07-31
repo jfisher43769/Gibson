@@ -500,6 +500,25 @@ check("fixture routine writes only data.js, is update-only, and refuses ambiguou
   return onlyWritesData && updateOnly && refusesAmbiguous;
 })());
 
+// THE FEED IS UTC, FIXTURES_2627 IS LOCAL. Caught on the routine's first live run: the feed
+// gave Cliftonville v Crusaders at 18:45 against a stored 7.45pm and the routine called it a
+// reschedule. Same instant — Northern Ireland is UTC+1 in August. Comparing raw feed clock
+// time against stored local time would have dragged EVERY summer kick-off an hour earlier,
+// a season-wide corruption that reads as entirely plausible in a diff.
+//
+// The conversion must go through a real timezone, not a fixed +1, or the GMT half of the
+// season and the late-March changeover come out wrong.
+check("fixture routine converts feed times from UTC to local before comparing", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("./fixture-update.js", import.meta.url), "utf8"); } catch { return false; }
+  const usesZone = /Europe\/Belfast/.test(src) && /timeZone:\s*BELFAST/.test(src);
+  if (!usesZone) console.log("      ↳ the Europe/Belfast conversion is missing");
+  // A hardcoded hour offset is the wrong fix and must not creep back in.
+  const hardcodedOffset = /getUTCHours\(\)\s*[+-]\s*1|\+\s*3600000|utcHours\s*\+\s*1/.test(src);
+  if (hardcodedOffset) console.log("      ↳ found a hardcoded hour offset instead of a timezone");
+  return usesZone && !hardcodedOffset;
+})());
+
 // Round-level date/time is the DEFAULT for every fixture in that round, so writing there
 // would silently move matches the feed said nothing about. The routine must only ever write
 // the individual match's own d / t.

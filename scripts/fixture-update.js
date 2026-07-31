@@ -73,17 +73,44 @@ const SEASON_START = Date.parse(`${D.SEASON.seasonStart}T00:00:00Z`);
 const WINDOW_FROM = SEASON_START - 14 * 86400000;   // a fortnight before opening night
 const WINDOW_TO = SEASON_START + 300 * 86400000;    // past the post-split run-in
 
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const MONS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-// "2026-08-07" -> "Fri 7 Aug", matching how dates are written in FIXTURES_2627.
-const toDisplayDate = (iso) => {
-  const d = new Date(`${iso}T12:00:00Z`);
-  return `${DAYS[d.getUTCDay()]} ${d.getUTCDate()} ${MONS[d.getUTCMonth()]}`;
+// THE FEED IS UTC. FIXTURES_2627 IS LOCAL. Do not remove this conversion.
+//
+// TheSportsDB serves strTime in UTC, while every displayed time in data.js is Northern
+// Ireland local — the repo's own convention is visible in EURO, where dt "2026-08-04T19:00:00Z"
+// is shown as "20:00" / "8pm". Northern Ireland is UTC+1 from late March to late October.
+//
+// The first live run of this routine caught it: the feed gave Cliftonville v Crusaders at
+// 18:45, the stored value was 7.45pm, and a naive comparison called that a reschedule. It is
+// the same instant. Comparing raw feed clock-time against stored local time would have
+// dragged EVERY summer kick-off an hour earlier — a season-wide corruption of exactly the
+// data this routine exists to keep right, and one that reads as plausible in a diff.
+//
+// Converting through Europe/Belfast also handles the GMT half of the season for free, and the
+// DST changeover in late March, which a fixed +1 would get wrong.
+const BELFAST = "Europe/Belfast";
+const localParts = (iso, hhmmss) => {
+  const d = new Date(`${iso}T${hhmmss}Z`);
+  if (Number.isNaN(d.getTime())) return null;
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: BELFAST, weekday: "short", day: "numeric", month: "short",
+      hour: "2-digit", minute: "2-digit", hour12: false,
+    }).formatToParts(d).map((x) => [x.type, x.value])
+  );
+  return p;
 };
-// "19:45:00" -> "7.45pm"; "15:00:00" -> "3pm". Matches the existing style (no ":00").
-const toDisplayTime = (hhmmss) => {
-  const [H, M] = String(hhmmss).split(":").map(Number);
+
+// UTC instant -> "Fri 7 Aug" in local time.
+const toDisplayDate = (iso, hhmmss = "12:00:00") => {
+  const p = localParts(iso, hhmmss);
+  if (!p) return null;
+  return `${p.weekday} ${Number(p.day)} ${p.month}`;
+};
+// UTC instant -> "7.45pm" / "3pm" in local time. Matches the existing style (no ":00").
+const toDisplayTime = (iso, hhmmss) => {
+  const p = localParts(iso, hhmmss);
+  if (!p) return null;
+  const H = Number(p.hour), M = Number(p.minute);
   const period = H >= 12 ? "pm" : "am";
   const h12 = H % 12 === 0 ? 12 : H % 12;
   return M === 0 ? `${h12}${period}` : `${h12}.${String(M).padStart(2, "0")}${period}`;
@@ -149,8 +176,10 @@ function plan(feed) {
     // Effective values: a match inherits its round's date/time unless it overrides them.
     const storedDate = norm(m.d || r.date);
     const storedTime = norm(m.t || r.time || "3pm");
-    const feedDate = toDisplayDate(f.iso);
-    const feedTime = f.time ? toDisplayTime(f.time) : null;
+    // Both derived from the same UTC instant, so a late kick-off that crosses midnight in
+    // one direction or the other lands on the right local day.
+    const feedDate = toDisplayDate(f.iso, f.time || "12:00:00");
+    const feedTime = f.time ? toDisplayTime(f.iso, f.time) : null;
 
     const dateChanged = feedDate !== storedDate;
     const timeChanged = feedTime !== null && feedTime !== storedTime;
