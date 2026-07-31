@@ -1,0 +1,42 @@
+name: Transfer probe (temp)
+on: push
+permissions:
+  contents: read
+jobs:
+  probe:
+    if: github.repository == 'jfisher43769/Gibson'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - name: Fetch club news pages and show transfer-shaped sentences
+        run: |
+          node --input-type=module -e '
+          import * as D from "./data.js";
+          const NIFL = { code:"NIFL", url:"https://www.nifootballleague.com/news" };
+          const srcs = [];
+          for (const code of Object.keys(D.CLUBS)) {
+            if (code === "GLV") continue;
+            const w = D.CLUB_META[code]?.website;
+            if (w) srcs.push({code, url:w}); else console.log(`NO WEBSITE ON FILE: ${code}`);
+          }
+          srcs.push(NIFL);
+          const strip = h => h.replace(/<script[\s\S]*?<\/script>/gi," ").replace(/<style[\s\S]*?<\/style>/gi," ")
+            .replace(/<[^>]+>/g," ").replace(/&nbsp;/g," ").replace(/&amp;/g,"&").replace(/&#39;|&rsquo;/g,"\x27")
+            .replace(/\s+/g," ").trim();
+          const KEY = /(has signed|have signed|signs for|joins|completes|complete the signing|departs|has left|leaves|agreed a deal|new signing|welcome)/i;
+          for (const s of srcs) {
+            try {
+              const r = await fetch(s.url, { signal: AbortSignal.timeout(20000), headers:{ "User-Agent":"GIBSON-IrishLeagueStats/1.0 (+https://gibsonstats.com)" }});
+              if (!r.ok) { console.log(`\n### ${s.code} ${s.url}\n  HTTP ${r.status}`); continue; }
+              const t = strip(await r.text());
+              const sents = t.split(/(?<=[.!?])\s+/).filter(x => KEY.test(x)).slice(0,12);
+              console.log(`\n### ${s.code} ${s.url}  (${t.length} chars)`);
+              if (!sents.length) console.log("  (no transfer-shaped sentences found)");
+              for (const x of sents) console.log("  • " + x.slice(0,260));
+            } catch (e) { console.log(`\n### ${s.code} ${s.url}\n  ERROR ${String(e.message||e)}`); }
+          }
+          '
