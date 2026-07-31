@@ -444,7 +444,7 @@ export const PREDICTOR_GW = {
   deadline: "Larne tonight · Coleraine Thursday",
   fixtures: [
     { id: "f1", home: { external: "Red Star Belgrade" }, away: { club: "LAR" }, comp: "UCL Q2 · 2nd leg · Stadion Rajko Mitić · Larne trail 0–4 agg", result: [5, 0], odds: { home: 1.2, draw: 6.5, away: 12.0 } },
-    { id: "f2", home: { club: "COL" }, away: { external: "HJK Helsinki" }, comp: "UECL Q2 · 2nd leg · The Showgrounds · Coleraine trail 0–5 agg", result: null, odds: { home: 2.6, draw: 3.4, away: 2.5 } },
+    { id: "f2", home: { club: "COL" }, away: { external: "HJK Helsinki" }, comp: "UECL Q2 · 2nd leg · The Showgrounds · Coleraine trail 0–5 agg", result: [0, 3], odds: { home: 2.6, draw: 3.4, away: 2.5 } },
   ],
 };
 
@@ -734,7 +734,7 @@ const EURO = [
       { label: "2nd leg · home", date: "Thu 30 Jul · 19:45", dt: "2026-07-30T18:45:00Z", venue: "The Showgrounds" },
     ],
     prize: "Q2 entry as Irish Cup winners — a minimum €525,000 already banked",
-    note: "FIRST LEG: HJK Helsinki 5-0 Coleraine — a chastening night away from home leaves a mountain to climb in the second leg at The Showgrounds.",
+    note: "ELIMINATED: Beaten 0-3 at The Showgrounds, 0-8 on aggregate — HJK Helsinki proved a class above over the two legs. Coleraine's European run ends at the second qualifying round, with the Irish Cup prize money already banked regardless.",
   },
 ];
 
@@ -776,9 +776,7 @@ export const CLUB_FIXTURES = {
   ],
   COL: [
     { date: "23 Jul", dt: "2026-07-23T16:00:00Z", res: "0–5 L", opp: "HJK Helsinki (a)", comp: "UECL Q2 · 1st leg · 5pm" },
-    { date: "30 Jul", dt: "2026-07-30T18:45:00Z", opp: "HJK Helsinki (h)", comp: "UECL Q2 · 2nd leg · The Showgrounds · 7:45pm" },
-    { date: "6 Aug", dt: "2026-08-06T18:45:00Z", opp: "UECL Q3*", comp: "if through" },
-    { date: "13 Aug", dt: "2026-08-13T18:45:00Z", opp: "UECL Q3*", comp: "if through" },
+    { date: "30 Jul", dt: "2026-07-30T18:45:00Z", res: "0–3 L", opp: "HJK Helsinki (h)", comp: "UECL Q2 · 2nd leg · The Showgrounds · 0–8 agg · eliminated" },
   ],
 };
 
