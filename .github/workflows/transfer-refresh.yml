@@ -1,7 +1,14 @@
 name: Daily transfers
 
-# Reads the twelve clubs' own websites plus the NIFL site each morning and opens a PR with
-# any move the club ITSELF reports as completed in the last 3 days.
+# Reads the club websites that actually serve news to a plain fetch — Bangor and Carrick
+# Rangers today, see READABLE in the script — each morning, and opens a PR with any move the
+# club ITSELF reports as completed in the last 3 days.
+#
+# Two clubs, not twelve, on purpose: the first live run found the other ten either render
+# their news client-side (a fetch returns navigation and nothing else), 403 non-browser
+# agents, have no website on file, or — in Limavady's case — have lost the domain to an
+# affiliate farm. Covering them needs a headless browser or per-club feeds, which is separate
+# work. Two sources that genuinely report beats twelve that mostly return silence.
 #
 # 07:00 UTC = 8am BST, which is the clock that matters: both transfer windows that generate
 # announcements (summer, and the run-up to deadline day) sit in British Summer Time. In deep

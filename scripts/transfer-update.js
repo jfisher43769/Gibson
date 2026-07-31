@@ -4,9 +4,10 @@
 //   node scripts/transfer-update.js             (applies)
 //   node scripts/transfer-update.js --pages=<dir>   (run against saved page text, no network)
 //
-// What it does: reads the twelve clubs' own websites plus the NIFL site, keeps only items
-// published in the last 3 days, and adds any move the CLUB ITSELF reports as COMPLETED to
-// both TRANSFERS (the news feed) and WINDOW (the club-by-club ledger), in step.
+// What it does: reads the club websites that actually serve news to a plain fetch (see
+// READABLE below — Bangor and Carrick Rangers today), keeps only items published in the last
+// 3 days, and adds any move the CLUB ITSELF reports as COMPLETED to both TRANSFERS (the news
+// feed) and WINDOW (the club-by-club ledger), in step.
 //
 // ---------------------------------------------------------------------------------------
 // WHY THERE IS A MODEL CALL IN HERE, AND WHY IT IS NOT THE THING THAT IS TRUSTED
@@ -61,26 +62,46 @@ const MODEL = "claude-sonnet-5";
 const fail = (msg) => { console.error(`\n✗ ${msg}\n`); process.exit(1); };
 
 // ---- 1. Sources -------------------------------------------------------------------------
-// Derived from CLUB_META so the list maintains itself — a club whose website lands in
-// CLUB_META later is picked up with no change here. Clubs with no website on file are
-// REPORTED, not guessed at: fetching a wrong domain and believing it is worse than a gap.
-const NIFL_SOURCE = { code: "NIFL", url: "https://www.nifootballleague.com/news" };
+// URLs come from CLUB_META (Wikidata-sourced), never from a literal here, so a club whose
+// website is corrected in one place is corrected everywhere. A club on the READABLE list
+// with no website on file is REPORTED, not guessed at: fetching a wrong domain and believing
+// what it says is worse than a gap.
 
 // Signature of a lapsed club domain turned affiliate farm. Deliberately about CASINO/BONUS
 // furniture rather than the bookmaker names verify.js bans, because a parked domain reads
 // like a casino toplist, not like a betting sponsor.
 const SPAM = /non ?gamstop|free spins|welcome bonus|no[- ]deposit|casino/i;
 
+// READ ONLY THE SOURCES THAT ACTUALLY RETURN NEWS.
+//
+// The first live run fetched all twelve clubs plus NIFL and found that only two are legible
+// to a plain fetch. The rest are single-page apps whose news is rendered client-side, so
+// stripping their HTML yields navigation furniture and nothing else — and a source that
+// silently returns no news is worse than no source, because a quiet run looks identical to
+// "nothing was announced today".
+//
+//   BAN  bangorfc.com          server-rendered news, dated items      ✅
+//   CAR  carrickrangers.co.uk  server-rendered headlines              ✅
+//   COL GLE LIN DUN BAL        client-rendered — fetch sees only nav  ✗
+//   CRU  crusadersfc.com       fetch failed                           ✗
+//   LIM  limavadyunitedfc.co.uk  domain lapsed, now affiliate spam    ✗ (also caught by SPAM)
+//   NIFL nifootballleague.com  HTTP 403 to non-browser agents         ✗
+//   LAR CLI POR                no website in CLUB_META at all         ✗
+//
+// Adding a club here is a one-line change, but only do it after confirming its news text
+// actually comes back — the club sites needing a headless browser (Playwright is already a
+// devDependency) or a per-club RSS feed are a separate piece of work.
+const READABLE = ["BAN", "CAR"];
+
 function sources() {
   const out = [];
   const missing = [];
-  for (const code of Object.keys(D.CLUBS)) {
-    if (code === "GLV") continue; // relegated, not a current Premiership club
+  for (const code of READABLE) {
+    if (!D.CLUBS[code] || code === "GLV") continue;
     const site = D.CLUB_META[code]?.website;
     if (!site) { missing.push(code); continue; }
     out.push({ code, url: site });
   }
-  out.push(NIFL_SOURCE);
   return { out, missing };
 }
 
@@ -338,7 +359,7 @@ console.log(`\nGIBSON daily transfers${DRY_RUN ? " (DRY RUN — nothing written)
 // be fetched. That way it means the same thing on every path — a hand-supplied --claims file
 // gets no more latitude than the model does, and a redirect cannot widen it.
 const originsAllowed = new Set(
-  [...sources().out, NIFL_SOURCE].map((s) => { try { return new URL(s.url).origin; } catch { return ""; } }).filter(Boolean)
+  sources().out.map((s) => { try { return new URL(s.url).origin; } catch { return ""; } }).filter(Boolean)
 );
 
 let claims;
