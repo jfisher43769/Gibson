@@ -1,0 +1,112 @@
+name: Fixture changes
+
+# Checks upcoming league 4659 fixtures twice a day and opens a PR when a stored date or
+# kick-off time no longer matches the feed.
+#
+# 07:00 and 13:00 UTC — 8am and 2pm BST. Twice daily because reschedules are announced
+# during the working day (broadcast picks, European involvement, postponements), and a
+# kick-off time that is wrong on the site is the error that has someone standing outside a
+# locked ground. Cron here is always UTC; in deep winter this lands at 7am/1pm GMT.
+#
+# IT OPENS A PR, IT NEVER PUSHES TO MAIN. The 198-fixture list is the league's published
+# schedule and verify.js asserts its shape; a community-edited feed correcting it deserves
+# a human glance at the diff, which is cheap because the diff is only ever dates and times.
+#
+# No API key, no model call — this is a pure data comparison, unlike the transfer idea.
+
+on:
+  schedule:
+    - cron: "0 7,13 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview only — log what would change, write nothing, open no PR"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: fixture-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.repository == 'jfisher43769/Gibson'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # Exits non-zero on any doubt (unreachable feed, bad payload, a fixture whose stored
+      # entry no longer looks the way the writer expects). A failed job is the right outcome
+      # there — better than a PR full of dates nobody can vouch for.
+      - name: Check fixtures against the feed
+        run: node scripts/fixture-update.js ${{ inputs.dry_run && '--dry-run' || '' }}
+
+      # Same gate as every commit. verify.js is what proves the schedule still has 33 rounds,
+      # 198 fixtures and every club playing exactly 33 — i.e. that a reschedule did not
+      # quietly become a reshape.
+      - name: Verify
+        if: ${{ !inputs.dry_run }}
+        run: |
+          npm run build
+          node scripts/verify.js
+          node scripts/render-test.mjs
+
+      - name: Open PR if any fixture moved
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- data.js; then
+            echo "No fixture dates or times have changed. No PR opened."
+            exit 0
+          fi
+          BRANCH="automated/fixtures-${{ github.run_id }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add data.js
+          git commit -m "Fixture changes: update dates and kick-off times from the feed" \
+            -m "Automated run of scripts/fixture-update.js. Dates and times only — no fixture added, removed or reassigned."
+          git push -u origin "$BRANCH"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          {
+            echo "Automated \`scripts/fixture-update.js\` run ([workflow run]($RUN_URL))."
+            echo
+            echo "Build, \`verify.js\` and the render smoke test all passed, so the schedule still"
+            echo "has 33 rounds, 198 fixtures and every club playing exactly 33 — a reschedule did"
+            echo "not become a reshape."
+            echo
+            echo "**Cross-check against the NIFL site before merging.** TheSportsDB is"
+            echo "community-edited; the \`idLeague === \"4659\"\` guard proves the row is from the"
+            echo "right league, not that its kick-off time is right."
+            echo
+            echo "Dates and kick-off times only. Nothing was added, removed or reassigned, and"
+            echo "round-level defaults were not touched. The run log lists every fixture skipped"
+            echo "and why — including any venue difference, which is reported for a human because"
+            echo "venue is derived from the home club and has no stored field."
+            echo
+            echo "### Diff"
+            echo '```diff'
+            git show --no-color -U0 HEAD -- data.js | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)'
+            echo '```'
+          } > /tmp/pr-body.md
+          if ! gh pr create \
+            --title "Fixture changes: updated dates and kick-off times" \
+            --body-file /tmp/pr-body.md \
+            --base main --head "$BRANCH"; then
+            echo "::warning::Could not open the PR automatically — the branch is pushed, open it here:"
+            echo "${{ github.server_url }}/${{ github.repository }}/compare/main...$BRANCH?expand=1"
+            exit 1
+          fi
