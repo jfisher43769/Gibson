@@ -160,14 +160,14 @@ check(`WINDOW-only entries with no TRANSFERS item stay within the known baseline
 // bundled into the deployed function, which cannot be tested from here. The cost of that
 // choice is drift: add a club to one copy and forget the others and the live table silently
 // stops mapping it. This check is what pays for the duplication.
-check("the three TheSportsDB CLUB_MAP copies are identical", (() => {
+check("the four TheSportsDB CLUB_MAP copies are identical", (() => {
   const norm = (p) => {
     let src = "";
     try { src = readFileSync(new URL(p, import.meta.url), "utf8"); } catch { return null; }
     const m = src.match(/const CLUB_MAP = \[([\s\S]*?)\];/);
     return m ? m[1].replace(/\s+/g, "") : null;
   };
-  const copies = { "api/table.js": norm("../api/table.js"), "api/events.js": norm("../api/events.js"), "scripts/weekly-update.js": norm("./weekly-update.js") };
+  const copies = { "api/table.js": norm("../api/table.js"), "api/events.js": norm("../api/events.js"), "scripts/weekly-update.js": norm("./weekly-update.js"), "scripts/fixture-update.js": norm("./fixture-update.js") };
   const missing = Object.entries(copies).filter(([, v]) => v === null).map(([k]) => k);
   if (missing.length) { console.log(`      ↳ could not read CLUB_MAP from: ${missing.join(", ")}`); return false; }
   const distinct = [...new Set(Object.values(copies))];
@@ -464,12 +464,71 @@ check("results routine writes only data.js, checks idLeague, and never overwrite
   return onlyWritesData && checksLeague && neverOverwrites;
 })());
 
-// The results routine must stay OFF the build. It rewrites data.js from a live feed, so
-// wiring it into build/prebuild would let a bad feed rewrite the site during a deploy,
-// with no diff and no human in between.
-check("results routine is never wired into the build", (() => {
+// No data-writing routine may be wired into the build. They rewrite data.js from a live
+// feed, so running one during a deploy would let a bad feed rewrite the site with no diff
+// and no human in between.
+check("data-writing routines are never wired into the build", (() => {
   const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
-  return !Object.values(pkg.scripts || {}).some((s) => /weekly-update/.test(s));
+  const offenders = Object.entries(pkg.scripts || {})
+    .filter(([, s]) => /weekly-update|fixture-update|fetch-wikidata/.test(s))
+    .map(([k]) => k);
+  if (offenders.length) console.log(`      ↳ wired into: ${offenders.join(", ")}`);
+  return offenders.length === 0;
+})());
+
+// The fixture routine rewrites the published schedule from a community-edited feed, so the
+// SHAPE of FIXTURES_2627 is what has to be protected. Three properties do that:
+//   * it writes data.js and nothing else;
+//   * it is UPDATE ONLY — no path that pushes a new fixture in or splices one out. The
+//     198-fixture / 33-round / 33-per-club shape is asserted at the top of this file; a feed
+//     that has drifted must not be able to reshape it, only to correct a date or kick-off
+//     time inside it;
+//   * a fixture is only touched when EXACTLY ONE stored entry has the same two clubs. This
+//     league plays a 3-round-robin, so an ordered pair can legitimately appear twice in the
+//     schedule — that is ambiguity, and it must be reported rather than guessed at.
+check("fixture routine writes only data.js, is update-only, and refuses ambiguous matches", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("./fixture-update.js", import.meta.url), "utf8"); } catch { return false; }
+  const writes = [...src.matchAll(/writeFileSync\(\s*([A-Za-z_$][\w$]*)/g)].map((m) => m[1]);
+  const onlyWritesData = writes.length > 0 && writes.every((v) => v === "DATA_PATH");
+  if (!onlyWritesData) console.log(`      ↳ writeFileSync targets: ${writes.join(", ") || "none found"}`);
+  const updateOnly = !/matches\.(push|splice|pop|shift|unshift)\s*\(/.test(src)
+    && !/FIXTURES_2627\.(push|splice|pop|shift|unshift)\s*\(/.test(src);
+  if (!updateOnly) console.log("      ↳ found something that adds or removes fixtures");
+  const refusesAmbiguous = /hits\.length > 1/.test(src) && /ambiguous/.test(src);
+  if (!refusesAmbiguous) console.log("      ↳ the exactly-one-match guard is missing");
+  return onlyWritesData && updateOnly && refusesAmbiguous;
+})());
+
+// THE FEED IS UTC, FIXTURES_2627 IS LOCAL. Caught on the routine's first live run: the feed
+// gave Cliftonville v Crusaders at 18:45 against a stored 7.45pm and the routine called it a
+// reschedule. Same instant — Northern Ireland is UTC+1 in August. Comparing raw feed clock
+// time against stored local time would have dragged EVERY summer kick-off an hour earlier,
+// a season-wide corruption that reads as entirely plausible in a diff.
+//
+// The conversion must go through a real timezone, not a fixed +1, or the GMT half of the
+// season and the late-March changeover come out wrong.
+check("fixture routine converts feed times from UTC to local before comparing", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("./fixture-update.js", import.meta.url), "utf8"); } catch { return false; }
+  const usesZone = /Europe\/Belfast/.test(src) && /timeZone:\s*BELFAST/.test(src);
+  if (!usesZone) console.log("      ↳ the Europe/Belfast conversion is missing");
+  // A hardcoded hour offset is the wrong fix and must not creep back in.
+  const hardcodedOffset = /getUTCHours\(\)\s*[+-]\s*1|\+\s*3600000|utcHours\s*\+\s*1/.test(src);
+  if (hardcodedOffset) console.log("      ↳ found a hardcoded hour offset instead of a timezone");
+  return usesZone && !hardcodedOffset;
+})());
+
+// Round-level date/time is the DEFAULT for every fixture in that round, so writing there
+// would silently move matches the feed said nothing about. The routine must only ever write
+// the individual match's own d / t.
+check("fixture routine never rewrites a round's own date or time", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("./fixture-update.js", import.meta.url), "utf8"); } catch { return false; }
+  const rebuildsMatchOnly = /rebuilt \+= `, d: /.test(src) && /rebuilt = `\{ h: /.test(src);
+  const touchesRound = /r\.date\s*=|round\.date\s*=|\.time\s*=\s*[^=]/.test(src);
+  if (touchesRound) console.log("      ↳ found an assignment to a round's date/time");
+  return rebuildsMatchOnly && !touchesRound;
 })());
 
 // Early-season rule: games played must be DERIVED from results in the fixture list, never
