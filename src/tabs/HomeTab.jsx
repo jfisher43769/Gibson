@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import {
-  CLUBS, CLUB_FIXTURES, FIXTURES_2627, LEAGUE_LORE, PREDICTOR_GW, STATUS_META, TRANSFERS,
+  CLUBS, CLUB_FIXTURES, EURO, FIXTURES_2627, LEAGUE_LORE, PREDICTOR_GW, STATUS_META, TRANSFERS,
 } from "../../data.js";
 import { ClubNavContext, Crest } from "../components/Crest.jsx";
 import { CountUp } from "../components/CountUp.jsx";
@@ -42,9 +42,28 @@ export function HomeView({ goTo }) {
       ? first
       : name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 3);
   };
+  // Home colours for the scoreboard's side accent bars. The home club's is always known
+  // (CLUBS[...].colors[0]); the away side is only coloured when it's a Premiership club or
+  // an external opponent whose colour the owner has confirmed (EURO[...].oppColor) — an
+  // unknown opponent gets no bar rather than an invented one.
+  // CLUB_FIXTURES bakes the venue indicator into opp itself ("FC Iberia 1999 (h)"), which
+  // reads fine in the prose sub-line but is redundant clutter under a name already paired
+  // with its own club — strip it for the compact label only.
+  const stripVenueTag = (name) => name.replace(/\s*\((?:h|a)\)\s*$/i, "");
   const board = heroFix
-    ? { home: heroFix.club, away: oppCode(heroFix.opp), date: heroFix.date, sub: `${CLUBS[heroFix.club].name} v ${heroFix.opp} · ${heroFix.comp}` }
-    : { home: openMatch.h, away: openMatch.a, date: (openMatch.d || opener.date).replace(/^\w+\s+/, ""), sub: `${CLUBS[openMatch.h].name} v ${CLUBS[openMatch.a].name} · Premiership opening night` };
+    ? {
+        home: heroFix.club, away: oppCode(heroFix.opp), date: heroFix.date,
+        homeName: CLUBS[heroFix.club].name, awayName: stripVenueTag(heroFix.opp),
+        homeColor: CLUBS[heroFix.club].colors[0],
+        awayColor: EURO.find((e) => e.club === heroFix.club)?.oppColor || null,
+        sub: `${CLUBS[heroFix.club].name} v ${heroFix.opp} · ${heroFix.comp}`,
+      }
+    : {
+        home: openMatch.h, away: openMatch.a, date: (openMatch.d || opener.date).replace(/^\w+\s+/, ""),
+        homeName: CLUBS[openMatch.h].name, awayName: CLUBS[openMatch.a].name,
+        homeColor: CLUBS[openMatch.h].colors[0], awayColor: CLUBS[openMatch.a].colors[0],
+        sub: `${CLUBS[openMatch.h].name} v ${CLUBS[openMatch.a].name} · Premiership opening night`,
+      };
   const heroDate = board.date.match(/^(\d+)(\S*)(.*)$/);
   return (
     <div className="gb-narrow" style={{ animation: "riseIn 0.4s ease-out" }}>
@@ -57,14 +76,32 @@ export function HomeView({ goTo }) {
         animation: "boardFlicker 0.4s ease-out",
       }}>
         <div aria-hidden="true" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, transparent, #FFB627, transparent)" }} />
+        {board.homeColor && (
+          <div aria-hidden="true" style={{ position: "absolute", left: 0, top: 10, bottom: 10, width: 3, borderRadius: "0 2px 2px 0", background: board.homeColor, opacity: 0.85 }} />
+        )}
+        {board.awayColor && (
+          <div aria-hidden="true" style={{ position: "absolute", right: 0, top: 10, bottom: 10, width: 3, borderRadius: "2px 0 0 2px", background: board.awayColor, opacity: 0.85 }} />
+        )}
         <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 12 }}>Next match</div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 18 }}>
-          <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, letterSpacing: "0.2em", color: chalk, marginRight: "-0.2em" }}>{board.home}</span>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "center", gap: 18 }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, width: 84 }}>
+            <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, letterSpacing: "0.2em", color: chalk }}>{board.home}</span>
+            <span style={{
+              fontSize: 10.5, fontWeight: 700, color: dim, textTransform: "uppercase", letterSpacing: "0.04em", lineHeight: 1.15,
+              display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+            }}>{board.homeName}</span>
+          </div>
           <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 48, lineHeight: 1, color: "#FFB627", fontVariantNumeric: "tabular-nums", textShadow: "0 0 18px rgba(255,182,39,0.35)" }}>
             {heroDate ? <><CountUp value={parseInt(heroDate[1], 10)} />{heroDate[2]}</> : board.date}
             {heroDate && heroDate[3] && <span style={{ fontSize: 20, letterSpacing: "0.12em", color: dim }}>{heroDate[3].toUpperCase()}</span>}
           </span>
-          <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, letterSpacing: "0.2em", color: chalk, marginRight: "-0.2em" }}>{board.away}</span>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, width: 84 }}>
+            <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, letterSpacing: "0.2em", color: chalk }}>{board.away}</span>
+            <span style={{
+              fontSize: 10.5, fontWeight: 700, color: dim, textTransform: "uppercase", letterSpacing: "0.04em", lineHeight: 1.15,
+              display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+            }}>{board.awayName}</span>
+          </div>
         </div>
         <div style={{ height: 2, width: 130, margin: "13px auto 9px", background: "#FFB627", opacity: 0.7, borderRadius: 1 }} />
         <div style={{ fontSize: 12, color: dim }}>{board.sub}</div>
