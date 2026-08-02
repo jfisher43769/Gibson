@@ -298,6 +298,7 @@ export const AXES = ["Shooting", "Creation", "Passing", "Dribbling", "Defending"
 // Summer 2026 window tracker — real, sourced stories. Update as fresh news breaks.
 // from/to use a NIFL club code, OR fromExternal/toExternal for clubs outside the league.
 export const TRANSFERS = [
+  { id: 48, date: "Jul", player: "Cormac Austin", from: "LAR", toExternal: "UNC Wilmington Seahawks", status: "departure", note: "Defensive midfielder leaves Larne for US college soccer with UNC Wilmington." },
   { id: 47, date: "Jul", player: "Matthew Beattie", fromExternal: "Crusaders U18", to: "CRU", status: "done", note: "Central midfielder steps up from the Crusaders U18s to the first-team squad." },
   { id: 46, date: "Jul", player: "Jeremi Rodríguez", fromExternal: "UD San Fernando", to: "BAN", status: "done", note: "Jeremi Rodríguez joins Bangor from Spanish side UD San Fernando on a free, following a spell in the US." },
   { id: 45, date: "Jul", player: "Ali Gould", from: "BAL", toExternal: "Stirling Albion", status: "departure", note: "Centre-back leaves Ballymena United for Scottish side Stirling Albion, on a free." },
@@ -545,7 +546,7 @@ export const DISCIPLINE = {
 export const WINDOW = [
   { club: "LAR",
     ins: [["Josh Ukek", "Portadown"], ["Montel Gibson", "Hednesford"], ["Kevin O'Hara", "Hamilton Acad."], ["Sam McClelland", "Return from career break"]],
-    outs: [["Andy Ryan", "Hamilton Acad."], ["Kofi Moore", "Linfield"], ["Ryan Nolan", "Linfield"], ["Jordan Hastings", "Carrick Rangers"], ["Josh Kee", "HW Welders"], ["Owen Mahoney", "Ballymena United"], ["C. Bolger", "Without club"]] },
+    outs: [["Andy Ryan", "Hamilton Acad."], ["Kofi Moore", "Linfield"], ["Ryan Nolan", "Linfield"], ["Jordan Hastings", "Carrick Rangers"], ["Josh Kee", "HW Welders"], ["Owen Mahoney", "Ballymena United"], ["C. Bolger", "Without club"], ["Cormac Austin", "UNC Wilmington Seahawks"]] },
   { club: "LIN",
     ins: [["Ryan Nolan", "Larne"], ["Kofi Moore", "Larne"]],
     outs: [["C. Allen", "Ballymena United"], ["J. Archer", "Ballymena United"], ["S. Whiteside", "Ballymena United"], ["C. McKee", "Ballymena United"], ["D. Walsh", "Ballymena United"], ["Ryan McKay", "Crusaders (loan)"]] },
