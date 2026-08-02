@@ -703,7 +703,9 @@ export // Odds are informational only — plain numbers, no bookmaker branding, 
 const EURO = [
   {
     club: "LAR", comp: "Europa League", round: "Third qualifying round",
-    opp: "FC Iberia 1999", oppCountry: "Georgia", odds: null,
+    // oppColor: owner-supplied ("Iberia play in red"), not a scraped/verified brand hex —
+    // a representative red for the Home tab's next-match accent bar, not a precise kit code.
+    opp: "FC Iberia 1999", oppCountry: "Georgia", oppColor: "#DC2626", odds: null,
     legs: [
       { label: "1st leg · home", date: "Tue 4 Aug · 20:00", dt: "2026-08-04T19:00:00Z", venue: "Inver Park" },
     ],
