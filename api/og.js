@@ -161,6 +161,27 @@ function footer() {
   );
 }
 
+// @vercel/og defaults to "public, immutable, no-transform, max-age=31536000" — a YEAR, marked
+// immutable. That is right for a static asset and wrong for these cards, which are rendered
+// from data.js: a club's table position, points and squad value all change during a season,
+// and an immutable year-long cache means intermediaries can keep serving the old card long
+// after a deploy has corrected it.
+//
+// Passing `headers` in the ImageResponse options APPENDS rather than replaces, producing one
+// header with two conflicting max-age values — worse than leaving it alone. So rebuild the
+// response and `set` the header, which actually overrides it.
+//
+// A day at the CDN, with a week of stale-while-revalidate: scrapers still get an instant
+// cached hit rather than waiting on a cold render plus two Google Fonts round-trips, but a
+// data change is picked up the next day instead of the next year.
+const CARD_CACHE = "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800";
+
+function cached(imageResponse) {
+  const headers = new Headers(imageResponse.headers);
+  headers.set("Cache-Control", CARD_CACHE);
+  return new Response(imageResponse.body, { status: imageResponse.status, headers });
+}
+
 export default async function handler(req) {
   const { searchParams } = new URL(req.url);
   const type = searchParams.get("type");
@@ -173,7 +194,7 @@ export default async function handler(req) {
   // The root card has its own large-centred layout (mark + wordmark + strapline), not
   // the small-header-plus-body composition the other card types share.
   if (type === "home") {
-    return new ImageResponse(homeTree(), options);
+    return cached(new ImageResponse(homeTree(), options));
   }
 
   let body;
@@ -193,5 +214,5 @@ export default async function handler(req) {
   const middle = h("div", { style: { display: "flex", flexDirection: "column" } }, ...body);
   const tree = shell([header(), middle, footer()]);
 
-  return new ImageResponse(tree, options);
+  return cached(new ImageResponse(tree, options));
 }

@@ -223,6 +223,58 @@ check("prerendered club route's og:description matches its own meta description 
   } catch { return false; }
 })());
 
+// og:title had the SAME bug as og:description above and no check, which is exactly why it
+// survived: prerender.mjs rewrote <title> but not og:title, so every route shipped
+// index.html's generic "GIBSON — Irish League Stats". A Dungannon club page posted to X
+// showed the site name with no mention of the club. The correct <title> is what hid it —
+// the tab said "Dungannon Swifts", only the share card was wrong.
+//
+// Checks EVERY prerendered route, not one sample: the original check only looked at Larne,
+// and a per-route bug can hide anywhere the sample does not reach.
+check("every prerendered route's og:title matches its own <title> (not the site default)", (() => {
+  try {
+    const generic = readFileSync(new URL("../index.html", import.meta.url), "utf8")
+      .match(/<meta property="og:title" content="([^"]*)"/)?.[1];
+    const routes = ["", "table", "fixtures", "predictor", "stats", ...routeClubs.map((c) => `club/${D.CLUB_TO_SLUG?.[c] || ""}`)]
+      .filter((r) => r === "" || !r.endsWith("/"));
+    const bad = [];
+    for (const r of routes) {
+      const p = new URL(`../dist/${r ? `${r}/` : ""}index.html`, import.meta.url);
+      if (!existsSync(p)) continue; // build not run yet; the sitemap checks already cover that
+      const html = readFileSync(p, "utf8");
+      const title = html.match(/<title>([^<]*)<\/title>/)?.[1];
+      const og = html.match(/<meta property="og:title" content="([^"]*)"/)?.[1];
+      if (!title || !og || og !== title) bad.push(`/${r} (title "${title}" vs og "${og}")`);
+      else if (routes.length > 1 && r !== "" && og === generic) bad.push(`/${r} still has the site-default og:title`);
+    }
+    if (bad.length) console.log(`      ↳ ${bad.join("; ")}`);
+    return bad.length === 0;
+  } catch (e) { console.log(`      ↳ ${e.message}`); return false; }
+})());
+
+// The social cards are rendered from data.js — a club's position, points and squad value all
+// move during a season. @vercel/og defaults to a YEAR of immutable caching, which would leave
+// intermediaries serving a stale card long after a deploy fixed it. Note that passing
+// `headers` through the ImageResponse options APPENDS rather than replaces, silently
+// producing two conflicting max-age values, so the response has to be rebuilt to override it.
+check("OG cards are not cached immutable for a year", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../api/og.js", import.meta.url), "utf8"); } catch { return false; }
+  const setsHeader = /headers\.set\(\s*["']Cache-Control["']/.test(src);
+  if (!setsHeader) console.log("      ↳ the Cache-Control override is missing — the library's 1-year immutable default applies");
+  // Inspect the CACHE VALUE itself, not the source around the set() call. An earlier version
+  // of this check only pattern-matched near `Cache-Control`, so moving the directives into a
+  // constant hid them from it — caught by mutation-testing the guard rather than trusting it.
+  const value = src.match(/CARD_CACHE\s*=\s*["']([^"']*)["']/)?.[1] || "";
+  if (!value) console.log("      ↳ could not read the CARD_CACHE value");
+  const immutable = /immutable/i.test(value);
+  if (immutable) console.log(`      ↳ CARD_CACHE still marks the card immutable: "${value}"`);
+  const sMaxAge = Number(value.match(/s-maxage=(\d+)/)?.[1] ?? -1);
+  const sane = sMaxAge >= 0 && sMaxAge <= 604800; // a week at the very most
+  if (!sane) console.log(`      ↳ s-maxage is missing or too long in "${value}"`);
+  return setsHeader && !!value && !immutable && sane;
+})());
+
 // CLUB_META (scripts/fetch-wikidata.js) and the TRAVEL derived from it: every field is
 // either a verified value or an explicit null — a missing key entirely would mean the
 // script's shape drifted; a coordinate outside Northern Ireland would mean a club got

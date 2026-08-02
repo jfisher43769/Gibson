@@ -65,6 +65,11 @@ function pageHtml(path) {
   let doc = template
     .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(meta.title)}</title>`)
     .replace(/<meta name="description" content="[\s\S]*?"\s*\/>/, `<meta name="description" content="${esc(meta.description)}" />`)
+    // og:title was missing here, so every route shipped index.html's generic
+    // "GIBSON — Irish League Stats" while <title> was correct. Shared links all showed the
+    // site name instead of the page — a Dungannon card on X read "GIBSON — Irish League
+    // Stats" with no mention of the club. The <title> being right is what hid it.
+    .replace(/<meta property="og:title" content="[\s\S]*?"\s*\/>/, `<meta property="og:title" content="${esc(meta.title)}" />`)
     .replace(/<meta property="og:description" content="[\s\S]*?"\s*\/>/, `<meta property="og:description" content="${esc(meta.description)}" />`);
   // Per-route social card: every route (including root, ?type=home) points og:image and
   // twitter:image at the dynamic /api/og card — a relative fallback like og-card.png
