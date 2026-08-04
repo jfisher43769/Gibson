@@ -424,18 +424,41 @@ check("every crest in public/crests/ has a permission entry in CRESTS.md", (() =
 
 // A crest must be a real, non-empty PNG. A truncated or wrong-format file would render as a
 // broken image where a shield used to be — worse than having no crest at all.
-check("every crest file is a valid non-empty PNG", (() => {
+//
+// It must ALSO have an alpha channel. Crests render straight onto the dark background with no
+// container behind them (see Crest.jsx), which only works because they are cut out. An opaque
+// PNG would show as a hard rectangle of whatever its background colour is — the exact thing
+// the white tile was originally there to hide, and which looked worse than the problem. The
+// requirement lives here, on the asset, rather than being papered over in the UI.
+check("every crest file is a valid non-empty PNG with transparency", (() => {
   const dir = new URL("../public/crests/", import.meta.url);
   if (!existsSync(dir)) return true;
   const bad = [];
+  const opaque = [];
   for (const f of readdirSync(dir).filter((x) => /\.png$/i.test(x))) {
     const buf = readFileSync(new URL(f, dir));
     // 8-byte PNG signature; anything under ~100 bytes cannot be a usable crest.
     const sig = buf.length > 8 && buf[0] === 0x89 && buf.slice(1, 4).toString() === "PNG";
-    if (!sig || buf.length < 100) bad.push(`${f} (${buf.length}b)`);
+    if (!sig || buf.length < 100) { bad.push(`${f} (${buf.length}b)`); continue; }
+    // Colour type lives at byte 25 of IHDR: 6 = RGBA, 4 = grey+alpha. Palette images (3)
+    // carry transparency in a tRNS chunk instead, so walk the chunks to find it.
+    const colourType = buf[25];
+    let hasAlpha = colourType === 6 || colourType === 4;
+    if (!hasAlpha) {
+      let off = 8;
+      while (off < buf.length - 8) {
+        const len = buf.readUInt32BE(off);
+        const type = buf.slice(off + 4, off + 8).toString();
+        if (type === "tRNS") { hasAlpha = true; break; }
+        if (type === "IEND") break;
+        off += 12 + len;
+      }
+    }
+    if (!hasAlpha) opaque.push(`${f} (colour type ${colourType}, no tRNS)`);
   }
-  if (bad.length) console.log(`      ↳ ${bad.join(", ")}`);
-  return bad.length === 0;
+  if (bad.length) console.log(`      ↳ not a usable PNG: ${bad.join(", ")}`);
+  if (opaque.length) console.log(`      ↳ opaque, would render as a rectangle on the dark theme: ${opaque.join(", ")}`);
+  return bad.length === 0 && opaque.length === 0;
 })());
 
 // The crest lookup must stay FILE-DRIVEN. The point of resolving crests by loading

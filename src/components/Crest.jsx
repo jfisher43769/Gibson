@@ -78,27 +78,36 @@ export function Crest({ club, size = 34, tappable = true }) {
   // The real crest keeps the shield's exact footprint (size x size*1.15) so a club gaining
   // or losing a crest never reflows the lists it sits in.
   //
-  // WHITE CONTAINER, NOT A TINT: club crests are drawn for light backgrounds and carry white
-  // and black detail — Glentoran's banner and rooster are white — which would vanish against
-  // the app's dark green. The white sits behind the crest; the crest itself is untouched.
+  // NO CONTAINER. An earlier version put the crest on a white rounded tile so that a crest
+  // with an opaque background would still sit on the dark theme. It looked bad — a hard white
+  // block against the dark green — and it was solving a problem the crests themselves do not
+  // have: club crests come as transparent PNGs carrying their own outline (Glentoran's is a
+  // gold border), which reads cleanly straight on the background. The requirement moved to
+  // where it belongs, the asset: crests must be supplied with an alpha channel, which
+  // verify.js enforces, so there is no opaque background left to hide.
+  //
+  // The drop shadow is the only thing added, and it touches nothing in the artwork — it is
+  // cast behind the crest to lift it off the background, so a crest with pale edges still
+  // separates. No recolouring, no overlay, no filter on the crest's own pixels.
   //
   // maxWidth/maxHeight with auto dimensions and objectFit:contain means the crest is scaled
   // to fit and never stretched or cropped. Glentoran's is 0.60 aspect against the shield's
-  // 0.87, so it letterboxes inside the container — which is the correct outcome. Permission
+  // 0.87, so it sits narrower inside the footprint — which is the correct outcome. Permission
   // is granted for UNALTERED reproduction, so distorting or cropping to fill would breach it.
   const crestImage = (
     <span style={{
       display: "inline-flex", alignItems: "center", justifyContent: "center",
       width: size, height: size * 1.15,
-      background: "#FFFFFF",
-      borderRadius: Math.max(3, Math.round(size * 0.16)),
-      padding: Math.max(2, Math.round(size * 0.07)),
-      boxSizing: "border-box", lineHeight: 0, flexShrink: 0,
+      lineHeight: 0, flexShrink: 0,
     }}>
       <img
         src={crestSrc(club)}
         alt={`${c.name} crest`}
-        style={{ maxWidth: "100%", maxHeight: "100%", width: "auto", height: "auto", objectFit: "contain", display: "block" }}
+        style={{
+          maxWidth: "100%", maxHeight: "100%", width: "auto", height: "auto",
+          objectFit: "contain", display: "block",
+          filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.55))",
+        }}
       />
     </span>
   );

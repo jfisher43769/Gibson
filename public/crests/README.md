@@ -21,10 +21,19 @@ crest is shown; if it 404s, the generated shield is used instead. **Adding or re
 club's crest is a file operation only — no code change anywhere.** Drop a PNG in here and
 that club's crest appears everywhere a crest is drawn; delete it and the shield returns.
 
-Crests are drawn at their natural aspect ratio inside a white rounded container, never
-stretched, cropped or recoloured. The white container exists because most crests are
-designed for light backgrounds and carry white or black detail that would disappear against
-the app's dark green.
+Crests are drawn at their natural aspect ratio, never stretched, cropped or recoloured.
+They sit straight on the dark background with no container behind them, lifted only by a
+drop shadow cast *behind* the artwork — nothing is drawn over the crest itself.
+
+## File requirements
+
+**PNG with transparency.** Because crests render with no container, the file must be cut out
+— an opaque PNG shows as a hard rectangle of its own background colour against the dark
+green. `scripts/verify.js` fails the build on an opaque crest.
+
+Supply the crest trimmed to its own edges, at a reasonable resolution (Glentoran's is
+685x1135). Any aspect ratio is fine; tall or wide crests are fitted inside the same footprint
+as the shield they replace, so lists never reflow when a crest is added or removed.
 
 ## Before adding a file here
 
