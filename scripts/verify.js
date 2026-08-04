@@ -390,6 +390,69 @@ check(`no two grounds are further apart than ${MAX_GROUND_SEPARATION_MILES} mile
   return true;
 })());
 
+// CREST PERMISSIONS. Club crests are registered trademarks, and GIBSON is an unofficial
+// project with no affiliation to any club — so every real crest in public/crests/ ships only
+// because that club granted permission on stated terms (CRESTS.md). This is the check that
+// keeps the shipped files and the permission record from drifting apart: a crest file with
+// no entry in CRESTS.md fails the build rather than quietly going live.
+//
+// The reverse direction is deliberately NOT an error: an entry with no file is a club whose
+// permission is recorded but whose crest has been removed (or not added yet), which is a
+// perfectly good state — the generated shield covers it.
+check("every crest in public/crests/ has a permission entry in CRESTS.md", (() => {
+  const dir = new URL("../public/crests/", import.meta.url);
+  if (!existsSync(dir)) return true; // no crests dir yet is fine — shields everywhere
+  let doc = "";
+  try { doc = readFileSync(new URL("../CRESTS.md", import.meta.url), "utf8"); } catch {
+    console.log("      ↳ CRESTS.md is missing, but public/crests/ exists");
+    return false;
+  }
+  const files = readdirSync(dir).filter((f) => /\.png$/i.test(f));
+  const undocumented = [];
+  const unknownCode = [];
+  for (const f of files) {
+    const code = f.replace(/\.png$/i, "");
+    if (!D.CLUBS[code]) { unknownCode.push(f); continue; }
+    // The entry must name the club code AND record that permission was granted.
+    const heading = new RegExp(`###\\s*${code}\\b[\\s\\S]*?(?=\\n###\\s|\\n##\\s|$)`).exec(doc)?.[0];
+    if (!heading || !/permission granted/i.test(heading)) undocumented.push(code);
+  }
+  if (unknownCode.length) console.log(`      ↳ crest files whose name is not a club code: ${unknownCode.join(", ")}`);
+  if (undocumented.length) console.log(`      ↳ crest shipped with no "Permission granted" entry in CRESTS.md: ${undocumented.join(", ")}`);
+  return undocumented.length === 0 && unknownCode.length === 0;
+})());
+
+// A crest must be a real, non-empty PNG. A truncated or wrong-format file would render as a
+// broken image where a shield used to be — worse than having no crest at all.
+check("every crest file is a valid non-empty PNG", (() => {
+  const dir = new URL("../public/crests/", import.meta.url);
+  if (!existsSync(dir)) return true;
+  const bad = [];
+  for (const f of readdirSync(dir).filter((x) => /\.png$/i.test(x))) {
+    const buf = readFileSync(new URL(f, dir));
+    // 8-byte PNG signature; anything under ~100 bytes cannot be a usable crest.
+    const sig = buf.length > 8 && buf[0] === 0x89 && buf.slice(1, 4).toString() === "PNG";
+    if (!sig || buf.length < 100) bad.push(`${f} (${buf.length}b)`);
+  }
+  if (bad.length) console.log(`      ↳ ${bad.join(", ")}`);
+  return bad.length === 0;
+})());
+
+// The crest lookup must stay FILE-DRIVEN. The point of resolving crests by loading
+// /crests/{CODE}.png is that adding or deleting a file is the whole operation — the moment
+// someone introduces a hardcoded list of which clubs have crests, that stops being true and
+// the two sources start drifting.
+check("crest presence is resolved by file lookup, not a hardcoded list", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/components/Crest.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const byLookup = /crestSrc\s*=\s*\(club\)\s*=>\s*`\/crests\/\$\{club\}\.png`/.test(src);
+  if (!byLookup) console.log("      ↳ the /crests/{CODE}.png lookup is missing or changed shape");
+  // A literal club code sitting next to the word "crest" in a list/array is the smell.
+  const hardcoded = /(CRESTS_WITH|HAS_CREST|REAL_CRESTS|crestClubs)\s*=/.test(src);
+  if (hardcoded) console.log("      ↳ found what looks like a hardcoded list of clubs with crests");
+  return byLookup && !hardcoded;
+})());
+
 // Search-result imagery: a real favicon.ico + 96px icon must exist, and index.html must
 // declare each icon exactly once — a duplicate/conflicting <link rel="icon"> is exactly
 // the kind of thing that silently breaks which icon a browser or crawler picks.
