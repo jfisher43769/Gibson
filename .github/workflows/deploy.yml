@@ -1,0 +1,144 @@
+name: Deploy to Vercel
+
+# Deploys main to production through GitHub Actions using a Vercel deploy token, instead of
+# relying on Vercel's GitHub integration.
+#
+# WHY THIS EXISTS: the Vercel<->GitHub project link broke ("Project Link not found", and
+# reconnecting failed with "you need to install the GitHub integration first" — GitHub showed
+# the app installed while Vercel had no record of it). Pushes to main stopped deploying and
+# the site went stale. This path does not use that link at all, so it keeps working whether or
+# not the integration is ever repaired.
+#
+# It deploys the SAME Vercel project — same project id, same gibsonstats.com domain. Nothing
+# here creates a second project.
+#
+# ---------------------------------------------------------------------------------------
+# SETUP — three repository secrets are required
+#   Settings -> Secrets and variables -> Actions -> New repository secret
+#
+#   VERCEL_TOKEN       vercel.com/account/tokens -> Create Token (full account scope)
+#   VERCEL_PROJECT_ID  Vercel -> the gibson project -> Settings -> General -> "Project ID"
+#   VERCEL_ORG_ID      Vercel -> account/team Settings -> General -> "Team ID"
+#                      (on a Hobby account this is your personal account id, same page)
+#
+# Until all three exist the job fails immediately with a clear message rather than half
+# deploying.
+# ---------------------------------------------------------------------------------------
+#
+# WHY `vercel build` AND NOT JUST UPLOADING dist/: this project is not purely static. It ships
+# serverless functions (api/table.js, api/events.js) and an edge function (api/og.js, which
+# renders the social cards). Pushing dist/ alone would silently drop all three and take the
+# live table, the fixtures feed and every link preview with it. `vercel build` packages the
+# functions the same way Vercel's own pipeline does.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Why you are deploying by hand (shown in the run title)"
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+# Never let two production deploys race. Newer wins: if two pushes land close together the
+# older build is cancelled rather than being deployed after the newer one.
+concurrency:
+  group: vercel-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: github.repository == 'jfisher43769/Gibson'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Check the secrets are present
+        env:
+          TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          ORG: ${{ secrets.VERCEL_ORG_ID }}
+          PROJECT: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          missing=""
+          [ -z "$TOKEN" ]   && missing="$missing VERCEL_TOKEN"
+          [ -z "$ORG" ]     && missing="$missing VERCEL_ORG_ID"
+          [ -z "$PROJECT" ] && missing="$missing VERCEL_PROJECT_ID"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secret(s):$missing — see the header of this workflow for where to find each one."
+            exit 1
+          fi
+          echo "All three secrets present."
+
+      - run: npm ci
+
+      # The project's own gate, run BEFORE anything is published. CI runs this too, but CI
+      # passing on a commit does not guarantee this deploy is building that same tree — and a
+      # deploy that skips verify.js is exactly how a broken table or a bad crest reaches the
+      # public site.
+      - name: Verify
+        run: |
+          npm run build
+          node scripts/verify.js
+          node scripts/render-test.mjs
+
+      - name: Pull Vercel project settings
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: npx --yes vercel@latest pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
+
+      # Builds with Vercel's own pipeline, so api/*.js become real functions rather than being
+      # dropped. Runs the project's build command, which includes the generate.js prebuild.
+      - name: Build with Vercel
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: npx --yes vercel@latest build --prod --token="${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Deploy to production
+        id: deploy
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          url=$(npx --yes vercel@latest deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Deployed: $url"
+
+      # Proves the deploy actually serves the commit that triggered it, rather than assuming a
+      # green CLI exit meant success. BuildStamp puts GIBSON-BUILD:<iso> in every page, so a
+      # stale alias or a cached edge response shows up here instead of days later.
+      - name: Confirm the live site is serving this build
+        run: |
+          sleep 5
+          for attempt in 1 2 3 4 5; do
+            body=$(curl -sS --max-time 20 https://gibsonstats.com/ || true)
+            stamp=$(printf '%s' "$body" | grep -o 'GIBSON-BUILD:[^<"]*' | head -1 || true)
+            if [ -n "$stamp" ]; then
+              echo "live stamp: $stamp"
+              exit 0
+            fi
+            echo "attempt $attempt: no build stamp yet, retrying..."
+            sleep 10
+          done
+          echo "::warning::Deploy reported success but no build stamp was read from gibsonstats.com. Check the domain is still aliased to this project."
+
+      - name: Summary
+        run: |
+          {
+            echo "### Deployed to production"
+            echo
+            echo "- **Commit:** \`${{ github.sha }}\`"
+            echo "- **Deployment:** ${{ steps.deploy.outputs.url }}"
+            echo "- **Live:** https://gibsonstats.com"
+          } >> "$GITHUB_STEP_SUMMARY"
