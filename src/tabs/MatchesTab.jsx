@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import {
-  CLUBS, CLUB_FIXTURES, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, seasonLabel,
+  CLUBS, CLUB_FIXTURES, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, seasonLabel, seasonStatus,
 } from "../../data.js";
 import { Crest } from "../components/Crest.jsx";
+import { SeasonStrip } from "../components/SeasonSwitch.jsx";
 import { OddsDisclaimer, OddsStrip } from "../components/Odds.jsx";
 import { OfflineNote } from "../components/OfflineNote.jsx";
 import { Skel, SkelRows } from "../components/Skeleton.jsx";
@@ -114,6 +115,7 @@ export function TableView() {
         <LiveTeaser />
         <div className="gb-desk-2col">
         <div>
+        <SeasonStrip status={seasonStatus()} />
         <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
           Sports Direct Premiership · {seasonLabel("FULL_TABLE")}
         </div>

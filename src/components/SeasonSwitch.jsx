@@ -6,7 +6,7 @@ import { OVERLAY, SURFACE, chalk, dim, faint } from "../lib/theme.js";
 
 // The "2026/27 starts 7 August" / "3 games played — early days" banner. Only shown while
 // the season is still early; once real data has built up it would just be noise.
-function SeasonStrip({ status }) {
+export function SeasonStrip({ status }) {
   if (!status.early) return null;
   return (
     <div style={{
