@@ -443,14 +443,21 @@ export const LEAGUE_LORE = [
 // When results are known, fill in `result: [home, away]` on each fixture and redeploy —
 // saved predictions on each player's device are scored automatically.
 export const PREDICTOR_GW = {
-  id: "euro-week-4",
-  name: "Euro Week 4 · Q2 Second Legs",
-  deadline: "Larne tonight · Coleraine Thursday",
+  id: "prem-round-1",
+  name: "Round 1 · BoyleSports Premiership",
+  deadline: "Cliftonville v Crusaders Fri 7.45pm · rest Sat 3pm",
   fixtures: [
-    { id: "f1", home: { external: "Red Star Belgrade" }, away: { club: "LAR" }, comp: "UCL Q2 · 2nd leg · Stadion Rajko Mitić · Larne trail 0–4 agg", result: [5, 0], odds: { home: 1.2, draw: 6.5, away: 12.0 } },
-    { id: "f2", home: { club: "COL" }, away: { external: "HJK Helsinki" }, comp: "UECL Q2 · 2nd leg · The Showgrounds · Coleraine trail 0–5 agg", result: [0, 3], odds: { home: 2.6, draw: 3.4, away: 2.5 } },
+    { id: "f1", home: { club: "CLI" }, away: { club: "CRU" }, comp: "Round 1 · Solitude · Fri 7 Aug, 7.45pm", result: null, odds: { home: 1.7, draw: 3.6, away: 5.0 } },
+    { id: "f2", home: { club: "LIN" }, away: { club: "BAL" }, comp: "Round 1 · Windsor Park · Sat 8 Aug, 3pm", result: null, odds: { home: 1.5, draw: 4.0, away: 6.5 } },
+    { id: "f3", home: { club: "CAR" }, away: { club: "POR" }, comp: "Round 1 · Loughview Leisure · Sat 8 Aug, 3pm", result: null, odds: { home: 2.0, draw: 3.3, away: 3.6 } },
+    { id: "f4", home: { club: "DUN" }, away: { club: "COL" }, comp: "Round 1 · Stangmore Park · Sat 8 Aug, 3pm", result: null, odds: { home: 4.0, draw: 3.6, away: 1.85 } },
+    { id: "f5", home: { club: "GLE" }, away: { club: "LIM" }, comp: "Round 1 · The Oval · Sat 8 Aug, 3pm", result: null, odds: { home: 1.4, draw: 4.5, away: 7.5 } },
   ],
 };
+// Larne v Bangor (originally round 1) was rescheduled to Tue 8 Sep — see FIXTURES_2627 —
+// so it isn't part of this gameweek; it'll appear in whichever Predictor round covers that date.
+// Odds above are GIBSON estimates derived from each club's final league position last season
+// (FULL_TABLE) — not sourced from a bookmaker. Never add a bookmaker name/logo/link here.
 
 // Safe storage wrapper — works on the live site, degrades gracefully elsewhere
 export const store = {
