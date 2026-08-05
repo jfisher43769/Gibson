@@ -146,7 +146,10 @@ if (feedMismatches.length) console.log("      ↳ " + feedMismatches.join("\n   
 // either a TRANSFERS item or a deliberate bump here. Raise the number only after confirming a
 // new gap is a genuine non-headline move (check it against TRANSFERS first) — see the PR that
 // added this check for the full list of the 82 pre-existing gaps it was set from.
-const WINDOW_ONLY_BASELINE = 82;
+// Bumped 82 -> 112 on 5 Aug 2026: BBC Sport's window roundup added 30 more ins/outs
+// (mostly fringe departures with no destination given) that Transfermarkt's screenshots
+// hadn't covered — none of them headline moves, so none got a TRANSFERS item either.
+const WINDOW_ONLY_BASELINE = 112;
 let windowOnly = 0;
 for (const w of D.WINDOW) {
   for (const [name] of w.ins) if (!D.TRANSFERS.some((t) => t.to === w.club && splitPlayers(t.player).some((p) => namesMatch(p, name)))) windowOnly++;
@@ -620,10 +623,9 @@ check("currentSeasonGamesPlayed() is derived from FIXTURES_2627 results, not har
   // Must walk the fixture list and key off a result field — not return a literal.
   return /FIXTURES_2627/.test(fn) && /\.result/.test(fn) && !/return\s+\d+\s*;/.test(fn);
 })());
-check("seasonStatus() gates defaultSeason on the games-played threshold", (() => {
+check("seasonStatus() always defaults to the current season; early still tracks games played", (() => {
   const s = D.seasonStatus();
-  const expected = s.gamesPlayed < D.EARLY_SEASON_GAMES ? D.SEASON.previous.id : D.SEASON.current.id;
-  return s.defaultSeason === expected && s.early === (s.gamesPlayed < D.EARLY_SEASON_GAMES);
+  return s.defaultSeason === D.SEASON.current.id && s.early === (s.gamesPlayed < D.EARLY_SEASON_GAMES);
 })());
 check("seasonStatus() strip copy is non-empty in both pre-season and in-season states", (() => {
   const start = Date.parse(`${D.SEASON.seasonStart}T00:00:00Z`);
