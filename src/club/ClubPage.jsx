@@ -6,6 +6,7 @@ import { ClubSection } from "./ClubSection.jsx";
 import { Avatar } from "../components/Avatar.jsx";
 import { GibsonBoundary } from "../components/Boundary.jsx";
 import { Crest } from "../components/Crest.jsx";
+import { DepartedTag } from "../components/DepartedTag.jsx";
 import { NoSeasonData, SeasonSwitch } from "../components/SeasonSwitch.jsx";
 import { OVERLAY, SURFACE, chalk, dim, faint, ratingColor } from "../lib/theme.js";
 import { FixturesView } from "../tabs/MatchesTab.jsx";
@@ -164,7 +165,10 @@ export function ClubPage({ club, onBack }) {
             <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderBottom: i < indexPlayers.length - 1 ? `1px solid ${faint}` : "none" }}>
               <Avatar player={p} size={40} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: chalk }}>{p.name}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: chalk }}>{p.name}</span>
+                  <DepartedTag name={p.name} />
+                </div>
                 <div style={{ fontSize: 12, color: dim }}>{p.pos} · {p.goals}g · {p.assists}a</div>
               </div>
               <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 20, color: ratingColor(p.rating), fontVariantNumeric: "tabular-nums" }}>{p.rating.toFixed(1)}</div>
@@ -180,7 +184,10 @@ export function ClubPage({ club, onBack }) {
           {cardList(
             <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 13px" }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: chalk }}>{topScorer.player}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: chalk }}>{topScorer.player}</span>
+                  <DepartedTag name={topScorer.player} />
+                </div>
                 <div style={{ fontSize: 12, color: dim }}>
                   {topScorer.apps} apps · a goal every {topScorer.minsPerGoal} mins
                 </div>
@@ -199,7 +206,10 @@ export function ClubPage({ club, onBack }) {
             const diff = p.goals - p.xg;
             return (
               <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 13px", borderBottom: i < scorers.length - 1 ? `1px solid ${faint}` : "none" }}>
-                <span style={{ fontSize: 13, color: chalk, flex: 1 }}>{p.name}</span>
+                <span style={{ fontSize: 13, color: chalk, flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</span>
+                  <DepartedTag name={p.name} compact />
+                </span>
                 <span style={{ fontSize: 12, color: dim, fontVariantNumeric: "tabular-nums" }}>{p.goals}g / {p.xg.toFixed(1)} xG</span>
                 <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, minWidth: 44, textAlign: "right", color: diff >= 2 ? "#3DDC84" : diff <= -1 ? "#E8663C" : chalk, fontVariantNumeric: "tabular-nums" }}>{diff >= 0 ? "+" : "−"}{Math.abs(diff).toFixed(1)}</span>
               </div>

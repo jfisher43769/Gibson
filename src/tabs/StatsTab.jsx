@@ -3,13 +3,14 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer,
 } from "recharts";
 import {
-  AXES, CLUBS, CLUB_META, DISCIPLINE, GOALS_LEAGUE_AVG, GOALS_STATS, INJURIES, PLAYERS, SEASON, TEAM_STATS_2526, TRAVEL, XG_PLAYERS, XG_TEAMS, liveSeasonId, seasonLabel, seasonStatus,
+  AXES, CLUBS, CLUB_META, DISCIPLINE, GOALS_LEAGUE_AVG, GOALS_STATS, INJURIES, PLAYERS, SEASON, TEAM_STATS_2526, TRAVEL, XG_PLAYERS, XG_TEAMS, liveSeasonId, playerDeparture, seasonLabel, seasonStatus,
 } from "../../data.js";
 import { Avatar } from "../components/Avatar.jsx";
 import { CountUp } from "../components/CountUp.jsx";
 import { Crest } from "../components/Crest.jsx";
 import { ReportLink } from "../components/ReportLink.jsx";
 import { NoSeasonData, SeasonSwitch } from "../components/SeasonSwitch.jsx";
+import { DepartedTag } from "../components/DepartedTag.jsx";
 import { ShotMap } from "../components/ShotMap.jsx";
 import { Sparkline } from "../components/Sparkline.jsx";
 import { SURFACE, chalk, dim, faint, ratingColor, rise } from "../lib/theme.js";
@@ -35,9 +36,10 @@ function PlayerDetail({ player }) {
         <Avatar player={player} size={64} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, textTransform: "uppercase", letterSpacing: "0.02em", color: chalk, lineHeight: 1 }}>{player.name}</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
             <Crest club={player.club} size={20} />
             <span style={{ fontSize: 12, color: dim }}>{c.name} · {c.ground} · {player.pos}</span>
+            <DepartedTag name={player.name} />
           </div>
         </div>
         <div style={{ textAlign: "center" }}>
@@ -117,7 +119,11 @@ export function DuelView() {
       background: "#12211B", color: chalk, border: `1px solid ${faint}`, borderRadius: 8,
       padding: "8px 10px", fontFamily: "'Barlow'", fontSize: 13, width: "100%",
     }}>
-      {PLAYERS.filter((p) => p.id !== exclude).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+      {/* A native <option> can only hold text, so the badge becomes a suffix here rather
+          than the DepartedTag pill used everywhere else. */}
+      {PLAYERS.filter((p) => p.id !== exclude).map((p) => (
+        <option key={p.id} value={p.id}>{playerDeparture(p.name) ? `${p.name} (left)` : p.name}</option>
+      ))}
     </select>
   );
   return (
@@ -316,7 +322,10 @@ function StatsBody() {
           return (
             <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 8, ...rise(i) }}>
               <Crest club={p.club} size={17} />
-              <span style={{ fontSize: 12, fontWeight: 600, color: chalk, flex: 1 }}>{p.name}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: chalk, display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0 }}>
+                <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</span>
+                <DepartedTag name={p.name} compact />
+              </span>
               <span style={{ fontSize: 12, color: dim, fontVariantNumeric: "tabular-nums" }}>{p.goals}g / {p.xg.toFixed(1)} xG</span>
               <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, minWidth: 44, textAlign: "right",
                 color: diff >= 2 ? "#3DDC84" : diff <= -1 ? "#E8663C" : chalk, fontVariantNumeric: "tabular-nums" }}>
@@ -480,7 +489,10 @@ function PlayersBody() {
               <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 15, color: dim, width: 18, fontVariantNumeric: "tabular-nums" }}>{i + 1}</span>
               <Avatar player={p} size={44} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, fontSize: 14, color: chalk, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+                  <span style={{ fontWeight: 600, fontSize: 14, color: chalk, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</span>
+                  <DepartedTag name={p.name} compact />
+                </div>
                 <div style={{ fontSize: 12, color: dim, display: "flex", alignItems: "center", gap: 6 }}>
                   <Crest club={p.club} size={13} tappable={false} /> {CLUBS[p.club].name} · {p.pos}
                 </div>

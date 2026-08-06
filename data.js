@@ -355,6 +355,46 @@ export const STATUS_META = {
   departure: { label: "Departure", color: "#E05252" },
 };
 
+// ===== Who has left the league =====
+// PLAYERS, XG_PLAYERS and DISCIPLINE describe a COMPLETED season, so they rightly still
+// contain players who have since moved on — but a reader looking at the Index today has no
+// way to tell that the man in second place is at Chesterfield now. This derives that from
+// the transfer feed rather than a hand-kept list, so it stays true as the window moves and
+// there is no second copy of the truth to fall out of step.
+//
+// Key is "first-initial:surname", which is what lets the feed's "Andy Ryan" match
+// XG_PLAYERS' "Andrew Ryan". Entries with no forename ("Gibson" in a combined item) return
+// null and are skipped ON PURPOSE: matching those on surname alone would tag Danny Gibson
+// as departed because of Montel Gibson. On a stats site a false "left the league" badge is
+// worse than a missing one, so this only ever matches a full name against a full name.
+const departureKey = (raw) => {
+  const t = String(raw || "").toLowerCase().replace(/[^a-z\s]/g, " ").replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+  return t.length > 1 ? `${t[0][0]}:${t[t.length - 1]}` : null;
+};
+
+const DEPARTURES = (() => {
+  const m = new Map();
+  for (const t of TRANSFERS) {
+    // Only moves OUT of the league. An intra-league transfer is not a departure — the
+    // player is still here, just in different colours, and TRANSFERS records those with a
+    // `to` club code instead of `toExternal`.
+    if (t.status !== "departure" || !t.toExternal) continue;
+    for (const one of t.player.split(/,| & /).map((s) => s.trim()).filter(Boolean)) {
+      const k = departureKey(one);
+      if (k && !m.has(k)) m.set(k, t.toExternal);
+    }
+  }
+  return m;
+})();
+
+// Where a player went, or null if they are still in the league. The string is the feed's
+// own wording ("Chesterfield", "Retired", "Sligo Rovers (loan)"), so a loan reads as a loan
+// rather than being flattened into a permanent exit.
+export function playerDeparture(name) {
+  const k = departureKey(name);
+  return k ? (DEPARTURES.get(k) || null) : null;
+}
+
 // ===== History =====
 export const ROLL_OF_HONOUR = [
   { season: "2025/26", club: "LAR", note: "3rd title in 4 seasons" },

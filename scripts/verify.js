@@ -180,6 +180,43 @@ check("the three TheSportsDB CLUB_MAP copies are identical", (() => {
   return distinct.length === 1;
 })());
 
+// Departed-player badges. The UI marks anyone in a completed-season list who has since
+// left, derived from the transfer feed — so this guards BOTH directions of that derivation.
+// It exists because the promo reel shipped with two players who had already gone, and the
+// same data drives the Index: a stats site that shows a departed man as current is exactly
+// the trust problem golden rule 1 is about.
+check("playerDeparture() flags rated players who have left, and only those", (() => {
+  // Every departure in the feed that names a rated player must resolve.
+  const ratedNames = [...D.PLAYERS.map((p) => p.name), ...D.XG_PLAYERS.map((p) => p.name)];
+  for (const t of D.TRANSFERS) {
+    if (t.status !== "departure" || !t.toExternal) continue;
+    for (const one of splitPlayers(t.player)) {
+      const hit = ratedNames.find((n) => namesMatch(n, one));
+      if (hit && D.playerDeparture(hit) !== t.toExternal) return false;
+    }
+  }
+  // ...and nobody is flagged who has no such departure. A false badge is the worse bug.
+  return ratedNames.every((n) => {
+    const to = D.playerDeparture(n);
+    if (!to) return true;
+    return D.TRANSFERS.some((t) => t.status === "departure" && t.toExternal === to
+      && splitPlayers(t.player).some((one) => namesMatch(one, n)));
+  });
+})());
+// A surname with no forename must never match. Proven by taking a REAL departure's surname
+// and looking it up bare: it must not resolve. Asserting only that existing surname-only
+// feed entries return null passes even with surname matching switched on, because no
+// current departure happens to be a bare surname — that is a test of today's data, not of
+// the rule. Without the rule, "Gibson" in a combined item tags Danny Gibson as departed.
+check("playerDeparture() ignores surname-only names (no false departures)", (() => {
+  const dep = D.TRANSFERS.find((t) => t.status === "departure" && t.toExternal && t.player.trim().includes(" "));
+  if (dep && D.playerDeparture(dep.player.trim().split(/\s+/).pop()) !== null) return false;
+  return D.TRANSFERS.flatMap((t) => splitPlayers(t.player))
+    .filter((n) => !n.includes(" "))
+    .every((n) => D.playerDeparture(n) === null);
+})());
+
+
 // Every CLUB_FIXTURES/EURO-leg fixture needs a machine-readable dt (used to pick the
 // Home tab's next match) whose calendar day/month agrees with the human display date —
 // a mismatch here means the wrong fixture could get featured as "next".
