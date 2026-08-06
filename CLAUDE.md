@@ -70,6 +70,17 @@ straight to main once verification passes — do not wait for the owner. Big cha
 (module restructures, new features, anything visual or structural) stay on the branch
 with a PR and wait for the owner's explicit "merge". Vercel deploys main automatically.
 
+**Results PRs: merge them, don't wait.** The weekly "Results refresh" workflow opens a PR
+filling `PREDICTOR_GW` results from the feed. Merge it once CI and verification pass — the
+owner checks the scorelines on the live app afterwards rather than reading a diff on a
+phone. Owner's instruction, 6 Aug 2026.
+
+Read the diff first, and merge only if it is *only* scorelines in data.js. Do NOT merge, and
+say why, if: a file other than data.js changed, a result appears for a fixture not in that
+gameweek, a club that wasn't playing shows up, or a scoreline is implausible. The feed is
+community-edited and has served English league data in place of 4659 before — that is what
+the script's `idLeague` check exists for, and this is the second pair of eyes on it.
+
 ## Stop criteria for agent sessions
 
 Task complete when: requested data blocks updated + verification passes + commit made.

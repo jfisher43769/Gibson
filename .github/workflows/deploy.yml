@@ -31,9 +31,15 @@ name: Deploy to Vercel
 # live table, the fixtures feed and every link preview with it. `vercel build` packages the
 # functions the same way Vercel's own pipeline does.
 
+# MANUAL ONLY, deliberately. Vercel's own Git integration was repaired on 5 Aug 2026 and
+# is doing the real deploys again, so this is a standby route, not the live one. It used to
+# also run on push to main — but with VERCEL_ORG_ID/VERCEL_PROJECT_ID not matching a project
+# the token can see, every push produced a failed run and a failure email, which trains you
+# to ignore red builds. A standby that cries wolf is worse than no standby.
+#
+# To bring it back into service: fix the two ids (see SETUP above), run it once by hand to
+# prove it deploys, and only then consider restoring the `push:` trigger.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
       reason:

@@ -660,9 +660,19 @@ check("currentSeasonGamesPlayed() is derived from FIXTURES_2627 results, not har
   // Must walk the fixture list and key off a result field — not return a literal.
   return /FIXTURES_2627/.test(fn) && /\.result/.test(fn) && !/return\s+\d+\s*;/.test(fn);
 })());
-check("seasonStatus() always defaults to the current season; early still tracks games played", (() => {
+check("seasonStatus() gates defaultSeason on the games-played threshold", (() => {
   const s = D.seasonStatus();
-  return s.defaultSeason === D.SEASON.current.id && s.early === (s.gamesPlayed < D.EARLY_SEASON_GAMES);
+  const expected = s.gamesPlayed < D.EARLY_SEASON_GAMES ? D.SEASON.previous.id : D.SEASON.current.id;
+  return s.defaultSeason === expected && s.early === (s.gamesPlayed < D.EARLY_SEASON_GAMES);
+})());
+// A stats surface must never open on an empty state while a completed season sits behind a
+// tap. This is the check that would have caught defaulting to a season with no data in it.
+check("the default season a stats surface leads with actually has data behind it", (() => {
+  const s = D.seasonStatus();
+  const live = D.liveSeasonId();
+  // Whichever season is led with must be the one the live stats exports are tagged as,
+  // unless there genuinely are no rated players yet (a fresh, un-rolled season).
+  return D.PLAYERS.length === 0 || s.defaultSeason === live;
 })());
 check("seasonStatus() strip copy is non-empty in both pre-season and in-season states", (() => {
   const start = Date.parse(`${D.SEASON.seasonStart}T00:00:00Z`);

@@ -109,10 +109,17 @@ export function seasonStartDisplay() {
 }
 
 // Which season a stats surface should lead with, plus the early-season strip copy.
-// Owner's call (5 Aug 2026): lead with the new season from now on, not gated on games
-// played — `early`/`gamesPlayed` still drive the strip banner and NoSeasonData's copy, so a
-// visitor opening 26/27 before results exist gets "kicks off 7 August" instead of a table
-// that looks broken, but the SEASON toggle itself no longer waits for EARLY_SEASON_GAMES.
+// Early season = the current campaign has fewer than EARLY_SEASON_GAMES games played;
+// until then last season's completed numbers are the more useful default.
+//
+// This briefly defaulted to SEASON.current unconditionally (5 Aug 2026) to foreground the
+// new season. That was the wrong lever: the Table view reads FULL_TABLE and the live feed
+// directly and never consulted this, so the table was unaffected — while the Stats tab and
+// all twelve club pages started opening on "no 2026/27 stats yet", because those exports
+// are hand-curated and do not exist until well into the season. Leading the app's richest
+// pages with an empty state is worse than leading with last season's real numbers, clearly
+// labelled and one tap from the new season. The "26/27 starts 7 August" strip is what
+// signals the new season; that stays, driven by `early`/`started` below.
 export function seasonStatus(now = Date.now()) {
   const gamesPlayed = currentSeasonGamesPlayed();
   const started = now >= Date.parse(`${SEASON.seasonStart}T00:00:00Z`);
@@ -121,7 +128,7 @@ export function seasonStatus(now = Date.now()) {
     gamesPlayed,
     started,
     early,
-    defaultSeason: SEASON.current.id,
+    defaultSeason: early ? SEASON.previous.id : SEASON.current.id,
     strip: started
       ? `${gamesPlayed} game${gamesPlayed === 1 ? "" : "s"} played — early days`
       : `${SEASON.current.display} starts ${seasonStartDisplay()}`,
