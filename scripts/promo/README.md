@@ -6,6 +6,7 @@ Two social-video generators that render **1080x1920 (9:16) MP4s** for X and TikT
 |---|---|---|
 | `render.mjs` | `gibson-season-launch.mp4` | Season-launch hype cut — the date, the twelve clubs, the champions, round one |
 | `features.mjs` | `gibson-features.mp4` | Feature tour — nine cards showing what the app does, then what it deliberately doesn't have |
+| `preview.mjs` | `gibson-preview-<h>-<a>.mp4` | Match preview — kick-off, last season, tale of the tape, team news, the call |
 
 Both share `kit.js`, the drawing kit (shields, the Gibson Cup mark, impact type, sweeps, grain).
 
@@ -17,9 +18,14 @@ small. Install them on demand:
 
 ```bash
 npm install --no-save ffmpeg-static @fontsource/barlow-condensed
-node scripts/promo/render.mjs      # season launch
-node scripts/promo/features.mjs    # feature tour
+node scripts/promo/render.mjs        # season launch
+node scripts/promo/features.mjs      # feature tour
+node scripts/promo/preview.mjs       # preview the current Predictor fixture
+node scripts/promo/preview.mjs LIN BAL   # ...or any tie, by club code
 ```
+
+`preview.mjs` with no arguments previews the first fixture of the current `PREDICTOR_GW`, so
+once the gameweek is rolled over it is a one-command job each week.
 
 Videos land in `promo-out/` (gitignored). Override with `PROMO_OUT=/some/dir`.
 
@@ -62,6 +68,25 @@ motion rather than leaving quick animations sitting on a longer hold.
   both real clubs; some curated entries use `fromExternal` for a headline ("Triple swoop",
   "Window roundup") which would render as a club that doesn't exist
 - **Colours and type** — `kit.js`, matching `src/lib/theme.js`
+
+`preview.mjs` writes its own two editorial cards from the data rather than from hand-typed
+copy: the "one number to know" card picks whichever side had the league's most eventful
+matches (`GOALS_STATS.avg`), and the team-news card finds a departed top scorer via
+`playerDeparture()`. Both therefore work for any tie without editing.
+
+Home is drawn in gold and away in sky blue — the same pairing Duel uses — because two clubs
+can wear the same colour (Cliftonville v Crusaders is red v red), so club colours alone
+cannot carry a head-to-head.
+
+## Odds on the preview card
+
+`preview.mjs` shows the fixture's odds, which are **GIBSON estimates** from `data.js`, and
+labels them on screen as estimates, informational only, not betting advice. Keep that
+framing: a public video is the one place UK gambling-advertising rules bite hardest.
+Never add a bookmaker name, logo, link or affiliate code to any of these scripts
+(CLAUDE.md golden rule 2) — `scripts/verify.js` scans for bookmaker names, but it cannot
+police a video file, so the guard here is the rule itself. To drop the card entirely,
+remove the `odds` section from the timeline.
 
 ## Two things to know before posting
 
