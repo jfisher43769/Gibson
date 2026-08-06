@@ -1,2 +1,5 @@
 node_modules/
 dist/
+
+# Rendered promo videos (scripts/promo) — regenerate rather than commit
+promo-out/
