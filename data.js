@@ -865,7 +865,7 @@ const EURO = [
       { label: "1st leg · home", date: "Tue 4 Aug · 20:00", dt: "2026-08-04T19:00:00Z", venue: "Inver Park" },
     ],
     prize: "Winner advances to the UEL play-off round; the loser drops into the UECL play-off round",
-    note: "OUT OF THE CHAMPIONS LEAGUE, ON TO THE EUROPA LEAGUE: Red Star Belgrade finished the job in Belgrade, winning the second leg 5-0 (Katai 3', Arnautović 45' & 60', Loizou 49', Bukari 79') for a 9-0 aggregate. Larne's European summer continues regardless — re-seeded into UEFA Europa League Q3, hosting Georgian side FC Iberia 1999 at Inver Park on Tuesday 4 August, 8pm. Tickets on sale now.",
+    note: "GOALLESS AT INVER PARK: Larne 0-0 FC Iberia 1999 in the Europa League Q3 first leg. Nothing between them going to Georgia — the tie is level with the second leg to come. Larne dropped into the Europa League after Red Star Belgrade won Champions League Q2 9-0 on aggregate.",
   },
   {
     club: "GLE", comp: "Conference League", round: "First qualifying round",
@@ -925,7 +925,7 @@ export const CLUB_FIXTURES = {
     { date: "14 Jul", dt: "2026-07-14T18:45:00Z", res: "2–1 W", opp: "Tre Fiori (h)", comp: "UCL Q1 · 2nd leg · 3–1 agg" },
     { date: "21 Jul", dt: "2026-07-21T18:45:00Z", res: "0–4 L", opp: "Red Star Belgrade", comp: "UCL Q2 · 1st leg · Inver Park" },
     { date: "29 Jul", dt: "2026-07-29T18:00:00Z", res: "0–5 L", opp: "Red Star Belgrade (a) — Katai 3', Arnautović 45' & 60', Loizou 49', Bukari 79'", comp: "UCL Q2 · 2nd leg · Belgrade · 0–9 agg · eliminated" },
-    { date: "4 Aug", dt: "2026-08-04T19:00:00Z", opp: "FC Iberia 1999 (h)", comp: "UEL Q3 · 1st leg · Inver Park · 8pm" },
+    { date: "4 Aug", dt: "2026-08-04T19:00:00Z", res: "0–0 D", opp: "FC Iberia 1999 (h)", comp: "UEL Q3 · 1st leg · Inver Park" },
   ],
   GLE: [
     { date: "9 Jul", dt: "2026-07-09T19:30:00Z", res: "1–2 L", opp: "RFS (h) — Ibsen Rossi 38'", comp: "UECL Q1 · 1st leg" },
