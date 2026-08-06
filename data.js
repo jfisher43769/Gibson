@@ -244,6 +244,101 @@ export const FIXTURES_2627 = [
 ];
 export const POST_SPLIT_DATES = ["Sat 3 Apr", "Sat 10 Apr", "Tue 13 Apr", "Sat 17 Apr", "Sat 24 Apr"];
 
+// ===== Turning a fixture's display date into a real kick-off time =====
+// FIXTURES_2627 stores dates the way a fan reads them ("Sat 8 Aug", "7.45pm") and no year,
+// because a fixture list is written for humans. Anything that has to answer "has this
+// happened yet?" needs a real instant, and the Home board previously had no way to ask —
+// it just showed FIXTURES_2627[0].matches[0] forever, so from the second matchday onward
+// the front page advertised a match that had already been played.
+//
+// Resolving here rather than adding a `dt` to all 198 fixtures keeps the list readable and
+// leaves one source of truth: change the display date and the kick-off moves with it, with
+// no second field to forget. scripts/verify.js checks every fixture resolves AND that the
+// weekday it resolves to matches the weekday written on it, so a wrong year or month is
+// caught by the build rather than by a fan.
+const MONTHS_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const WEEKDAYS_ABBR = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DEFAULT_KICKOFF = "3pm"; // NIFL default, per the FIXTURES_2627 header comment
+
+// Kick-off times are Northern Irish local (BST in August, GMT from late October), so the
+// same "3pm" is a different instant either side of the clock change. Resolve the wall time
+// through Europe/London instead of assuming a fixed offset: two passes, because the offset
+// itself depends on the instant being computed.
+function londonWallTimeToMs(y, month, day, hour, minute) {
+  const guess = Date.UTC(y, month - 1, day, hour, minute);
+  const offsetAt = (ms) => {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Europe/London", hour12: false,
+      year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit",
+    }).formatToParts(new Date(ms)).reduce((o, p) => (o[p.type] = p.value, o), {});
+    // Intl renders midnight as "24" in some ICU versions; normalise before reassembling.
+    const hh = parts.hour === "24" ? 0 : Number(parts.hour);
+    const asUTC = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day), hh, Number(parts.minute), Number(parts.second));
+    return asUTC - ms;
+  };
+  return guess - offsetAt(guess - offsetAt(guess));
+}
+
+// "7.45pm" / "3pm" -> { hour, minute } in 24h. Returns null on anything unrecognised so a
+// typo surfaces as a failed check rather than a silently wrong time.
+function parseKickoffTime(t) {
+  const m = /^(\d{1,2})(?:\.(\d{2}))?\s*(am|pm)$/i.exec(String(t || "").trim());
+  if (!m) return null;
+  let hour = Number(m[1]) % 12;
+  if (m[3].toLowerCase() === "pm") hour += 12;
+  return { hour, minute: Number(m[2] || 0) };
+}
+
+// The season spans two calendar years and the fixture list names neither. August through
+// December belong to the season's opening year, January onward to the next.
+function seasonYearFor(monthIndex1) {
+  const startYear = Number(SEASON.seasonStart.slice(0, 4));
+  const startMonth = Number(SEASON.seasonStart.slice(5, 7));
+  return monthIndex1 >= startMonth ? startYear : startYear + 1;
+}
+
+// Epoch ms for a fixture, or null if its date can't be read. `match` may override the
+// round's date (`d`) and time (`t`) — a Friday night game inside a Saturday round.
+export function fixtureKickoffMs(round, match = {}) {
+  const label = match.d || round.date;
+  const dm = /^(\w{3})\s+(\d{1,2})\s+(\w{3})$/.exec(String(label || "").trim());
+  if (!dm) return null;
+  const monthIndex1 = MONTHS_ABBR.indexOf(dm[3]) + 1;
+  if (monthIndex1 === 0) return null;
+  const time = parseKickoffTime(match.t || round.time || DEFAULT_KICKOFF);
+  if (!time) return null;
+  return londonWallTimeToMs(seasonYearFor(monthIndex1), monthIndex1, Number(dm[2]), time.hour, time.minute);
+}
+
+// The weekday a fixture's date actually falls on, for cross-checking the label it carries.
+export function fixtureWeekdayAbbr(round, match = {}) {
+  const ms = fixtureKickoffMs(round, match);
+  if (ms === null) return null;
+  return WEEKDAYS_ABBR[new Date(ms).getUTCDay()];
+}
+
+// A kick-off within this window still counts as "the match" rather than as past — the
+// result is rarely in data.js while the game is still on. Matches HomeTab's own window.
+export const LIVE_WINDOW_MS = 2.5 * 60 * 60 * 1000;
+
+// The soonest league fixture that hasn't finished, as { round, h, a, kickoffMs, date, time }.
+// Fixtures already carrying a result are skipped even if their kick-off is somehow in the
+// future, so a rescheduled-and-played game can't reappear as "next up".
+export function nextLeagueFixture(now = Date.now()) {
+  let best = null;
+  for (const round of FIXTURES_2627) {
+    for (const m of round.matches) {
+      if (Array.isArray(m.result)) continue;
+      const ms = fixtureKickoffMs(round, m);
+      if (ms === null || ms < now - LIVE_WINDOW_MS) continue;
+      if (!best || ms < best.kickoffMs) {
+        best = { round: round.round, h: m.h, a: m.a, kickoffMs: ms, date: m.d || round.date, time: m.t || round.time || DEFAULT_KICKOFF };
+      }
+    }
+  }
+  return best;
+}
+
 // ===== v1.1 FULL TABLE SLOT =====
 // When you have the verified final 25/26 table (screenshot the NIFL site or BBC
 // and send it to Claude), fill this in and the Table tab upgrades automatically.

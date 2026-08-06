@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import {
-  CLUBS, CLUB_FIXTURES, EURO, FIXTURES_2627, LEAGUE_LORE, PREDICTOR_GW, STATUS_META, TRANSFERS,
+  CLUBS, CLUB_FIXTURES, EURO, FIXTURES_2627, LEAGUE_LORE, LIVE_WINDOW_MS, PREDICTOR_GW, STATUS_META, TRANSFERS,
+  nextLeagueFixture,
 } from "../../data.js";
 import { ClubNavContext, Crest } from "../components/Crest.jsx";
 import { CountUp } from "../components/CountUp.jsx";
@@ -9,9 +10,9 @@ import { SURFACE, chalk, dim, faint } from "../lib/theme.js";
 export function HomeView({ goTo }) {
   const openClub = useContext(ClubNavContext);
   const now = Date.now();
-  // A kick-off within the last 2.5h still counts as "the match" rather than being
-  // skipped as past — the result usually isn't in data.js yet when it's still live.
-  const LIVE_WINDOW_MS = 2.5 * 60 * 60 * 1000;
+  // LIVE_WINDOW_MS (a kick-off within the last 2.5h still counts as "the match", because
+  // the result isn't in data.js while the game is on) comes from data.js so this and
+  // nextLeagueFixture() cannot drift apart.
   // Soonest still-relevant (future, or within the live window), non-provisional fixture
   // per club, picked by real kick-off time — not by array/object order, so whichever
   // club's dt is earliest wins regardless of which key comes first in CLUB_FIXTURES.
@@ -23,19 +24,35 @@ export function HomeView({ goTo }) {
     if (eligible[0]) nextEuro.push({ club, ...eligible[0] });
   }
   nextEuro.sort((a, b) => new Date(a.dt) - new Date(b.dt));
-  const opener = FIXTURES_2627[0];
-  const openMatch = opener.matches[0];
+  // The next league game by real kick-off time. This used to be hardcoded to round 1's
+  // first match, so from the second matchday onward the board advertised a game that had
+  // already been played, all season. Now it advances on its own.
+  const nextLeague = nextLeagueFixture(now);
+  // Season's over (or every remaining fixture is unreadable): keep showing the last one
+  // rather than rendering an empty board.
+  const lastRound = FIXTURES_2627[FIXTURES_2627.length - 1];
+  const leagueFix = nextLeague || {
+    round: lastRound.round, h: lastRound.matches[0].h, a: lastRound.matches[0].a,
+    date: lastRound.date, time: lastRound.time || null, kickoffMs: Infinity, done: true,
+  };
   const resultsIn = PREDICTOR_GW.fixtures.every((f) => f.result);
   const feed = TRANSFERS.slice(0, 3);
   // One lore entry per day, rotating by day of year
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
   const lore = LEAGUE_LORE[dayOfYear % LEAGUE_LORE.length];
   const label = { fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 };
-  // Stadium scoreboard hero for the very next fixture. Prefers the soonest European
-  // tie; off-season it falls back to the Premiership opener so the board always shows
-  // a real upcoming match. External opponents get a derived code (RSB, HJK, TF).
-  const heroFix = nextEuro[0] || null;
+  // Stadium scoreboard hero for the very next fixture, European or league, whichever
+  // kicks off first — so the board always names a match that is actually still to come.
+  // External opponents get a derived code (RSB, HJK, TF).
+  // The board shows whichever comes first, Europe or the league — not Europe by default.
+  // A European tie used to always win the hero slot, which was right in July when the only
+  // fixtures were European and wrong from August on.
+  const euroFirst = nextEuro[0] || null;
+  const leagueIsSooner = !euroFirst || (leagueFix.kickoffMs < new Date(euroFirst.dt).getTime());
+  const heroFix = leagueIsSooner ? null : euroFirst;      // set only when Europe leads
   const restEuro = nextEuro.slice(heroFix ? 1 : 0);
+  // The league row in "Next up" — omitted when that same game is already the hero.
+  const upcomingLeague = leagueIsSooner ? null : leagueFix;
   const oppCode = (name) => {
     const first = name.split(" ")[0];
     return first === first.toUpperCase() && first.length <= 4
@@ -59,10 +76,14 @@ export function HomeView({ goTo }) {
         sub: `${CLUBS[heroFix.club].name} v ${heroFix.opp} · ${heroFix.comp}`,
       }
     : {
-        home: openMatch.h, away: openMatch.a, date: (openMatch.d || opener.date).replace(/^\w+\s+/, ""),
-        homeName: CLUBS[openMatch.h].name, awayName: CLUBS[openMatch.a].name,
-        homeColor: CLUBS[openMatch.h].colors[0], awayColor: CLUBS[openMatch.a].colors[0],
-        sub: `${CLUBS[openMatch.h].name} v ${CLUBS[openMatch.a].name} · Premiership opening night`,
+        home: leagueFix.h, away: leagueFix.a, date: leagueFix.date.replace(/^\w+\s+/, ""),
+        homeName: CLUBS[leagueFix.h].name, awayName: CLUBS[leagueFix.a].name,
+        homeColor: CLUBS[leagueFix.h].colors[0], awayColor: CLUBS[leagueFix.a].colors[0],
+        // "Opening night" is true exactly once. After that the board names the round, and
+        // once the fixture list runs out it stops claiming anything is coming.
+        sub: `${CLUBS[leagueFix.h].name} v ${CLUBS[leagueFix.a].name} · ${
+          leagueFix.done ? "Final round" : leagueFix.round === 1 ? "Premiership opening night" : `Premiership round ${leagueFix.round}`
+        }`,
       };
   const heroDate = board.date.match(/^(\d+)(\S*)(.*)$/);
   return (
@@ -141,13 +162,15 @@ export function HomeView({ goTo }) {
               </div>
             </div>
           ))}
-          {heroFix && (
+          {upcomingLeague && !upcomingLeague.done && (
             <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 13px" }}>
-              <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#FFB627", width: 74, flexShrink: 0, lineHeight: 1.2 }}>{openMatch.d || opener.date}</div>
-              <Crest club={openMatch.h} size={22} />
+              <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#FFB627", width: 74, flexShrink: 0, lineHeight: 1.2 }}>{upcomingLeague.date}</div>
+              <Crest club={upcomingLeague.h} size={22} />
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: chalk }}>{CLUBS[openMatch.h].name} v {CLUBS[openMatch.a].name}</div>
-                <div style={{ fontSize: 12, color: dim, marginTop: 2 }}>Premiership opening night · Round {opener.round}{openMatch.t ? ` · ${openMatch.t}` : ""}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: chalk }}>{CLUBS[upcomingLeague.h].name} v {CLUBS[upcomingLeague.a].name}</div>
+                <div style={{ fontSize: 12, color: dim, marginTop: 2 }}>
+                  {upcomingLeague.round === 1 ? "Premiership opening night" : "Premiership"} · Round {upcomingLeague.round}{upcomingLeague.time ? ` · ${upcomingLeague.time}` : ""}
+                </div>
               </div>
             </div>
           )}

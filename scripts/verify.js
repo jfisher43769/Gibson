@@ -230,6 +230,74 @@ const dtMatchesDisplayDate = (f) => {
   return d.getUTCDate() === parseInt(m[1], 10) && d.getUTCMonth() === MONTHS.indexOf(m[2]);
 };
 const allEuroFixtures = [...Object.values(D.CLUB_FIXTURES).flat(), ...D.EURO.flatMap(e => e.legs)];
+// The Home board picks the next fixture by real kick-off time, resolved from the display
+// date. These guard that resolution. The board previously hardcoded round 1's first match,
+// so from the second matchday on the front page advertised a game already played — the bug
+// was invisible on the day it shipped and only surfaced once the season moved on, which is
+// exactly why it is pinned here rather than trusted to be noticed.
+check("every FIXTURES_2627 match resolves to a real kick-off time", (() => {
+  for (const r of D.FIXTURES_2627) for (const m of r.matches) {
+    if (typeof D.fixtureKickoffMs(r, m) !== "number") return false;
+  }
+  return true;
+})());
+// Catches a wrong year or month: "Sat 2 Jan" resolving to a Friday means the season-year
+// rollover is off, and no amount of reading the fixture list would show it.
+check("every fixture's resolved weekday matches the weekday printed on it", (() => {
+  const bad = [];
+  for (const r of D.FIXTURES_2627) for (const m of r.matches) {
+    const label = String(m.d || r.date).split(" ")[0];
+    if (D.fixtureWeekdayAbbr(r, m) !== label) bad.push(`r${r.round} ${m.h}v${m.a} says ${label}`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.slice(0, 5).join("\n      ↳ "));
+  return bad.length === 0;
+})());
+// The bug itself lived in the COMPONENT, not the data: HomeTab indexed FIXTURES_2627[0]
+// directly. Every data-level check above passes with that code in place, so this is the one
+// that actually pins the fix — the board must ask for the next fixture, not assume it.
+check("HomeTab picks the next fixture by time, not by indexing the fixture list", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/HomeTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const usesHelper = /nextLeagueFixture\s*\(/.test(src);
+  const indexesList = /FIXTURES_2627\s*\[\s*0\s*\]/.test(src);
+  if (!usesHelper) console.log("      ↳ HomeTab no longer calls nextLeagueFixture()");
+  if (indexesList) console.log("      ↳ HomeTab indexes FIXTURES_2627[0] again — the board will freeze on round 1");
+  return usesHelper && !indexesList;
+})());
+check("rounds run in chronological order", (() => {
+  let prev = -Infinity;
+  for (const r of D.FIXTURES_2627) {
+    const ms = D.fixtureKickoffMs(r, {});
+    if (ms === null || ms < prev) return false;
+    prev = ms;
+  }
+  return true;
+})());
+// The whole point of the fix: the board must never name a match that has been played.
+check("nextLeagueFixture() never returns a kick-off in the past", (() => {
+  const probes = ["2026-08-06T22:00:00Z", "2026-08-08T16:00:00Z", "2026-10-01T12:00:00Z", "2027-02-01T12:00:00Z"];
+  return probes.every((iso) => {
+    const now = Date.parse(iso);
+    const f = D.nextLeagueFixture(now);
+    return f === null || f.kickoffMs >= now - D.LIVE_WINDOW_MS;
+  });
+})());
+// ...and it must actually advance, rather than pinning to the opener like the old code.
+check("nextLeagueFixture() advances as the season progresses", (() => {
+  const a = D.nextLeagueFixture(Date.parse("2026-08-06T22:00:00Z"));
+  const b = D.nextLeagueFixture(Date.parse("2026-09-20T12:00:00Z"));
+  const c = D.nextLeagueFixture(Date.parse("2027-02-01T12:00:00Z"));
+  return a && b && c && a.kickoffMs < b.kickoffMs && b.kickoffMs < c.kickoffMs;
+})());
+// Kick-offs are Northern Irish local time, so the same "3pm" is a different instant either
+// side of the October clock change. A fixed offset would drift by an hour for half the season.
+check("kick-off times respect the BST/GMT changeover", (() => {
+  const aug = D.FIXTURES_2627.find((r) => r.date.includes("Aug"));
+  const jan = D.FIXTURES_2627.find((r) => r.date.includes("Jan"));
+  const hourUTC = (r) => new Date(D.fixtureKickoffMs(r, {})).getUTCHours();
+  return hourUTC(aug) === 14 && hourUTC(jan) === 15; // 3pm BST = 14:00Z, 3pm GMT = 15:00Z
+})());
+
 check("every CLUB_FIXTURES/EURO fixture has a valid ISO dt matching its display date", allEuroFixtures.every(dtMatchesDisplayDate));
 // Service worker must fetch page navigations fresh from the network (bypassing the HTTP
 // cache), or a device gets stranded on an old build — the "new domain served the old
