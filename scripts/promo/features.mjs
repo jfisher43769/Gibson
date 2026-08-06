@@ -47,7 +47,24 @@ const clubOf = (c) => ({ code: c, ...D.CLUBS[c] });
 
 // ---- Real content for each card -------------------------------------------------------
 const topTable = D.FULL_TABLE.slice(0, 3).map((r) => ({ ...clubOf(r.club), pts: r.pts, p: r.p, gd: r.gd }));
-const rated = [...D.PLAYERS].sort((a, b) => b.rating - a.rating);
+
+// PLAYERS holds last season's ratings, so it still contains players who have since left the
+// league — correct for a 25/26 stats table, wrong for a promo, which reads as "here is who
+// you'll be watching". Anyone with a departure in TRANSFERS whose destination is outside the
+// league (or retirement) is dropped, derived rather than a hand-kept blocklist so it stays
+// right as the window moves. Multi-player entries ("A, B & C") are split on the same
+// separators the transfer feed uses.
+const splitPlayers = (s) => s.split(/,| & | and /i).map((x) => x.trim()).filter(Boolean);
+const departed = new Set(
+  D.TRANSFERS.filter((t) => t.status === "departure" && t.toExternal)
+    .flatMap((t) => splitPlayers(t.player))
+    .map((n) => n.toLowerCase()),
+);
+const stillHere = D.PLAYERS.filter((p) => !departed.has(p.name.toLowerCase()));
+if (!stillHere.length) throw new Error("every rated player reads as departed — check the departure filter");
+console.log(`rated players: ${D.PLAYERS.length} total, ${D.PLAYERS.length - stillHere.length} left the league (${
+  D.PLAYERS.filter((p) => departed.has(p.name.toLowerCase())).map((p) => p.name).join(", ") || "none"})`);
+const rated = [...stillHere].sort((a, b) => b.rating - a.rating);
 // clubOf() carries the CLUB's name, so it must be spread FIRST and the player's own name
 // applied after — the other order silently relabels every player with their club.
 const indexTop = rated.slice(0, 3).map((p) => ({ ...clubOf(p.club), name: p.name, rating: p.rating, goals: p.goals }));
@@ -312,8 +329,8 @@ const CARDS=[
 // Pacing: cards hold long enough to actually read the panel before the cut. The per-card
 // animation is all expressed as a fraction of CARD, so raising it slows the motion too
 // rather than leaving quick moves sitting on a longer hold.
-const INTRO=2350, CARD=1640, CARDS_T=INTRO+CARD*CARDS.length;
-const PLEDGE=3100, OUTRO=3700;
+const INTRO=2850, CARD=2040, CARDS_T=INTRO+CARD*CARDS.length;
+const PLEDGE=3800, OUTRO=4300;
 const T_PLEDGE=CARDS_T, T_OUTRO=CARDS_T+PLEDGE, END=T_OUTRO+OUTRO;
 const CUTS=[0,INTRO,...CARDS.map((_,i)=>INTRO+i*CARD),T_PLEDGE,T_OUTRO];
 
