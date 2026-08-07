@@ -8,7 +8,7 @@ import { SeasonStrip } from "../components/SeasonSwitch.jsx";
 import { OddsDisclaimer, OddsStrip } from "../components/Odds.jsx";
 import { OfflineNote } from "../components/OfflineNote.jsx";
 import { Skel, SkelRows } from "../components/Skeleton.jsx";
-import { useLiveEvents } from "../lib/live.js";
+import { findLive, useLiveEvents } from "../lib/live.js";
 import { OVERLAY, SURFACE, chalk, dim, faint, formColor, rise } from "../lib/theme.js";
 import { LiveTeaser } from "../components/LiveTeaser.jsx";
 
@@ -391,6 +391,19 @@ export function EuropeView() {
   );
 }
 
+// A small pulsing "live" marker with the feed's own clock (2H, HT) when it has one. Used on
+// fixture rows so a score that is still moving never looks like a final one.
+function LiveTick({ status }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+      <span aria-hidden="true" style={{ width: 7, height: 7, borderRadius: "50%", background: "#3DDC84", animation: "livePulse 1.4s infinite" }} />
+      <span style={{ fontSize: 11, fontWeight: 800, color: "#3DDC84", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+        {status || "Live"}
+      </span>
+    </span>
+  );
+}
+
 // One scoreline from the feed. Shared by the live block and the finished-results block so the
 // two can never drift into looking like different things — the only difference between a live
 // score and a final one should be what the row is labelled, not how it is drawn.
@@ -436,6 +449,8 @@ export function FixturesView({ fixedClub } = {}) {
           opp: m.h === club ? m.a : m.h,
           venue: CLUBS[m.h].ground,
           tv: m.tv || null,
+          h: m.h, a: m.a,
+          result: Array.isArray(m.result) ? m.result : null,
         });
       }
     }
@@ -486,6 +501,12 @@ export function FixturesView({ fixedClub } = {}) {
                 // fixture looked like it kicked off with the rest.
                 const moved = Boolean(m.d || m.t);
                 const meta = [m.d, m.t].filter(Boolean).join(" · ");
+                // A played fixture shows its score in place of the "v". The live feed wins
+                // over the recorded result while a match is on, because data.js can't be
+                // updated mid-match and a stale 0-0 next to a game in progress is worse than
+                // no score at all.
+                const inPlay = findLive(liveEv, m.h, m.a);
+                const played = inPlay ? [inPlay.hs, inPlay.as] : (Array.isArray(m.result) ? m.result : null);
                 return (
                   <div key={i} style={{
                     display: "flex", flexDirection: "column", gap: 5, padding: "12px 14px",
@@ -497,15 +518,19 @@ export function FixturesView({ fixedClub } = {}) {
                         <span style={{ fontSize: 13, fontWeight: 600, color: chalk, textAlign: "right" }}>{CLUBS[m.h].name}</span>
                         <Crest club={m.h} size={19} />
                       </div>
-                      <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#FFB627", padding: "0 12px" }}>V</span>
+                      <span style={{
+                        fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: played ? 17 : 13,
+                        color: "#FFB627", padding: "0 12px", fontVariantNumeric: "tabular-nums",
+                      }}>{played ? `${played[0]}–${played[1]}` : "V"}</span>
                       <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
                         <Crest club={m.a} size={19} />
                         <span style={{ fontSize: 13, fontWeight: 600, color: chalk }}>{CLUBS[m.a].name}</span>
                       </div>
                     </div>
-                    {(moved || m.tv) && (
+                    {(moved || m.tv || inPlay) && (
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
-                        {moved && <span style={{ fontSize: 12, color: dim }}>{meta}</span>}
+                        {inPlay && <LiveTick status={inPlay.status} />}
+                        {moved && !inPlay && <span style={{ fontSize: 12, color: dim }}>{meta}</span>}
                         <TvBadge tv={m.tv} />
                       </div>
                     )}
@@ -614,27 +639,50 @@ export function FixturesView({ fixedClub } = {}) {
         Premiership · {showAll ? "full 33-round schedule" : "opening five"}
       </div>
       <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden" }}>
-        {nextLeague.map((f, i) => (
-          <div key={i} style={{
-            display: "flex", alignItems: "center", gap: 12, padding: "11px 13px",
-            borderBottom: i < nextLeague.length - 1 ? `1px solid ${faint}` : "none",
-          }}>
-            <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#FFB627", width: 74, flexShrink: 0, lineHeight: 1.2 }}>
-              {f.date}
-              <div style={{ fontSize: 12, color: dim, fontWeight: 600 }}>{f.time}</div>
-            </div>
-            <Crest club={f.opp} size={22} />
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: chalk }}>
-                {CLUBS[f.opp].name} <span style={{ color: f.home ? "#3DDC84" : dim, fontSize: 12, fontWeight: 700 }}>{f.home ? "(H)" : "(A)"}</span>
+        {nextLeague.map((f, i) => {
+          const inPlay = findLive(liveEv, f.h, f.a);
+          const played = inPlay ? [inPlay.hs, inPlay.as] : f.result;
+          // Scored from the selected club's point of view, since this list is that club's
+          // season — "2–1" means nothing here without knowing which end of it they were.
+          const forGoals = played ? (f.home ? played[0] : played[1]) : null;
+          const against = played ? (f.home ? played[1] : played[0]) : null;
+          const outcome = played ? (forGoals > against ? "W" : forGoals < against ? "L" : "D") : null;
+          return (
+            <div key={i} style={{
+              display: "flex", alignItems: "center", gap: 12, padding: "11px 13px",
+              borderBottom: i < nextLeague.length - 1 ? `1px solid ${faint}` : "none",
+            }}>
+              <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#FFB627", width: 74, flexShrink: 0, lineHeight: 1.2 }}>
+                {f.date}
+                <div style={{ fontSize: 12, color: dim, fontWeight: 600 }}>{f.time}</div>
               </div>
-              <div style={{ fontSize: 12, color: dim, marginTop: 2, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                <span>Round {f.round} · {f.venue}</span>
-                <TvBadge tv={f.tv} />
+              <Crest club={f.opp} size={22} />
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: chalk }}>
+                  {CLUBS[f.opp].name} <span style={{ color: f.home ? "#3DDC84" : dim, fontSize: 12, fontWeight: 700 }}>{f.home ? "(H)" : "(A)"}</span>
+                </div>
+                <div style={{ fontSize: 12, color: dim, marginTop: 2, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                  <span>Round {f.round} · {f.venue}</span>
+                  {inPlay && <LiveTick status={inPlay.status} />}
+                  <TvBadge tv={f.tv} />
+                </div>
               </div>
+              {played && (
+                <div style={{ display: "flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
+                  <span style={{
+                    fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, color: chalk,
+                    fontVariantNumeric: "tabular-nums",
+                  }}>{forGoals}–{against}</span>
+                  <span aria-label={outcome === "W" ? "win" : outcome === "D" ? "draw" : "loss"} style={{
+                    width: 18, height: 18, borderRadius: 5, background: formColor(outcome), color: "#0B1512",
+                    fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, lineHeight: 1,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>{outcome}</span>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       <button onClick={() => setShowAll(!showAll)} style={{
         width: "100%", marginTop: 10, padding: "11px", borderRadius: 10, cursor: "pointer",

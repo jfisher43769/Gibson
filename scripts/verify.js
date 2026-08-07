@@ -1029,5 +1029,22 @@ check("currentTable() derives standings from recorded results", (() => {
   return true;
 })());
 
+// Fixture rows showed only the fixture, so a played match still read as "Cliftonville V
+// Crusaders" days later. Both views now show the score, and a match in play shows the feed's
+// score over the recorded one — data.js can't be edited mid-match, and a stale scoreline next
+// to a game in progress is worse than none. Owner asked for it, 7 Aug 2026.
+check("fixture rows show the score once a match has been played", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/MatchesTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  // Both renderers derive a `played` scoreline, and both prefer the live feed over m.result.
+  const derivations = src.match(/const played\s*=\s*inPlay\s*\?/g) || [];
+  if (derivations.length < 2) return false;
+  // The by-round row must stop printing a bare "V" for a match that has a score.
+  const roundRow = /\{played \? `\$\{played\[0\]\}.\$\{played\[1\]\}` : "V"\}/.test(src);
+  // The by-club row is scored from that club's point of view, with a W/D/L marker.
+  const clubRow = /f\.home \? played\[0\] : played\[1\]/.test(src) && /formColor\(outcome\)/.test(src);
+  return roundRow && clubRow;
+})());
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);
