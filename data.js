@@ -321,6 +321,25 @@ export function fixtureWeekdayAbbr(round, match = {}) {
   return WEEKDAYS_ABBR[new Date(ms).getUTCDay()];
 }
 
+// European ties carry a UTC `dt` rather than a wall-clock label, so the kick-off has to be
+// rendered back into Belfast time — otherwise a 19:00Z tie shows as 7pm in winter and 8pm in
+// summer, and one of those is wrong. Formatted the same way league times are written in
+// FIXTURES_2627 — "8pm", "7.45pm", dot not colon — so the two sit in the same UI without
+// looking like different fields.
+export function londonKickoffLabel(dt) {
+  const ms = new Date(dt).getTime();
+  if (!Number.isFinite(ms)) return null;
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London", hour: "numeric", minute: "2-digit", hour12: false,
+  }).formatToParts(new Date(ms));
+  const hour = Number(parts.find((p) => p.type === "hour")?.value);
+  const minute = Number(parts.find((p) => p.type === "minute")?.value);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+  const suffix = hour >= 12 ? "pm" : "am";
+  const h12 = hour % 12 === 0 ? 12 : hour % 12;
+  return minute === 0 ? `${h12}${suffix}` : `${h12}.${String(minute).padStart(2, "0")}${suffix}`;
+}
+
 // A kick-off within this window still counts as "the match" rather than as past — the
 // result is rarely in data.js while the game is still on. Matches HomeTab's own window.
 export const LIVE_WINDOW_MS = 2.5 * 60 * 60 * 1000;

@@ -877,5 +877,44 @@ check("every SOCIALS account has a handle, an https URL and a header icon", (() 
   });
 })());
 
+// The Home board lost its kick-off time in the rewrite that made it advance by real time:
+// the board object simply stopped carrying one, and nothing failed — a fixture with no time
+// looks exactly like a fixture whose time nobody set. Owner spotted it live, 7 Aug 2026.
+check("every league fixture resolves to a kick-off time", (() => D.FIXTURES_2627.every((round) => {
+  const first = D.fixtureKickoffMs(round, round.matches[0]);
+  if (first === null) return false;
+  const next = D.nextLeagueFixture(first - 1000);
+  return typeof next?.time === "string" && next.time.length > 0;
+}))());
+
+check("the Home board renders the kick-off time it carries", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/HomeTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  // Both branches of the board have to set it, and the JSX has to actually print it.
+  const setForLeague = /time:\s*leagueFix\./.test(src);
+  const setForEuro = /time:\s*londonKickoffLabel\(/.test(src);
+  // Printed, not merely guarded on — `{board.time && ...}` alone would satisfy a looser test
+  // while rendering nothing. Allows a formatting call on the way out.
+  const rendered = /\{\s*board\.time(?:\.[A-Za-z]+\(\))?\s*\}/.test(src);
+  return setForLeague && setForEuro && rendered;
+})());
+
+// A European tie stores UTC, so rendering it in Belfast time is a DST question, not a
+// formatting one: the same 19:00Z is 8pm in August and 7pm in December.
+check("londonKickoffLabel() resolves UTC to Belfast wall time either side of the clocks", (() => (
+  D.londonKickoffLabel("2026-08-04T19:00:00Z") === "8pm"
+  && D.londonKickoffLabel("2026-12-04T19:00:00Z") === "7pm"
+  && D.londonKickoffLabel("2026-08-04T18:45:00Z") === "7.45pm"
+  && D.londonKickoffLabel("nonsense") === null
+))());
+
+// The board leads with crests now. A club code where a crest belongs is the regression to
+// catch, since both render without error and only one of them looks like the rest of the app.
+check("the Home board leads each side with a crest, not a club code", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/HomeTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  return /<BoardSide\b/.test(src) && /<Crest\s+club=\{crest\}/.test(src);
+})());
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);

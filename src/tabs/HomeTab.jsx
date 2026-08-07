@@ -1,12 +1,34 @@
 import React, { useContext } from "react";
 import {
   CLUBS, CLUB_FIXTURES, EURO, FIXTURES_2627, LEAGUE_LORE, LIVE_WINDOW_MS, PREDICTOR_GW, STATUS_META, TRANSFERS,
-  nextLeagueFixture,
+  londonKickoffLabel, nextLeagueFixture,
 } from "../../data.js";
 import { ClubNavContext, Crest } from "../components/Crest.jsx";
 import { TvBadge } from "../components/TvBadge.jsx";
 import { CountUp } from "../components/CountUp.jsx";
 import { SURFACE, chalk, dim, faint } from "../lib/theme.js";
+
+// One side of the scoreboard. A Premiership club shows its crest, which is what the rest of
+// the app leads with; a European opponent isn't in CLUBS so Crest can't draw it, and that
+// side falls back to the derived code. The fallback is given the crest's exact height so the
+// two sides of the board stay on the same baseline either way.
+function BoardSide({ crest, code, name }) {
+  const CREST = 38;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 84 }}>
+      {crest ? <Crest club={crest} size={CREST} /> : (
+        <span style={{
+          fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, letterSpacing: "0.2em",
+          color: chalk, lineHeight: `${Math.round(CREST * 1.15)}px`,
+        }}>{code}</span>
+      )}
+      <span style={{
+        fontSize: 10.5, fontWeight: 700, color: dim, textTransform: "uppercase", letterSpacing: "0.04em", lineHeight: 1.15,
+        display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+      }}>{name}</span>
+    </div>
+  );
+}
 
 export function HomeView({ goTo }) {
   const openClub = useContext(ClubNavContext);
@@ -71,15 +93,23 @@ export function HomeView({ goTo }) {
   const board = heroFix
     ? {
         home: heroFix.club, away: oppCode(heroFix.opp), date: heroFix.date,
+        // Only the Premiership club has a crest; a European opponent falls back to its code.
+        homeCrest: heroFix.club, awayCrest: null,
         homeName: CLUBS[heroFix.club].name, awayName: stripVenueTag(heroFix.opp),
         homeColor: CLUBS[heroFix.club].colors[0],
         awayColor: EURO.find((e) => e.club === heroFix.club)?.oppColor || null,
+        // Rendered from the tie's UTC dt, so it stays right either side of the clocks going back.
+        time: londonKickoffLabel(heroFix.dt),
         sub: `${CLUBS[heroFix.club].name} v ${heroFix.opp} · ${heroFix.comp}`,
       }
     : {
         home: leagueFix.h, away: leagueFix.a, date: leagueFix.date.replace(/^\w+\s+/, ""),
+        homeCrest: leagueFix.h, awayCrest: leagueFix.a,
         homeName: CLUBS[leagueFix.h].name, awayName: CLUBS[leagueFix.a].name,
         homeColor: CLUBS[leagueFix.h].colors[0], awayColor: CLUBS[leagueFix.a].colors[0],
+        // Past the last fixture the board is showing a game that has been played, so the
+        // kick-off time would be stating something that already happened.
+        time: leagueFix.done ? null : leagueFix.time || null,
         // "Opening night" is true exactly once. After that the board names the round, and
         // once the fixture list runs out it stops claiming anything is coming.
         sub: `${CLUBS[leagueFix.h].name} v ${CLUBS[leagueFix.a].name} · ${
@@ -107,24 +137,20 @@ export function HomeView({ goTo }) {
         )}
         <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 12 }}>Next match</div>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "center", gap: 18 }}>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, width: 84 }}>
-            <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, letterSpacing: "0.2em", color: chalk }}>{board.home}</span>
-            <span style={{
-              fontSize: 10.5, fontWeight: 700, color: dim, textTransform: "uppercase", letterSpacing: "0.04em", lineHeight: 1.15,
-              display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
-            }}>{board.homeName}</span>
+          <BoardSide crest={board.homeCrest} code={board.home} name={board.homeName} />
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+            <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 48, lineHeight: 1, color: "#FFB627", fontVariantNumeric: "tabular-nums", textShadow: "0 0 18px rgba(255,182,39,0.35)" }}>
+              {heroDate ? <><CountUp value={parseInt(heroDate[1], 10)} />{heroDate[2]}</> : board.date}
+              {heroDate && heroDate[3] && <span style={{ fontSize: 20, letterSpacing: "0.12em", color: dim }}>{heroDate[3].toUpperCase()}</span>}
+            </span>
+            {board.time && (
+              <span style={{
+                fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 19, lineHeight: 1,
+                letterSpacing: "0.08em", color: chalk, fontVariantNumeric: "tabular-nums",
+              }}>{board.time.toUpperCase()}</span>
+            )}
           </div>
-          <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 48, lineHeight: 1, color: "#FFB627", fontVariantNumeric: "tabular-nums", textShadow: "0 0 18px rgba(255,182,39,0.35)" }}>
-            {heroDate ? <><CountUp value={parseInt(heroDate[1], 10)} />{heroDate[2]}</> : board.date}
-            {heroDate && heroDate[3] && <span style={{ fontSize: 20, letterSpacing: "0.12em", color: dim }}>{heroDate[3].toUpperCase()}</span>}
-          </span>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, width: 84 }}>
-            <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, letterSpacing: "0.2em", color: chalk }}>{board.away}</span>
-            <span style={{
-              fontSize: 10.5, fontWeight: 700, color: dim, textTransform: "uppercase", letterSpacing: "0.04em", lineHeight: 1.15,
-              display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
-            }}>{board.awayName}</span>
-          </div>
+          <BoardSide crest={board.awayCrest} code={board.away} name={board.awayName} />
         </div>
         <div style={{ height: 2, width: 130, margin: "13px auto 9px", background: "#FFB627", opacity: 0.7, borderRadius: 1 }} />
         <div style={{ fontSize: 12, color: dim }}>{board.sub}</div>
