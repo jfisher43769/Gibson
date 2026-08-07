@@ -8,6 +8,7 @@ Video generators rendering **1080x1920 (9:16) MP4s** for X and TikTok, plus two 
 | `features.mjs` | `gibson-features.mp4` | Feature tour — nine cards showing what the app does, then what it deliberately doesn't have |
 | `preview.mjs` | `gibson-preview-<h>-<a>.mp4` | Match preview — kick-off, last season, tale of the tape, team news, the call |
 | `cards.mjs` | `gibson-card-*.png` | Five 1080x1350 stills: the round's fixtures, the headline tie, one number, the champions, the season |
+| `goal.mjs` | `gibson-goal-<fixture>-<min>.jpg` | Live goal graphic — scorer, minute and the score as it stands, in the scoring club's colours |
 | `poster.mjs` | `gibson-poster-<w>x<h>.png` / `.jpg` | Portrait season poster — headline type block, the season in four numbers, the twelve as a ranked list |
 
 All share `kit.js`, the drawing kit (shields, the Gibson Cup mark, impact type, sweeps, grain).
@@ -39,6 +40,29 @@ once the gameweek is rolled over it is a one-command job each week.
 share sheets and some uploaders choke on). It defaults to 2000x2800; `POSTER_W=2480
 POSTER_H=3508 node scripts/promo/poster.mjs` gives A4 at 300dpi. Everything is authored at
 2000 wide and scales from `S = W/2000`, so any size holds its proportions.
+
+## Goal graphics, mid-match
+
+```bash
+node scripts/promo/goal.mjs CLI "Ryan Curran" 23 1-0
+node scripts/promo/goal.mjs CRU "Jordan Forsythe" 67 1-1 PEN
+```
+
+Club code of whoever scored, the scorer, the minute, the score home-first, and an optional
+note (`PEN`, `OG`) that rides in the headline. Everything else — the fixture, the opponent,
+both sets of colours, the ground, the round — is looked up from `data.js`. The fixture is
+whichever of that club's unplayed games kicks off nearest to now, so mid-match it is the one
+on the telly. `NOW_MS` overrides that for testing.
+
+It refuses rather than guessing: unknown club, a minute outside 1–130, a scoreline that
+doesn't parse, or a club with no unplayed fixture all exit with a message. A goal graphic
+naming the wrong opponent is worse than no graphic, and nobody is checking one during a match.
+
+The scoring club's colours carry the design and their side of the scoreline stays bright while
+the other dims — that is the convention every club follows, and it is why a fan knows whose
+goal it is before reading a word.
+
+## The poster's headline
 
 The headline is a named option rather than a literal, because it is the one part of the poster
 that is a judgement call:
