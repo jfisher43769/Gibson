@@ -57,6 +57,21 @@ for (const r of rows) {
   if (r.suffix === "%" && r.h + r.a !== 100) die(`"${r.label}" is ${r.h}% + ${r.a}% = ${r.h + r.a}%, which doesn't add to 100.`);
 }
 if (rows.length > 7) die(`${rows.length} rows won't fit legibly — 7 is the most.`);
+// Shots have to reconcile: on target plus off target is total shots, by definition. When all
+// three rows are present that is a free check on the transcription, and it catches the digit
+// that got fumbled reading a phone at half time.
+const find = (re) => rows.find((r) => re.test(r.label));
+const totalShots = find(/^TOTAL SHOTS$/), onTarget = find(/ON TARGET$/), offTarget = find(/OFF TARGET$/);
+if (totalShots && onTarget && offTarget) {
+  // Named by side rather than by club: the club argument locates the fixture and may be
+  // either team, so calling it "home" here would be wrong half the time.
+  for (const [side, which] of [["h", "home"], ["a", "away"]]) {
+    const sum = onTarget[side] + offTarget[side];
+    if (sum !== totalShots[side]) {
+      die(`Shots don't reconcile on the ${which} side: ${onTarget[side]} on target + ${offTarget[side]} off = ${sum}, but total shots says ${totalShots[side]}.`);
+    }
+  }
+}
 
 const now = Number(process.env.NOW_MS) || Date.now();
 let fixture = null;
