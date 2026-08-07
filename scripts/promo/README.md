@@ -8,7 +8,7 @@ Video generators rendering **1080x1920 (9:16) MP4s** for X and TikTok, plus two 
 | `features.mjs` | `gibson-features.mp4` | Feature tour — nine cards showing what the app does, then what it deliberately doesn't have |
 | `preview.mjs` | `gibson-preview-<h>-<a>.mp4` | Match preview — kick-off, last season, tale of the tape, team news, the call |
 | `cards.mjs` | `gibson-card-*.png` | Five 1080x1350 stills: the round's fixtures, the headline tie, one number, the champions, the season |
-| `poster.mjs` | `gibson-poster-<w>x<h>.png` / `.jpg` | Portrait season poster — the cup on its plinth, the twelve beneath it in finishing order |
+| `poster.mjs` | `gibson-poster-<w>x<h>.png` / `.jpg` | Portrait season poster — headline type block, the season in four numbers, the twelve as a ranked list |
 
 All share `kit.js`, the drawing kit (shields, the Gibson Cup mark, impact type, sweeps, grain).
 
@@ -39,6 +39,18 @@ once the gameweek is rolled over it is a one-command job each week.
 share sheets and some uploaders choke on). It defaults to 2000x2800; `POSTER_W=2480
 POSTER_H=3508 node scripts/promo/poster.mjs` gives A4 at 300dpi. Everything is authored at
 2000 wide and scales from `S = W/2000`, so any size holds its proportions.
+
+Two things in it are easy to get wrong if you edit it:
+
+- **`FULL_TABLE` is in finishing order, not points order.** The league splits after round 33,
+  so Carrick finished 7th on 53 points below Dungannon's 6th on 46. The array index is the
+  position; re-sorting by `pts` would renumber half the league. A club missing from that
+  table can only have come up, so it gets `NEW` rather than an invented finishing position —
+  numbering Limavady 12th would be a fabricated stat.
+- **The season is 38 rounds, not 33.** `FIXTURES_2627` holds only the pre-split phase, because
+  the post-split fixtures don't exist until March. The poster adds `POST_SPLIT_DATES` to get
+  38 rounds / 228 matches. A preflight throws if any round stops being `clubs / 2` matches,
+  so the arithmetic can't quietly go wrong.
 
 ### Why the poster is drawn, not edited
 

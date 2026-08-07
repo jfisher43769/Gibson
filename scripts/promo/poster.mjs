@@ -1,14 +1,17 @@
-// GIBSON — season poster (portrait PNG).
+// GIBSON — season poster (portrait PNG + JPEG).
 //
 //   node scripts/promo/poster.mjs            # 2000x2800
 //   POSTER_W=2480 POSTER_H=3508 node scripts/promo/poster.mjs   # A4 at 300dpi
 //
-// A GIBSON-native answer to the league's launch photograph: twelve clubs lined up either
-// side of the cup. Drawn entirely from our own marks and data.js — no third-party
-// photograph, and no bookmaker branding, which is why it is drawn rather than edited.
-// The plinth in the press shot carries a bookmaker's logo; CLAUDE.md rule 2 keeps those off
-// anything GIBSON publishes, and it cannot be cropped out of that photo because the trophy
-// sits directly on top of it. Here the plinth is ours.
+// A GIBSON-native answer to the league's launch photograph, which we can't use: the plinth
+// under the trophy carries two bookmaker logos and they sit directly beneath the cup, so no
+// crop removes them (CLAUDE.md golden rule 2). This is drawn from our own marks and data.js.
+//
+// Design notes, because the first version got this wrong: it is an editorial poster, not a
+// diagram. Flush-left type block, a hairline rule system, one accent colour, and the twelve
+// set as a ranked list — the thing GIBSON actually is. The cup appears once as a large ghost
+// behind the headline and once small in the footer lockup, because it is an icon and icons
+// do not survive being blown up to fill a poster.
 
 import { chromium } from "playwright";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -30,157 +33,225 @@ mkdirSync(OUT_DIR, { recursive: true });
 
 const D = await import(`file://${REPO}/data.js`);
 
-// Clubs in the order the league finished last season, champions first — the line-up reads
-// as a table rather than an arbitrary order. A promoted club with no finishing position
-// goes on the end rather than being dropped.
+// FULL_TABLE is last season's final table in finishing order — note it is NOT sorted by
+// points, because the league splits in two after 33 rounds: Carrick finished 7th on 53
+// points, below Dungannon's 6th on 46. So the array index is the finishing position and
+// re-sorting it here would be wrong.
 const current = [...new Set(D.FIXTURES_2627.flatMap((r) => r.matches.flatMap((m) => [m.h, m.a])))];
-const placed = D.FULL_TABLE.map((r) => r.club).filter((c) => current.includes(c));
-const order = [...placed, ...current.filter((c) => !placed.includes(c))];
-if (order.length !== current.length) throw new Error("club ordering lost a club");
+const finished = new Map(D.FULL_TABLE.map((r, i) => [r.club, i + 1]).filter(([c]) => current.includes(c)));
 
+// A club absent from last season's table can only have come up, so it gets "NEW" rather than
+// a made-up finishing position. Numbering Limavady 12th would be inventing a statistic.
+const ranked = [...current].sort((a, b) => (finished.get(a) || 99) - (finished.get(b) || 99));
+
+const WORDS = { 10: "TEN", 11: "ELEVEN", 12: "TWELVE", 13: "THIRTEEN", 14: "FOURTEEN", 16: "SIXTEEN" };
+if (!WORDS[current.length]) throw new Error(`no headline word for ${current.length} clubs`);
+
+// FIXTURES_2627 only holds the 33 rounds before the split — the post-split fixtures can't
+// exist until the split is decided in March. So the season is longer than that file: after
+// round 33 the league halves and each six plays five more rounds (POST_SPLIT_DATES), which
+// is why every club plays 38 and not 33. Printing 33 on a poster would be wrong to anyone
+// who follows this league. Both totals are derived, and the preflight below fails the render
+// if the shape that makes the arithmetic true ever changes.
+const perRound = new Set(D.FIXTURES_2627.map((r) => r.matches.length));
+if (perRound.size !== 1 || [...perRound][0] !== current.length / 2) {
+  throw new Error(`expected every round to be ${current.length / 2} matches, saw ${[...perRound].join("/")}`);
+}
+if (!D.POST_SPLIT_DATES?.length) throw new Error("POST_SPLIT_DATES is empty — cannot derive the season length");
+const rounds = D.FIXTURES_2627.length + D.POST_SPLIT_DATES.length;
+const matches = rounds * (current.length / 2);
 const facts = {
-  clubs: order.map((c) => ({ code: c, ...D.CLUBS[c] })),
+  clubs: ranked.map((c) => ({ code: c, pos: finished.get(c) || null, ...D.CLUBS[c] })),
   champion: D.FULL_TABLE[0].club,
+  clubWord: WORDS[current.length],
   season: D.SEASON.current.display,
+  prevSeason: D.SEASON.previous.display,
   start: D.seasonStartDisplay(),
-  rounds: D.FIXTURES_2627.length,
+  rounds,
+  matches,
 };
-console.log(`poster ${W}x${H} — ${facts.clubs.length} clubs, champions ${facts.champion}`);
+for (const c of facts.clubs) if (!c.name || !c.ground || !c.colors) throw new Error(`club ${c.code} is missing name/ground/colors`);
+console.log(`poster ${W}x${H} — ${facts.clubs.length} clubs, champions ${facts.champion}, ${matches} matches`);
 
 const kit = readFileSync(join(HERE, "kit.js"), "utf8");
 const f800 = readFileSync(join(FONT_DIR, "barlow-condensed-latin-800-normal.woff2")).toString("base64");
 const f600 = readFileSync(join(FONT_DIR, "barlow-condensed-latin-600-normal.woff2")).toString("base64");
+const f400 = readFileSync(join(FONT_DIR, "barlow-condensed-latin-400-normal.woff2")).toString("base64");
 
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>
 @font-face{font-family:"Barlow Condensed";font-weight:800;src:url(data:font/woff2;base64,${f800}) format("woff2")}
 @font-face{font-family:"Barlow Condensed";font-weight:600;src:url(data:font/woff2;base64,${f600}) format("woff2")}
+@font-face{font-family:"Barlow Condensed";font-weight:400;src:url(data:font/woff2;base64,${f400}) format("woff2")}
 html,body{margin:0;background:#000}canvas{display:block}
 </style></head><body><canvas id="c" width="${W}" height="${H}"></canvas><script>
 const W=${W},H=${H};
 const cv=document.getElementById('c'),ctx=cv.getContext('2d',{alpha:false});
 ${kit}
 const F=${JSON.stringify(facts)};
-const S=W/2000; // everything below is authored at 2000 wide and scales from there
 
-// Two depths: the cup stands on the halfway line, the twelve stand nearer the camera.
-const HORIZON=H*0.60, LINE_Y=H*0.715;
+// Authored at 2000x2800. S scales anything measured in width, Y maps a design-space y.
+const S=W/2000, Y=v=>v*(H/2800);
+const M=150*S, IW=W-M*2;
+const INK='#EDF5EF', MUTE='rgba(237,245,239,0.44)', DIM='rgba(237,245,239,0.52)', FAINT='rgba(237,245,239,0.13)';
 
-// ---- Ground ---------------------------------------------------------------------------
-// An overcast sky over a mown pitch, suggested rather than depicted: the point is a stage
-// for the shields, not a drawing of a stadium.
+// ---- type -------------------------------------------------------------------------------
+// Deliberately not kit.js's slam(): that carries a mandatory drop shadow, which is right for
+// type sitting over a moving colour sweep and wrong for a still poster. Clean type here.
+function measure(s,size,weight,track){
+  ctx.font=weight+' '+size+'px "Barlow Condensed"';
+  let w=0; for(const c of [...s]) w+=ctx.measureText(c).width+track;
+  return [...s].length?w-track:0;
+}
+function T(s,x,y,o){
+  o=o||{};
+  const size=o.size||40*S, weight=o.weight||600, track=o.track||0;
+  const w=measure(s,size,weight,track);
+  ctx.textBaseline=o.baseline||'alphabetic';
+  ctx.fillStyle=o.color||INK;
+  let px=o.align==='right'?x-w:o.align==='center'?x-w/2:x;
+  for(const c of [...s]){ ctx.fillText(c,px,y); px+=ctx.measureText(c).width+track; }
+  return w;
+}
+// Largest size at or below 'start' that keeps the string inside maxW.
+function fit(s,weight,maxW,start,track){
+  let size=start;
+  while(size>8 && measure(s,size,weight,track||0)>maxW) size-=Math.max(1,size*0.02);
+  return size;
+}
+function rule(x1,x2,y,color,thick){
+  ctx.fillStyle=color||FAINT; ctx.fillRect(x1,y,x2-x1,thick||2*S);
+}
+
+// ---- ground -----------------------------------------------------------------------------
+// Near-black, faintly green. The first version put a drawn pitch behind everything; mown
+// stripes at poster scale are just noise, and they muddied every colour on top of them.
 function ground(){
-  const horizon=HORIZON;
-  const sky=ctx.createLinearGradient(0,0,0,horizon);
-  sky.addColorStop(0,'#0B1512'); sky.addColorStop(0.55,'#12211B'); sky.addColorStop(1,'#1B2E25');
-  ctx.fillStyle=sky; ctx.fillRect(0,0,W,horizon);
-
-  const turf=ctx.createLinearGradient(0,horizon,0,H);
-  turf.addColorStop(0,'#1E3A2A'); turf.addColorStop(0.45,'#162C20'); turf.addColorStop(1,'#0C1710');
-  ctx.fillStyle=turf; ctx.fillRect(0,horizon,W,H-horizon);
-
-  // Mown stripes, converging slightly so the pitch reads as receding.
-  ctx.save(); ctx.beginPath(); ctx.rect(0,horizon,W,H-horizon); ctx.clip();
-  for(let i=-2;i<14;i++){
-    if(i%2)continue;
-    const topX=(i/12)*W, botX=((i-2.2)/12)*W*1.5;
-    ctx.beginPath();
-    ctx.moveTo(topX,horizon); ctx.lineTo(topX+W/12,horizon);
-    ctx.lineTo(botX+W/8,H); ctx.lineTo(botX,H); ctx.closePath();
-    ctx.fillStyle='rgba(255,255,255,0.018)'; ctx.fill();
-  }
-  ctx.restore();
-
-  // Halfway line under the plinth, and the glow the cup throws.
-  ctx.fillStyle='rgba(237,245,239,0.07)'; ctx.fillRect(0,horizon-2*S,W,3*S);
-  const g=ctx.createRadialGradient(W/2,H*0.44,10,W/2,H*0.44,W*0.56);
-  g.addColorStop(0,'rgba(255,182,39,0.20)'); g.addColorStop(1,'rgba(255,182,39,0)');
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#08110E'); g.addColorStop(0.52,'#0B1815'); g.addColorStop(1,'#060C0A');
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  const warm=ctx.createRadialGradient(W*0.72,Y(760),10,W*0.72,Y(760),W*0.85);
+  warm.addColorStop(0,'rgba(255,182,39,0.13)'); warm.addColorStop(1,'rgba(255,182,39,0)');
+  ctx.fillStyle=warm; ctx.fillRect(0,0,W,H);
 }
 
-// ---- The plinth -----------------------------------------------------------------------
-// The press photo's plinth carries a bookmaker's logo. This one carries ours.
-function plinth(cx,topY,w,h){
-  const g=ctx.createLinearGradient(cx-w/2,topY,cx+w/2,topY+h);
-  g.addColorStop(0,'#16261E'); g.addColorStop(0.5,'#1E3428'); g.addColorStop(1,'#101C16');
-  ctx.beginPath(); ctx.roundRect(cx-w/2,topY,w,h,10*S); ctx.fillStyle=g; ctx.fill();
-  ctx.lineWidth=3*S; ctx.strokeStyle='rgba(255,182,39,0.45)'; ctx.stroke();
-  // Front face bevel
-  ctx.beginPath(); ctx.moveTo(cx-w/2,topY); ctx.lineTo(cx+w/2,topY);
-  ctx.lineWidth=2*S; ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.stroke();
-  const s=fitFont('GIBSON',800,w-30*S,52*S);
-  ctx.font='800 '+s+'px "Barlow Condensed"'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillStyle=GOLD; ctx.fillText('GIBSON',cx,topY+h*0.42);
-  const s2=fitFont('IRISH LEAGUE STATS',600,w-30*S,24*S);
-  ctx.font='600 '+s2+'px "Barlow Condensed"';
-  ctx.fillStyle='rgba(237,245,239,0.5)'; ctx.fillText('IRISH LEAGUE STATS',cx,topY+h*0.68);
+// The cup as a ghost: flat gold at low alpha, oversized and bleeding off the right edge, so
+// it reads as a watermark rather than as the clipart it becomes at full contrast.
+function ghostCup(cx,cy,size,alpha){
+  const sc=size/200;
+  ctx.save(); ctx.globalAlpha=alpha;
+  ctx.translate(cx-size/2,cy-size/2); ctx.scale(sc,sc);
+  ctx.fillStyle=GOLD;
+  CUP.forEach(p=>ctx.fill(p));
+  ctx.fillRect(92,114,16,15); ctx.fillRect(70,132,60,10); ctx.fillRect(57,145,86,10); ctx.fillRect(43,158,114,10);
+  ctx.restore();
 }
 
-// A club "standing" on the line: shield with its name beneath, wrapped to two lines so
-// Dungannon Swifts and Ballymena United do not run into their neighbours.
-function standing(club,cx,baseY,shieldH,slotW,isChampion){
-  if(isChampion){ // a quiet gold pool under the champions, no badge or label needed
-    const g=ctx.createRadialGradient(cx,baseY+6*S,2,cx,baseY+6*S,slotW*0.62);
-    g.addColorStop(0,'rgba(255,182,39,0.30)'); g.addColorStop(1,'rgba(255,182,39,0)');
-    ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(cx,baseY+6*S,slotW*0.62,16*S,0,0,7); ctx.fill();
+// A club's colours as a chip: primary over secondary. Two flat bars carry a kit better at
+// this size than a 40px shield does, and they make no claim to be anybody's crest.
+function chip(club,x,y,w,h){
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(x,y,w,h,4*S); ctx.clip();
+  ctx.fillStyle=club.colors[0]; ctx.fillRect(x,y,w,h);
+  ctx.fillStyle=club.colors[1]; ctx.fillRect(x,y+h*0.62,w,h*0.38);
+  ctx.restore();
+  ctx.beginPath(); ctx.roundRect(x,y,w,h,4*S);
+  ctx.lineWidth=1.5*S; ctx.strokeStyle='rgba(237,245,239,0.22)'; ctx.stroke();
+}
+
+// ---- one row of the ranked list ---------------------------------------------------------
+function clubRow(club,x,y,colW,rowH){
+  const isChamp=club.code===F.champion;
+  const mid=y+rowH/2;
+  if(isChamp){
+    const g=ctx.createLinearGradient(x-20*S,0,x+colW,0);
+    g.addColorStop(0,'rgba(255,182,39,0.11)'); g.addColorStop(1,'rgba(255,182,39,0)');
+    ctx.fillStyle=g; ctx.fillRect(x-20*S,y,colW+20*S,rowH);
   }
-  // Contact shadow so the shields sit on the grass instead of floating over it.
-  ctx.save(); ctx.globalAlpha=0.5;
-  ctx.beginPath(); ctx.ellipse(cx,baseY+5*S,shieldH*0.30,7*S,0,0,7);
-  ctx.fillStyle='rgba(0,0,0,0.65)'; ctx.fill(); ctx.restore();
+  // Position, right-aligned so 1 and 12 share a spine.
+  const numX=x+56*S;
+  if(club.pos!=null) T(String(club.pos),numX,mid,{size:46*S,weight:800,align:'right',baseline:'middle',color:isChamp?GOLD:'rgba(237,245,239,0.55)'});
+  else T('NEW',numX,mid,{size:26*S,weight:800,align:'right',baseline:'middle',color:GOLD,track:1.5*S});
 
-  shield(club,cx,baseY-shieldH/2,shieldH);
+  chip(club,x+82*S,mid-34*S,16*S,68*S);
 
-  // Two-word names always break, so Carrick Rangers and Ballymena United are set at the
-  // same size as Larne instead of being squeezed to fit their slot on one line.
-  const words=club.name.toUpperCase().split(' ');
-  const lines=words.length>1?[words[0],words.slice(1).join(' ')]:[words[0]];
-  lines.forEach((ln,i)=>{
-    const fs=fitFont(ln,600,slotW-10*S,24*S);
-    ctx.font='600 '+fs+'px "Barlow Condensed"';
-    ctx.textAlign='center'; ctx.textBaseline='alphabetic';
-    ctx.fillStyle=isChampion?GOLD:'rgba(237,245,239,0.78)';
-    ctx.fillText(ln,cx,baseY+34*S+i*24*S);
-  });
+  const nameX=x+124*S;
+  const nameSize=fit(club.name.toUpperCase(),800,colW*0.62,58*S,0);
+  let cursor=nameX+T(club.name.toUpperCase(),nameX,mid,{size:nameSize,weight:800,baseline:'middle',color:isChamp?GOLD:INK});
+  if(isChamp) cursor+=26*S+T('CHAMPIONS',cursor+26*S,mid-2*S,{size:24*S,weight:800,baseline:'middle',color:GOLD,track:4*S});
+
+  // Ground flush right, shrunk to whatever the name left behind so nothing ever collides.
+  const room=(x+colW)-cursor-36*S;
+  if(room>60*S){
+    const gs=fit(club.ground.toUpperCase(),600,room,30*S,3*S);
+    T(club.ground.toUpperCase(),x+colW,mid,{size:gs,weight:600,align:'right',baseline:'middle',color:DIM,track:3*S});
+  }
+  rule(x,x+colW,y+rowH-2*S);
 }
 
 function draw(){
   ground();
+  // Whole cup, not a crop of one: bled off the edge it showed only its stepped base, which
+  // read as three unexplained bars behind the headline.
+  ghostCup(W*0.74,Y(645),1320*S,0.07);
 
-  // ---- headline ----
-  slam('TWELVE CLUBS',W/2,H*0.115,170*S,CHALK,0,800,W-140*S);
-  slam('ONE CUP',W/2,H*0.192,225*S,GOLD,0,800,W-140*S);
-  slam('THE IRISH LEAGUE · '+F.season,W/2,H*0.253,46*S,'rgba(237,245,239,0.7)',0,600,W-200*S,10*S);
+  // ---- masthead ----
+  T('GIBSON',M,Y(168),{size:52*S,weight:800,color:GOLD,track:10*S});
+  T('THE IRISH LEAGUE',W-M,Y(168),{size:32*S,weight:600,align:'right',color:MUTE,track:9*S});
+  rule(M,W-M,Y(205),'rgba(237,245,239,0.22)',3*S);
 
-  // ---- the cup, standing ON its plinth on the halfway line ----
-  // Flanking the plinth with six shields a side caps the cup at ~680px before the shields
-  // start colliding. Putting the twelve in one row downstage instead frees the full width
-  // for both: a cup that dominates, and badges big enough to read.
-  const plinthH=170*S, plinthW=560*S;
-  const plinthTop=HORIZON-plinthH, cupSize=900*S;
-  // The cup mark's base sits at 0.84 of its box, so this lands it ON the plinth rather
-  // than floating above it.
-  cup(W/2,plinthTop-cupSize*0.34,cupSize);
-  plinth(W/2,plinthTop,plinthW,plinthH);
+  // ---- eyebrow ----
+  T('SEASON '+F.season,M,Y(292),{size:36*S,weight:600,color:INK,track:10*S});
+  T('FIRST WHISTLE · '+F.start.toUpperCase(),W-M,Y(292),{size:36*S,weight:600,align:'right',color:GOLD,track:10*S});
 
-  // ---- the twelve, in last season's finishing order, left to right ----
-  const slotW=(W-80*S)/F.clubs.length;
+  // ---- headline: one size, flush left, ragged right ----
+  const lines=[F.clubWord,'CLUBS.','ONE CUP.'];
+  let hs=440*S;
+  for(const l of lines) hs=Math.min(hs,fit(l,800,IW,hs,0));
+  const lead=hs*0.78;
+  let by=Y(380)+hs*0.715;
+  lines.forEach((l,i)=>{
+    T(l,M,by,{size:hs,weight:800,color:i===2?GOLD:INK});
+    by+=lead;
+  });
+
+  // ---- the season in four numbers ----
+  const stripY=Y(1495);
+  rule(M,W-M,stripY,'rgba(237,245,239,0.22)',3*S);
+  const cells=[[String(F.clubs.length),'CLUBS'],[String(F.rounds),'ROUNDS'],[String(F.matches),'MATCHES'],['1','CUP']];
+  const cw=IW/cells.length;
+  cells.forEach(([n,lbl],i)=>{
+    const cx=M+cw*i;
+    if(i){ ctx.fillStyle=FAINT; ctx.fillRect(cx-1*S,stripY+22*S,2*S,Y(118)); }
+    T(n,cx+30*S,stripY+Y(132),{size:124*S,weight:800,color:GOLD});
+    T(lbl,cx+30*S,stripY+Y(178),{size:32*S,weight:600,color:MUTE,track:8*S});
+  });
+  rule(M,W-M,Y(1700),'rgba(237,245,239,0.22)',3*S);
+
+  // ---- the twelve ----
+  T('THE '+F.clubWord,M,Y(1772),{size:38*S,weight:800,color:INK,track:8*S});
+  T(F.prevSeason+' FINISH · HOME GROUND',W-M,Y(1772),{size:28*S,weight:600,align:'right',color:MUTE,track:7*S});
+
+  const gutter=90*S, colW=(IW-gutter)/2, rowH=Y(110), top=Y(1820);
+  const per=Math.ceil(F.clubs.length/2);
   F.clubs.forEach((c,i)=>{
-    const cx=40*S+slotW*(i+0.5);
-    standing(c,cx,LINE_Y,150*S,slotW,c.code===F.champion);
+    const col=i<per?0:1, idx=i<per?i:i-per;
+    clubRow(c,M+col*(colW+gutter),top+idx*rowH,colW,rowH);
   });
 
   // ---- footer ----
-  slam(F.rounds+' ROUNDS · STARTS '+F.start.toUpperCase(),W/2,H*0.808,54*S,CHALK,0,600,W-240*S,8*S);
-  const wm=W/2+46*S;
-  cup(wm-262*S,H*0.888,82*S);
-  slam('GIBSONSTATS.COM',wm,H*0.888,70*S,GOLD,0,800,W*0.58);
-  slam('THE HOME OF IRISH LEAGUE STATS',W/2,H*0.938,34*S,'rgba(237,245,239,0.45)',0,600,W-300*S,8*S);
+  rule(M,W-M,Y(2545),'rgba(255,182,39,0.45)',3*S);
+  cup(M+38*S,Y(2632),78*S);
+  T('GIBSONSTATS.COM',M+92*S,Y(2652),{size:62*S,weight:800,color:GOLD,track:3*S});
+  T('THE HOME OF IRISH LEAGUE STATS',W-M,Y(2652),{size:30*S,weight:600,align:'right',color:MUTE,track:7*S});
 
-  ctx.drawImage(scan,0,0); grain(7,0.020); vignette();
+  grain(11,0.016);
+  vignette();
 }
 
 window.__render=()=>{draw();return [cv.toDataURL('image/png'),cv.toDataURL('image/jpeg',0.94)]};
-window.__ready=document.fonts.ready.then(()=>document.fonts.load('800 200px "Barlow Condensed"')).then(()=>document.fonts.load('600 60px "Barlow Condensed"')).then(()=>true);
+window.__ready=document.fonts.ready
+  .then(()=>Promise.all([document.fonts.load('800 200px "Barlow Condensed"'),document.fonts.load('600 60px "Barlow Condensed"'),document.fonts.load('400 40px "Barlow Condensed"')]))
+  .then(()=>true);
 </script></body></html>`;
 
 const PW_CHROME = "/opt/pw-browsers/chromium";
