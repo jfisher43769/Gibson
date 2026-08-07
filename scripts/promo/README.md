@@ -1,6 +1,6 @@
-# Promo video generators
+# Promo generators
 
-Two social-video generators that render **1080x1920 (9:16) MP4s** for X and TikTok:
+Video generators rendering **1080x1920 (9:16) MP4s** for X and TikTok, plus two still sets:
 
 | Script | Output | What it is |
 |---|---|---|
@@ -8,8 +8,9 @@ Two social-video generators that render **1080x1920 (9:16) MP4s** for X and TikT
 | `features.mjs` | `gibson-features.mp4` | Feature tour — nine cards showing what the app does, then what it deliberately doesn't have |
 | `preview.mjs` | `gibson-preview-<h>-<a>.mp4` | Match preview — kick-off, last season, tale of the tape, team news, the call |
 | `cards.mjs` | `gibson-card-*.png` | Five 1080x1350 stills: the round's fixtures, the headline tie, one number, the champions, the season |
+| `poster.mjs` | `gibson-poster-<w>x<h>.png` / `.jpg` | Portrait season poster — the cup on its plinth, the twelve beneath it in finishing order |
 
-Both share `kit.js`, the drawing kit (shields, the Gibson Cup mark, impact type, sweeps, grain).
+All share `kit.js`, the drawing kit (shields, the Gibson Cup mark, impact type, sweeps, grain).
 
 ## Running one
 
@@ -34,13 +35,26 @@ render as if it were another moment — useful for previewing next week's set ea
 `preview.mjs` with no arguments previews the first fixture of the current `PREDICTOR_GW`, so
 once the gameweek is rolled over it is a one-command job each week.
 
+`poster.mjs` writes both a PNG (to print) and a JPEG (to post — the PNG is ~5MB, which phone
+share sheets and some uploaders choke on). It defaults to 2000x2800; `POSTER_W=2480
+POSTER_H=3508 node scripts/promo/poster.mjs` gives A4 at 300dpi. Everything is authored at
+2000 wide and scales from `S = W/2000`, so any size holds its proportions.
+
+### Why the poster is drawn, not edited
+
+It exists as an answer to the league's launch photograph, which GIBSON cannot use: the plinth
+under the trophy carries two large bookmaker logos, they sit directly beneath the cup so no
+crop removes them, and CLAUDE.md golden rule 2 keeps bookmaker branding off anything GIBSON
+publishes. (It is also an NIFL press photo, which is a separate permission question.) So the
+plinth here is ours and carries our name.
+
 Videos land in `promo-out/` (gitignored). Override with `PROMO_OUT=/some/dir`.
 
 Rendering takes a couple of minutes — every frame is drawn and encoded individually.
 
 ## Why the numbers are always right
 
-**Nothing on screen is typed into these scripts.** Both import `data.js` and read the real
+**Nothing on screen is typed into these scripts.** They all import `data.js` and read the real
 values — the season start date, the twelve clubs, the champions and their points, round one's
 fixtures, player ratings, xG, transfers, capacity, travel miles. Change `data.js`, re-render,
 and the video follows. That is the point: a promo that contradicts the app is exactly the kind
@@ -100,7 +114,7 @@ remove the `odds` section from the timeline.
 **No audio.** These render silent by design — add a trending sound in TikTok/CapCut, which the
 algorithm favours anyway. Cuts land every 1.5–2s, so most tracks sync fine.
 
-**Generated shields, not real crests.** Both videos use GIBSON's own shields for every club,
+**Generated shields, not real crests.** Every one of these uses GIBSON's own shields for each club,
 including clubs whose real crest ships in `public/crests/`. That is deliberate. The crest
 permissions recorded in `CRESTS.md` are for *editorial and identification use* with *no implied
 endorsement* — a promo ending on a gibsonstats.com call-to-action is marketing, which is a

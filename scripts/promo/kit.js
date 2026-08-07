@@ -71,8 +71,14 @@ function shield(club, cx, cy, h) {
   else ctx.fillRect(3, 24, 34, 2);
   ctx.restore();
   ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(237,245,239,0.35)'; ctx.stroke(SHIELD);
-  ctx.fillStyle = contrastText(club.colors[0]);
+  // The code is contrasted against the primary colour, but a stripe or sleeve in the
+  // secondary can sit directly behind it — Coleraine's white on white. A shadow in the
+  // opposite tone keeps it readable whatever it lands on.
+  const ink = contrastText(club.colors[0]);
   ctx.font = '800 10px "Barlow Condensed"'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.shadowColor = ink === CHALK ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.85)';
+  ctx.shadowBlur = 2.5;
+  ctx.fillStyle = ink;
   ctx.fillText(club.code, 20, 24);
   ctx.restore();
 }
