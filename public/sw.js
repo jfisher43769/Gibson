@@ -1,7 +1,7 @@
 // Bumping this string ships a byte-changed worker, so every browser detects a new SW,
 // installs it, and runs activate() below to purge the previous cache. That is what
 // unsticks a device that cached an older build (the "new domain shows the old page" bug).
-const CACHE = "gibson-v3";
+const CACHE = "gibson-v4";
 
 self.addEventListener("install", (e) => {
   self.skipWaiting();
@@ -18,6 +18,15 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET") return;
+
+  // /media/ is the download shelf — big one-off images and video meant to be SAVED, not
+  // browsed. Leave those requests entirely alone: a service-worker-served response breaks
+  // Chrome's download manager on Android (the download re-requests the URL and fails), and
+  // cache.put() rejects outright on the 206 partial responses video playback issues. It
+  // also has no business putting a 4MB file in the offline cache for an app that works
+  // without it. Passing through means the browser handles them exactly as it would with no
+  // worker installed.
+  if (new URL(req.url).pathname.startsWith("/media/")) return;
 
   // Page navigations (the HTML shell) must always come from the network, bypassing the
   // browser's HTTP cache — the shell is what points at the current hashed JS bundle, so a
