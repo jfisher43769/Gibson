@@ -3,6 +3,7 @@ import {
   CLUBS, CLUB_FIXTURES, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, seasonLabel, seasonStatus,
 } from "../../data.js";
 import { Crest } from "../components/Crest.jsx";
+import { TvBadge } from "../components/TvBadge.jsx";
 import { SeasonStrip } from "../components/SeasonSwitch.jsx";
 import { OddsDisclaimer, OddsStrip } from "../components/Odds.jsx";
 import { OfflineNote } from "../components/OfflineNote.jsx";
@@ -405,6 +406,7 @@ export function FixturesView({ fixedClub } = {}) {
           home: m.h === club,
           opp: m.h === club ? m.a : m.h,
           venue: CLUBS[m.h].ground,
+          tv: m.tv || null,
         });
       }
     }
@@ -448,23 +450,39 @@ export function FixturesView({ fixedClub } = {}) {
               }} aria-label="Next round">›</button>
             </div>
             <div key={r.round} style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden", marginBottom: 10, animation: "riseIn 0.28s ease-out" }}>
-              {r.matches.map((m, i) => (
-                <div key={i} style={{
-                  display: "flex", alignItems: "center", padding: "12px 14px",
-                  borderBottom: i < r.matches.length - 1 ? `1px solid ${faint}` : "none",
-                  background: i % 2 ? "rgba(240,255,245,0.02)" : "transparent",
-                }}>
-                  <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, justifyContent: "flex-end" }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: chalk, textAlign: "right" }}>{CLUBS[m.h].name}</span>
-                    <Crest club={m.h} size={19} />
+              {r.matches.map((m, i) => {
+                // A match can sit outside its round's default slot — a Friday night pick
+                // inside a Saturday round. Until now nothing said so: the row showed only
+                // the two clubs and the round header carried the only date, so a moved
+                // fixture looked like it kicked off with the rest.
+                const moved = Boolean(m.d || m.t);
+                const meta = [m.d, m.t].filter(Boolean).join(" · ");
+                return (
+                  <div key={i} style={{
+                    display: "flex", flexDirection: "column", gap: 5, padding: "12px 14px",
+                    borderBottom: i < r.matches.length - 1 ? `1px solid ${faint}` : "none",
+                    background: i % 2 ? "rgba(240,255,245,0.02)" : "transparent",
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, justifyContent: "flex-end" }}>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: chalk, textAlign: "right" }}>{CLUBS[m.h].name}</span>
+                        <Crest club={m.h} size={19} />
+                      </div>
+                      <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#FFB627", padding: "0 12px" }}>V</span>
+                      <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
+                        <Crest club={m.a} size={19} />
+                        <span style={{ fontSize: 13, fontWeight: 600, color: chalk }}>{CLUBS[m.a].name}</span>
+                      </div>
+                    </div>
+                    {(moved || m.tv) && (
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
+                        {moved && <span style={{ fontSize: 12, color: dim }}>{meta}</span>}
+                        <TvBadge tv={m.tv} />
+                      </div>
+                    )}
                   </div>
-                  <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, color: "#FFB627", padding: "0 12px" }}>V</span>
-                  <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
-                    <Crest club={m.a} size={19} />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: chalk }}>{CLUBS[m.a].name}</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <div style={{ fontSize: 12, color: dim, lineHeight: 1.5, marginBottom: 6 }}>
               {r.matches.some((m) => m.d) ? "Highlighted dates: " + r.matches.filter((m) => m.d).map((m) => `${CLUBS[m.h].name} v ${CLUBS[m.a].name} (${m.d}${m.t ? " · " + m.t : ""})`).join(" · ") + ". Others " + r.date + ", 3pm." : `All matches ${r.date}, 3pm unless rearranged.`}
@@ -576,7 +594,10 @@ export function FixturesView({ fixedClub } = {}) {
               <div style={{ fontSize: 13, fontWeight: 600, color: chalk }}>
                 {CLUBS[f.opp].name} <span style={{ color: f.home ? "#3DDC84" : dim, fontSize: 12, fontWeight: 700 }}>{f.home ? "(H)" : "(A)"}</span>
               </div>
-              <div style={{ fontSize: 12, color: dim, marginTop: 2 }}>Round {f.round} · {f.venue}</div>
+              <div style={{ fontSize: 12, color: dim, marginTop: 2, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                <span>Round {f.round} · {f.venue}</span>
+                <TvBadge tv={f.tv} />
+              </div>
             </div>
           </div>
         ))}

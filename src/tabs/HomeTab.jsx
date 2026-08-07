@@ -4,6 +4,7 @@ import {
   nextLeagueFixture,
 } from "../../data.js";
 import { ClubNavContext, Crest } from "../components/Crest.jsx";
+import { TvBadge } from "../components/TvBadge.jsx";
 import { CountUp } from "../components/CountUp.jsx";
 import { SURFACE, chalk, dim, faint } from "../lib/theme.js";
 
@@ -84,6 +85,7 @@ export function HomeView({ goTo }) {
         sub: `${CLUBS[leagueFix.h].name} v ${CLUBS[leagueFix.a].name} · ${
           leagueFix.done ? "Final round" : leagueFix.round === 1 ? "Premiership opening night" : `Premiership round ${leagueFix.round}`
         }`,
+        tv: leagueFix.tv || null,
       };
   const heroDate = board.date.match(/^(\d+)(\S*)(.*)$/);
   return (
@@ -126,6 +128,11 @@ export function HomeView({ goTo }) {
         </div>
         <div style={{ height: 2, width: 130, margin: "13px auto 9px", background: "#FFB627", opacity: 0.7, borderRadius: 1 }} />
         <div style={{ fontSize: 12, color: dim }}>{board.sub}</div>
+        {board.tv && (
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 9 }}>
+            <TvBadge tv={board.tv} />
+          </div>
+        )}
       </div>
       {openClub && (<>
         <div style={{ ...label, marginBottom: 8 }}>Your club</div>

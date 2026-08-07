@@ -140,7 +140,7 @@ export function seasonStatus(now = Date.now()) {
 // Default kick-off 3pm Saturday unless a match specifies d (date) or t (time).
 export const FIXTURES_2627 = [
   { round: 1, date: "Sat 8 Aug", matches: [
-    { h: "CLI", a: "CRU", d: "Fri 7 Aug", t: "7.45pm" },
+    { h: "CLI", a: "CRU", d: "Fri 7 Aug", t: "7.45pm", tv: "BBC Sport NI" },
     { h: "LIN", a: "BAL" }, { h: "CAR", a: "POR" }, { h: "DUN", a: "COL" }, { h: "GLE", a: "LIM" },
     { h: "LAR", a: "BAN", d: "Tue 8 Sep" }, // rescheduled from Sun 9 Aug (NIFL, 27 Jul 2026)
   ]},
@@ -149,18 +149,20 @@ export const FIXTURES_2627 = [
   ]},
   { round: 3, date: "Sat 22 Aug", matches: [
     { h: "LIN", a: "CLI", d: "Fri 21 Aug", t: "7.45pm" },
-    { h: "BAL", a: "GLE" }, { h: "CAR", a: "COL" }, { h: "CRU", a: "POR" }, { h: "DUN", a: "BAN" }, { h: "LAR", a: "LIM" },
+    { h: "BAL", a: "GLE", d: "Fri 21 Aug", t: "7.45pm", tv: "BBC Sport NI" },
+    { h: "CAR", a: "COL" }, { h: "CRU", a: "POR" }, { h: "DUN", a: "BAN" }, { h: "LAR", a: "LIM" },
   ]},
   { round: 4, date: "Sat 29 Aug", matches: [
     { h: "BAL", a: "LAR" }, { h: "BAN", a: "CAR" }, { h: "CLI", a: "DUN" }, { h: "GLE", a: "CRU" }, { h: "LIM", a: "LIN" }, { h: "POR", a: "COL" },
   ]},
   { round: 5, date: "Sat 5 Sep", matches: [
     { h: "BAN", a: "BAL" }, { h: "CLI", a: "POR" }, { h: "COL", a: "CRU" },
-    { h: "LAR", a: "GLE", d: "Fri 4 Sep", t: "7.45pm" }, // moved from Sat 5 Sep for BBC TV coverage (Larne FC, 7 Aug 2026)
+    { h: "LAR", a: "GLE", d: "Fri 4 Sep", t: "7.45pm", tv: "BBC Sport NI" }, // moved from Sat 5 Sep (NIFL/BBC deal, 7 Aug 2026)
     { h: "LIM", a: "DUN" }, { h: "LIN", a: "CAR" },
   ]},
   { round: 6, date: "Sat 12 Sep", matches: [
-    { h: "CAR", a: "CLI" }, { h: "COL", a: "BAL" }, { h: "CRU", a: "LIM" }, { h: "DUN", a: "LIN" }, { h: "GLE", a: "BAN" }, { h: "POR", a: "LAR" },
+    { h: "COL", a: "BAL", d: "Fri 11 Sep", t: "7.45pm", tv: "BBC Sport NI" },
+    { h: "CAR", a: "CLI" }, { h: "CRU", a: "LIM" }, { h: "DUN", a: "LIN" }, { h: "GLE", a: "BAN" }, { h: "POR", a: "LAR" },
   ]},
   { round: 7, date: "Tue 15 Sep", time: "7.45pm", matches: [
     { h: "BAL", a: "CAR" }, { h: "CRU", a: "DUN" }, { h: "GLE", a: "COL" }, { h: "LAR", a: "CLI" }, { h: "LIM", a: "BAN" }, { h: "POR", a: "LIN" },
@@ -334,7 +336,7 @@ export function nextLeagueFixture(now = Date.now()) {
       const ms = fixtureKickoffMs(round, m);
       if (ms === null || ms < now - LIVE_WINDOW_MS) continue;
       if (!best || ms < best.kickoffMs) {
-        best = { round: round.round, h: m.h, a: m.a, kickoffMs: ms, date: m.d || round.date, time: m.t || round.time || DEFAULT_KICKOFF };
+        best = { round: round.round, h: m.h, a: m.a, kickoffMs: ms, date: m.d || round.date, time: m.t || round.time || DEFAULT_KICKOFF, tv: m.tv || null };
       }
     }
   }

@@ -235,6 +235,32 @@ const allEuroFixtures = [...Object.values(D.CLUB_FIXTURES).flat(), ...D.EURO.fla
 // so from the second matchday on the front page advertised a game already played — the bug
 // was invisible on the day it shipped and only surfaced once the season moved on, which is
 // exactly why it is pinned here rather than trusted to be noticed.
+// Televised fixtures. The `tv` value is printed verbatim on the fixture list, the Home
+// board and in the calendar entry, so a typo ships as a broadcaster that does not exist —
+// and a bookmaker name must never end up here (CLAUDE.md rule 2). Broadcasters are added to
+// this list deliberately rather than the check being relaxed.
+const BROADCASTERS = ["BBC Sport NI", "BBC iPlayer", "Sky Sports", "Premier Sports", "TNT Sports", "NIFL TV"];
+check("every televised fixture names a known broadcaster", (() => {
+  const bad = [];
+  for (const r of D.FIXTURES_2627) for (const m of r.matches) {
+    if (m.tv === undefined) continue;
+    if (typeof m.tv !== "string" || !BROADCASTERS.includes(m.tv)) bad.push(`r${r.round} ${m.h}v${m.a}: ${JSON.stringify(m.tv)}`);
+    if (BOOKMAKERS.test(String(m.tv))) bad.push(`r${r.round} ${m.h}v${m.a}: bookmaker in tv field`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+// A broadcast pick is only news because it moves the game — if one carries no explicit
+// date/time it is silently claiming the round's default slot, which is usually wrong.
+check("every televised fixture states its own kick-off", (() => {
+  const bad = [];
+  for (const r of D.FIXTURES_2627) for (const m of r.matches) {
+    if (m.tv && !(m.d || m.t)) bad.push(`r${r.round} ${m.h}v${m.a}`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.join(", "));
+  return bad.length === 0;
+})());
+
 check("every FIXTURES_2627 match resolves to a real kick-off time", (() => {
   for (const r of D.FIXTURES_2627) for (const m of r.matches) {
     if (typeof D.fixtureKickoffMs(r, m) !== "number") return false;

@@ -168,7 +168,9 @@ function leagueFixturesFor(club) {
         club,
         uid: `gibson-match-${m.h}-${m.a}-${dt.replace(/[^0-9]/g, "")}`,
         dt,
-        summary: `${D.CLUBS[m.h].name} v ${D.CLUBS[m.a].name} — Premiership · Round ${round.round}`,
+        // Naming the broadcaster in the calendar entry is the point of knowing it — you
+        // see it in your diary without opening the app.
+        summary: `${D.CLUBS[m.h].name} v ${D.CLUBS[m.a].name} — Premiership · Round ${round.round}${m.tv ? ` · Live on ${m.tv}` : ""}`,
         location: D.CLUB_META[m.h]?.ground || D.CLUBS[m.h].ground || null,
         url: clubUrl(club),
       });

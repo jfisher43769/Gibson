@@ -41,11 +41,11 @@ LOCATION:Windsor Park\, Belfast
 URL:https://gibsonstats.com/club/glentoran
 END:VEVENT
 BEGIN:VEVENT
-UID:gibson-match-BAL-GLE-20260822140000000@gibsonstats.com
+UID:gibson-match-BAL-GLE-20260821184500000@gibsonstats.com
 DTSTAMP:20270327T150000Z
-DTSTART:20260822T140000Z
-DTEND:20260822T160000Z
-SUMMARY:Ballymena United v Glentoran — Premiership · Round 3
+DTSTART:20260821T184500Z
+DTEND:20260821T204500Z
+SUMMARY:Ballymena United v Glentoran — Premiership · Round 3 · Live on BBC Sport NI
 LOCATION:The Showgrounds\, Ballymena
 URL:https://gibsonstats.com/club/glentoran
 END:VEVENT
@@ -63,7 +63,7 @@ UID:gibson-match-LAR-GLE-20260904184500000@gibsonstats.com
 DTSTAMP:20270327T150000Z
 DTSTART:20260904T184500Z
 DTEND:20260904T204500Z
-SUMMARY:Larne v Glentoran — Premiership · Round 5
+SUMMARY:Larne v Glentoran — Premiership · Round 5 · Live on BBC Sport NI
 LOCATION:Inver Park\, Larne
 URL:https://gibsonstats.com/club/glentoran
 END:VEVENT

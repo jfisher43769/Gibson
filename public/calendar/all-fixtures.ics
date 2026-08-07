@@ -104,7 +104,7 @@ UID:gibson-match-CLI-CRU-20260807184500000@gibsonstats.com
 DTSTAMP:20270327T150000Z
 DTSTART:20260807T184500Z
 DTEND:20260807T204500Z
-SUMMARY:Cliftonville v Crusaders — Premiership · Round 1
+SUMMARY:Cliftonville v Crusaders — Premiership · Round 1 · Live on BBC Sport NI
 LOCATION:Solitude\, Belfast
 URL:https://gibsonstats.com/club/cliftonville
 END:VEVENT
@@ -199,6 +199,15 @@ LOCATION:The Showgrounds\, Limavady
 URL:https://gibsonstats.com/club/carrick-rangers
 END:VEVENT
 BEGIN:VEVENT
+UID:gibson-match-BAL-GLE-20260821184500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260821T184500Z
+DTEND:20260821T204500Z
+SUMMARY:Ballymena United v Glentoran — Premiership · Round 3 · Live on BBC Sport NI
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
 UID:gibson-match-LIN-CLI-20260821184500000@gibsonstats.com
 DTSTAMP:20270327T150000Z
 DTSTART:20260821T184500Z
@@ -224,15 +233,6 @@ DTEND:20260822T160000Z
 SUMMARY:Carrick Rangers v Coleraine — Premiership · Round 3
 LOCATION:Loughshore Hotel Arena\, Carrickfergus
 URL:https://gibsonstats.com/club/coleraine
-END:VEVENT
-BEGIN:VEVENT
-UID:gibson-match-BAL-GLE-20260822140000000@gibsonstats.com
-DTSTAMP:20270327T150000Z
-DTSTART:20260822T140000Z
-DTEND:20260822T160000Z
-SUMMARY:Ballymena United v Glentoran — Premiership · Round 3
-LOCATION:The Showgrounds\, Ballymena
-URL:https://gibsonstats.com/club/glentoran
 END:VEVENT
 BEGIN:VEVENT
 UID:gibson-match-DUN-BAN-20260822140000000@gibsonstats.com
@@ -311,7 +311,7 @@ UID:gibson-match-LAR-GLE-20260904184500000@gibsonstats.com
 DTSTAMP:20270327T150000Z
 DTSTART:20260904T184500Z
 DTEND:20260904T204500Z
-SUMMARY:Larne v Glentoran — Premiership · Round 5
+SUMMARY:Larne v Glentoran — Premiership · Round 5 · Live on BBC Sport NI
 LOCATION:Inver Park\, Larne
 URL:https://gibsonstats.com/club/larne
 END:VEVENT
@@ -370,6 +370,15 @@ LOCATION:Inver Park\, Larne
 URL:https://gibsonstats.com/club/larne
 END:VEVENT
 BEGIN:VEVENT
+UID:gibson-match-COL-BAL-20260911184500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260911T184500Z
+DTEND:20260911T204500Z
+SUMMARY:Coleraine v Ballymena United — Premiership · Round 6 · Live on BBC Sport NI
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
 UID:gibson-match-POR-LAR-20260912140000000@gibsonstats.com
 DTSTAMP:20270327T150000Z
 DTSTART:20260912T140000Z
@@ -377,15 +386,6 @@ DTEND:20260912T160000Z
 SUMMARY:Portadown v Larne — Premiership · Round 6
 LOCATION:Shamrock Park\, Portadown
 URL:https://gibsonstats.com/club/larne
-END:VEVENT
-BEGIN:VEVENT
-UID:gibson-match-COL-BAL-20260912140000000@gibsonstats.com
-DTSTAMP:20270327T150000Z
-DTSTART:20260912T140000Z
-DTEND:20260912T160000Z
-SUMMARY:Coleraine v Ballymena United — Premiership · Round 6
-LOCATION:The Showgrounds\, Coleraine
-URL:https://gibsonstats.com/club/coleraine
 END:VEVENT
 BEGIN:VEVENT
 UID:gibson-match-GLE-BAN-20260912140000000@gibsonstats.com
