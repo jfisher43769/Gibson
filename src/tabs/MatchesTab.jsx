@@ -261,7 +261,20 @@ export function EuropeView() {
           </div>
           <div style={{ display: "flex", gap: 18, alignItems: "flex-end" }}>
             <div>
-              <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, color: "#FFB627", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>#{EURO_COEFFICIENT.rank}</div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 7 }}>
+                <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, color: "#FFB627", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>#{EURO_COEFFICIENT.rank}</span>
+                {/* A lower rank number is better, so a fall in the number is a rise in the
+                    table — hence the inverted comparison. */}
+                {Number.isFinite(EURO_COEFFICIENT.previousRank) && EURO_COEFFICIENT.previousRank !== EURO_COEFFICIENT.rank && (
+                  <span style={{
+                    fontSize: 12, fontWeight: 700,
+                    color: EURO_COEFFICIENT.rank < EURO_COEFFICIENT.previousRank ? "#3DDC84" : "#E8663C",
+                  }}>
+                    {EURO_COEFFICIENT.rank < EURO_COEFFICIENT.previousRank ? "▲" : "▼"}
+                    {Math.abs(EURO_COEFFICIENT.previousRank - EURO_COEFFICIENT.rank)}
+                  </span>
+                )}
+              </div>
               <div style={{ fontSize: 12, color: dim, marginTop: 3 }}>rank · {EURO_COEFFICIENT.points.toFixed(2)} pts</div>
             </div>
             <div style={{ fontSize: 12, color: dim, lineHeight: 1.4 }}>
@@ -269,6 +282,47 @@ export function EuropeView() {
             </div>
           </div>
           <div style={{ fontSize: 12, color: dim, marginTop: 8, lineHeight: 1.45 }}>{EURO_COEFFICIENT.note}</div>
+
+          {/* The countries either side. A rank on its own says nothing about how close the
+              next place is — three of these five are inside a quarter of a point, which is
+              the actual story of a coefficient race. */}
+          {EURO_COEFFICIENT.neighbours?.length > 0 && (
+            <div style={{ marginTop: 12 }}>
+              <div style={{ fontSize: 12, color: dim, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>
+                Around Northern Ireland
+              </div>
+              <div style={{ ...SURFACE.flat, borderRadius: 10, overflow: "hidden" }}>
+                {EURO_COEFFICIENT.neighbours.map((n, i) => {
+                  const isNI = n.rank === EURO_COEFFICIENT.rank;
+                  return (
+                    <div key={n.rank} style={{
+                      display: "flex", alignItems: "center", gap: 10, padding: "7px 11px",
+                      borderBottom: i < EURO_COEFFICIENT.neighbours.length - 1 ? `1px solid ${faint}` : "none",
+                      background: isNI ? "rgba(255,182,39,0.11)" : "transparent",
+                    }}>
+                      <span style={{
+                        fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 13, width: 22,
+                        color: isNI ? "#FFB627" : dim, fontVariantNumeric: "tabular-nums",
+                      }}>{n.rank}</span>
+                      <span style={{
+                        flex: 1, minWidth: 0, fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                        fontWeight: isNI ? 700 : 400, color: isNI ? chalk : dim,
+                      }}>{n.country}</span>
+                      <span style={{
+                        fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14,
+                        color: isNI ? "#FFB627" : chalk, fontVariantNumeric: "tabular-nums",
+                      }}>{n.points.toFixed(3)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              {EURO_COEFFICIENT.source && (
+                <div style={{ fontSize: 11, color: "rgba(143,166,155,0.5)", marginTop: 6 }}>
+                  Source: {EURO_COEFFICIENT.source}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
