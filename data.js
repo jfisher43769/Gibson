@@ -902,20 +902,24 @@ const EURO = [
 // Northern Ireland's UEFA country coefficient — the rolling five-year total that
 // decides how many European places the league gets and how its clubs are seeded.
 export const EURO_COEFFICIENT = {
-  rank: 51,
-  points: 6.250,
+  rank: 50,
+  points: 6.375,
   window: "22/23–26/27", // live 5-year rolling ranking
-  previousRank: 50, // down 1 place this round — points held at 6.250 (no coefficient points from Larne's or Coleraine's midweek exits) while others below moved up
+  // Up one from 51st. The 0.125 gain is exactly Larne's 0-0 with FC Iberia 1999: a
+  // qualifying draw is worth 0.500 of a point, shared across the four clubs the country
+  // entered, so 6.250 + 0.125 = 6.375. Worth stating because it shows a goalless draw
+  // nobody enjoyed still moved the country up a place.
+  previousRank: 51,
   neighbours: [
-    { rank: 49, country: "Gibraltar", points: 6.707 },
-    { rank: 50, country: "Luxembourg", points: 6.250 },
-    { rank: 51, country: "Northern Ireland", points: 6.250 },
-    { rank: 52, country: "Georgia", points: 6.125 },
-    { rank: 53, country: "Montenegro", points: 5.833 },
+    { rank: 48, country: "Estonia", points: 7.041 },
+    { rank: 49, country: "Gibraltar", points: 6.872 },
+    { rank: 50, country: "Northern Ireland", points: 6.375 },
+    { rank: 51, country: "Georgia", points: 6.250 },
+    { rank: 52, country: "Luxembourg", points: 6.250 },
   ],
   lastSeason: { rank: 42, points: 8.33 },
-  source: "football-md.com",
-  note: "Every qualifying win earns coefficient points — the country's rank decides how many European places the league gets and how its clubs are seeded. Live 5-year rolling ranking (22/23–26/27): down one place this round to 51st — level on points with 50th-placed Luxembourg (6.250) but behind on tiebreak — after Larne and Coleraine's midweek European exits earned no fresh coefficient points. 52nd-placed Georgia (6.125) is close behind.",
+  source: "@NICoefficient, 6 Aug 2026 (owner-supplied graphic)",
+  note: "Every qualifying win earns coefficient points — the country's rank decides how many European places the league gets and how its clubs are seeded. Live 5-year rolling ranking (22/23–26/27): up to 50th on 6.375, the 0.125 coming from Larne's goalless draw with FC Iberia 1999 (a qualifying draw, shared across four clubs). Larne are the last side standing — Glentoran, Linfield and Coleraine are all out. Gibraltar (6.872) hold 49th; Georgia and Luxembourg sit level on 6.250 just below.",
 };
 
 // 26/27 domestic fixtures not yet released — Europe fills the schedule for now
