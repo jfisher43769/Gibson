@@ -1,10 +1,27 @@
 // Bumping this string ships a byte-changed worker, so every browser detects a new SW,
 // installs it, and runs activate() below to purge the previous cache. That is what
 // unsticks a device that cached an older build (the "new domain shows the old page" bug).
-const CACHE = "gibson-v4";
+const CACHE = "gibson-v5";
 
+// Filled in at build time by scripts/prerender.mjs with the shell and the hashed bundle,
+// which is the only place their real filenames are known. Left empty here so the source
+// file stays honest about containing no list of its own.
+const PRECACHE = [];
+
+// WHY PRECACHE AT ALL: a freshly registered worker does not control the navigation that
+// registered it, so with cache-as-you-go alone the shell and the JS bundle were never
+// cached on a first visit — only late subresources were. Anyone who visited once and lost
+// signal got a blank page, while a returning visitor was fine. "Works offline" has to mean
+// the first visit too, so the install step fetches the shell and bundle up front.
 self.addEventListener("install", (e) => {
-  self.skipWaiting();
+  e.waitUntil(
+    caches.open(CACHE)
+      // Individually, so one failed asset cannot reject the whole install and leave the
+      // worker never activating.
+      .then((c) => Promise.all(PRECACHE.map((u) => c.add(u).catch(() => {}))))
+      .then(() => self.skipWaiting())
+      .catch(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate", (e) => {

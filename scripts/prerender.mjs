@@ -10,7 +10,7 @@
 // no cleanUrls rewrites. The root stays dist/index.html and is never overwritten by a
 // sub-route, so nothing here can affect how / is served.
 import { build } from "esbuild";
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { createRequire } from "node:module";
@@ -118,6 +118,29 @@ const rootLen = rootContent(join(dist, "index.html"));
 const sampleLen = rootContent(join(dist, "table", "index.html"));
 if (rootLen < 1000 || sampleLen < 1000) {
   throw new Error(`prerender guard failed: root=${rootLen} table=${sampleLen} chars in #root (need >=1000). Refusing to ship an empty shell.`);
+}
+
+// ---- Service-worker precache list -----------------------------------------------------
+// The bundle filename carries a content hash that only exists after vite builds, so the
+// list cannot live in public/sw.js. Inject it here, into the copy that ships.
+//
+// This is what makes "works offline" true on a FIRST visit: a newly registered worker does
+// not control the navigation that registered it, so without a precache the shell and the
+// bundle are never stored, and losing signal after one visit gives a blank page.
+{
+  const swPath = join(dist, "sw.js");
+  const assets = readdirSync(join(dist, "assets"))
+    .filter((f) => /\.(js|css)$/.test(f))
+    .map((f) => `/assets/${f}`);
+  const precache = ["/", ...assets, "/manifest.webmanifest", "/favicon.ico", "/icon-192.png", "/icon-512.png"]
+    .filter((u) => u === "/" || existsSync(join(dist, u.replace(/^\//, ""))));
+  let sw = readFileSync(swPath, "utf8");
+  const replaced = sw.replace(/const PRECACHE = \[\];/, `const PRECACHE = ${JSON.stringify(precache)};`);
+  if (replaced === sw) {
+    throw new Error("prerender: could not inject PRECACHE into sw.js — the placeholder is gone, so the app would ship without offline support on a first visit.");
+  }
+  writeFileSync(swPath, replaced);
+  console.log(`service worker precache: ${precache.length} entries (${assets.length} hashed asset(s))`);
 }
 
 console.log(`prerendered ${count} routes + sitemap (${mod.ALL_ROUTES.length} urls); root ${rootLen} chars OK`);

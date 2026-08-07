@@ -303,6 +303,25 @@ check("every CLUB_FIXTURES/EURO fixture has a valid ISO dt matching its display 
 // cache), or a device gets stranded on an old build — the "new domain served the old
 // page" bug. Guard the two things that fix matter: navigation handling + a no-store fetch.
 const sw = (() => { try { return readFileSync(new URL("../public/sw.js", import.meta.url), "utf8"); } catch { return ""; } })();
+// "Works offline" has to include the FIRST visit. A newly registered worker does not
+// control the navigation that registered it, so cache-as-you-go alone left the shell and
+// the bundle uncached until a second visit — one visit then a lost signal gave a blank
+// page. prerender.mjs injects the real (content-hashed) filenames into the shipped worker;
+// this checks the shipped copy, because the source file legitimately has an empty list.
+check("the shipped service worker precaches the shell and the hashed bundle", (() => {
+  let sw = "";
+  try { sw = readFileSync(new URL("../dist/sw.js", import.meta.url), "utf8"); } catch { return false; }
+  const m = sw.match(/const PRECACHE = (\[[^\]]*\]);/);
+  if (!m) { console.log("      ↳ no PRECACHE list in dist/sw.js — the build-time injection did not run"); return false; }
+  let list = [];
+  try { list = JSON.parse(m[1]); } catch { return false; }
+  const hasShell = list.includes("/");
+  const hasBundle = list.some((u) => /^\/assets\/.+\.(js|css)$/.test(u));
+  if (!hasShell) console.log("      ↳ shell '/' not precached");
+  if (!hasBundle) console.log("      ↳ no hashed asset precached — offline would render an empty shell");
+  return hasShell && hasBundle;
+})());
+
 check("service worker serves page navigations network-fresh (mode navigate + no-store)",
   /mode\s*===\s*["']navigate["']/.test(sw) && /cache:\s*["']no-store["']/.test(sw));
 
