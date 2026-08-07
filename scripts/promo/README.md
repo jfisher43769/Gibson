@@ -10,6 +10,7 @@ Video generators rendering **1080x1920 (9:16) MP4s** for X and TikTok, plus two 
 | `cards.mjs` | `gibson-card-*.png` | Five 1080x1350 stills: the round's fixtures, the headline tie, one number, the champions, the season |
 | `goal.mjs` | `gibson-goal-<fixture>-<min>.jpg` | Live goal graphic — scorer, minute and the score as it stands, in the scoring club's colours |
 | `status.mjs` | `gibson-<state>-<fixture>.jpg` | Half-time / full-time card — the state, the score, scorers, the ground across the top |
+| `matchstats.mjs` | `gibson-stats-<fixture>-<title>.jpg` | Match stats card — possession, shots, corners and cards as split bars |
 | `poster.mjs` | `gibson-poster-<w>x<h>.png` / `.jpg` | Portrait season poster — headline type block, the season in four numbers, the twelve as a ranked list |
 
 All share `kit.js`, the drawing kit (shields, the Gibson Cup mark, impact type, sweeps, grain).
@@ -108,6 +109,27 @@ Same warning as the goal portraits: **look at the render before posting.** Groun
 picks up pitchside hoardings, and Irish League hoardings carry bookmakers. At band scale they
 are normally an unreadable smear — verified on the Solitude shot by zooming the source before
 using it — but a closer photo would not be, and nothing here can check that for you.
+
+## Match stats
+
+```bash
+node scripts/promo/matchstats.mjs CLI "FIRST HALF" 1-0 \
+  --stats="Possession,63,37,%;Total shots,4,7;Shots on target,2,5;Corners,1,0;Yellow cards,1,1"
+```
+
+Rows are `label,home,away[,suffix]` separated by semicolons, home first like every other
+scoreline here. Up to seven; they share whatever height is left between the header rule and
+the footer, so five breathe and seven still fit.
+
+Bars are **gold for home, sky for away** rather than club colours, because two clubs can wear
+the same one — Cliftonville against Crusaders is red against red. Same pairing the app's Duel
+view uses, and each club name carries a rule beneath it in its bar colour, so the legend is
+built in. The bigger number in each row is tinted; a 0-0 row leaves the track empty rather
+than faking a split.
+
+Percentage rows that don't total 100 stop the render. Transcribing numbers off a screenshot
+mid-match is exactly where a digit gets fumbled, and a stats card that can't be trusted is
+worse than no card.
 
 ## The poster's headline
 
