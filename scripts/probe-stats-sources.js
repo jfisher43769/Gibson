@@ -15,6 +15,19 @@
 // use. Reading numbers off a live-score website by hand is fine; automating against one is
 // against their terms, and most are funded by bookmaker advertising, which GIBSON does not
 // carry (CLAUDE.md golden rule 2).
+//
+// ---- FINDINGS, first run: 7 Aug 2026 (opening night, event 2503180) ---------------------
+//   strStatus IS populated — came back "FT" on a finished match. So /api/events can rely on
+//   the feed's own status to separate live from finished, and the 150-minute clock in
+//   classifyEvent() is a backstop for blank rows rather than the primary mechanism. Keep both:
+//   the field being present once is not a promise it always will be.
+//
+//   lookupeventstats exists on the free key but returned ZERO rows for league 4659. So
+//   TheSportsDB does not carry possession/shots for the Irish League, and the cheap route —
+//   no new key, no new dependency — is closed. Re-run this occasionally; a community-edited
+//   feed can gain coverage.
+//
+//   API-Football untested: needs a free key in the APIFOOTBALL_KEY repository secret.
 
 const LEAGUE_ID = "4659";                       // TheSportsDB's NIFL Premiership
 const TIMEOUT_MS = 15000;
