@@ -155,7 +155,9 @@ export const FIXTURES_2627 = [
     { h: "BAL", a: "LAR" }, { h: "BAN", a: "CAR" }, { h: "CLI", a: "DUN" }, { h: "GLE", a: "CRU" }, { h: "LIM", a: "LIN" }, { h: "POR", a: "COL" },
   ]},
   { round: 5, date: "Sat 5 Sep", matches: [
-    { h: "BAN", a: "BAL" }, { h: "CLI", a: "POR" }, { h: "COL", a: "CRU" }, { h: "LAR", a: "GLE" }, { h: "LIM", a: "DUN" }, { h: "LIN", a: "CAR" },
+    { h: "BAN", a: "BAL" }, { h: "CLI", a: "POR" }, { h: "COL", a: "CRU" },
+    { h: "LAR", a: "GLE", d: "Fri 4 Sep", t: "7.45pm" }, // moved from Sat 5 Sep for BBC TV coverage (Larne FC, 7 Aug 2026)
+    { h: "LIM", a: "DUN" }, { h: "LIN", a: "CAR" },
   ]},
   { round: 6, date: "Sat 12 Sep", matches: [
     { h: "CAR", a: "CLI" }, { h: "COL", a: "BAL" }, { h: "CRU", a: "LIM" }, { h: "DUN", a: "LIN" }, { h: "GLE", a: "BAN" }, { h: "POR", a: "LAR" },
