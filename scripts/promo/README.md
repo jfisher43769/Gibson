@@ -40,6 +40,27 @@ share sheets and some uploaders choke on). It defaults to 2000x2800; `POSTER_W=2
 POSTER_H=3508 node scripts/promo/poster.mjs` gives A4 at 300dpi. Everything is authored at
 2000 wide and scales from `S = W/2000`, so any size holds its proportions.
 
+The headline is a named option rather than a literal, because it is the one part of the poster
+that is a judgement call:
+
+```bash
+POSTER_HEADLINE=chase node scripts/promo/poster.mjs
+```
+
+| Key | Headline | Tone |
+|---|---|---|
+| `empty` *(default)* | THE TABLE / IS EMPTY / AGAIN. | Sits directly above last season's finishing order, so the headline and the list argue with each other |
+| `level` | EVERYBODY'S / TOP OF / THE LEAGUE. | The terrace joke on the morning of round one, when all twelve are level on nothing |
+| `chase` | WHO TAKES IT / OFF LARNE? | The actual question of the season, and the one most likely to get a reply |
+| `settle` | 228 MATCHES / TO SETTLE IT. | The season at full size — though the number then appears twice, since the strip carries it too |
+| `cup` | TWELVE CLUBS. / ONE CUP. | The original. Kept to compare against, not because it is any good |
+
+The champion's name and the match count come from `data.js`, so no headline can go stale — `chase`
+renames itself the season after somebody takes it off Larne. Type is sized by whichever runs out
+first, the height of its zone or the width of the page, then centred, so a two-line headline sets
+bigger than a three-line one and both sit in the same optical position. Each key writes its own
+file, so variants don't overwrite each other.
+
 Two things in it are easy to get wrong if you edit it:
 
 - **`FULL_TABLE` is in finishing order, not points order.** The league splits after round 33,

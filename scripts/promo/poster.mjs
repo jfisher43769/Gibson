@@ -71,6 +71,33 @@ const facts = {
   matches,
 };
 for (const c of facts.clubs) if (!c.name || !c.ground || !c.colors) throw new Error(`club ${c.code} is missing name/ground/colors`);
+
+// ---- headline -----------------------------------------------------------------------
+// Kept as named options rather than a literal, because the headline is the one part of this
+// poster that is a judgement call and it should be easy to change your mind without editing
+// layout code. Every one of them is built from data.js, so none can go stale: the champion's
+// name and the match count come out of the same place the rest of the poster does.
+//
+//   POSTER_HEADLINE=chase node scripts/promo/poster.mjs
+//
+// `gold` is the index of the line set in gold — the payoff line.
+const champName = D.CLUBS[facts.champion].name.toUpperCase();
+const HEADLINES = {
+  // Every table starts blank. Set directly above last season's finishing order, which is
+  // still sitting there in the list below, it reads as a deliberate contrast.
+  empty: { lines: ["THE TABLE", "IS EMPTY", "AGAIN."], gold: 2 },
+  // The fan's joke on the morning of round one, when all twelve are level on nothing.
+  level: { lines: ["EVERYBODY'S", "TOP OF", "THE LEAGUE."], gold: 2 },
+  // The actual question of the season, and the one most likely to get a reply.
+  chase: { lines: ["WHO TAKES IT", "OFF " + champName + "?"], gold: 1 },
+  // The season at its full, slightly daunting size.
+  settle: { lines: [facts.matches + " MATCHES", "TO SETTLE IT."], gold: 1 },
+  // The original. Kept so it can be compared against, not because it is any good.
+  cup: { lines: [facts.clubWord, "CLUBS.", "ONE CUP."], gold: 2 },
+};
+const HEAD_KEY = process.env.POSTER_HEADLINE || "empty";
+if (!HEADLINES[HEAD_KEY]) throw new Error(`unknown POSTER_HEADLINE "${HEAD_KEY}" — try: ${Object.keys(HEADLINES).join(", ")}`);
+facts.head = HEADLINES[HEAD_KEY];
 console.log(`poster ${W}x${H} — ${facts.clubs.length} clubs, champions ${facts.champion}, ${matches} matches`);
 
 const kit = readFileSync(join(HERE, "kit.js"), "utf8");
@@ -204,13 +231,17 @@ function draw(){
   T('FIRST WHISTLE · '+F.start.toUpperCase(),W-M,Y(292),{size:36*S,weight:600,align:'right',color:GOLD,track:10*S});
 
   // ---- headline: one size, flush left, ragged right ----
-  const lines=[F.clubWord,'CLUBS.','ONE CUP.'];
-  let hs=440*S;
+  // Sized by whichever runs out first — the height of its zone or the width of the page —
+  // then centred in the zone. So a two-line headline sets bigger than a three-line one and
+  // both still sit in the same optical position.
+  const lines=F.head.lines;
+  const zoneTop=Y(372), zoneH=Y(1035);
+  let hs=zoneH/(lines.length*0.80);
   for(const l of lines) hs=Math.min(hs,fit(l,800,IW,hs,0));
-  const lead=hs*0.78;
-  let by=Y(380)+hs*0.715;
+  const lead=hs*0.80, blockH=(lines.length-1)*lead+hs*0.715;
+  let by=zoneTop+(zoneH-blockH)/2+hs*0.715;
   lines.forEach((l,i)=>{
-    T(l,M,by,{size:hs,weight:800,color:i===2?GOLD:INK});
+    T(l,M,by,{size:hs,weight:800,color:i===F.head.gold?GOLD:INK});
     by+=lead;
   });
 
@@ -268,7 +299,7 @@ await page.evaluate(() => window.__ready);
 const [png, jpg] = await page.evaluate(() => window.__render());
 await browser.close();
 const write = (ext, url) => {
-  const out = join(OUT_DIR, `gibson-poster-${W}x${H}.${ext}`);
+  const out = join(OUT_DIR, `gibson-poster-${HEAD_KEY}-${W}x${H}.${ext}`);
   writeFileSync(out, Buffer.from(url.slice(url.indexOf(",") + 1), "base64"));
   console.log("wrote", out);
 };
