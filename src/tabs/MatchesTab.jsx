@@ -375,6 +375,28 @@ export function EuropeView() {
   );
 }
 
+// One scoreline from the feed. Shared by the live block and the finished-results block so the
+// two can never drift into looking like different things — the only difference between a live
+// score and a final one should be what the row is labelled, not how it is drawn.
+function ScoreRow({ m, last, lead, leadColor }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 8, padding: "9px 13px",
+      borderBottom: last ? "none" : `1px solid ${faint}`,
+    }}>
+      <span style={{
+        fontSize: 12, color: leadColor, width: 56, flexShrink: 0,
+        fontWeight: leadColor === "#3DDC84" ? 800 : 400, textTransform: "uppercase",
+      }}>{lead}</span>
+      <Crest club={m.h} size={16} />
+      <span style={{ fontSize: 12, color: chalk, flex: 1, textAlign: "right", fontWeight: m.hs > m.as ? 700 : 400 }}>{CLUBS[m.h].name}</span>
+      <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 15, color: "#FFB627", fontVariantNumeric: "tabular-nums", padding: "0 6px" }}>{m.hs}–{m.as}</span>
+      <span style={{ fontSize: 12, color: chalk, flex: 1, fontWeight: m.as > m.hs ? 700 : 400 }}>{CLUBS[m.a].name}</span>
+      <Crest club={m.a} size={16} />
+    </div>
+  );
+}
+
 export function FixturesView({ fixedClub } = {}) {
   const locked = !!fixedClub; // club-page mode: lock to one club, hide pickers/toggle
   const [club, setClub] = useState(fixedClub || "LAR");
@@ -510,6 +532,20 @@ export function FixturesView({ fixedClub } = {}) {
           ⚡ The live results feed wakes up when the league does — opening night, Friday 7 August at Solitude.
         </div>
       )}
+      {liveEv && liveEv.live && liveEv.live.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#3DDC84", display: "inline-block", animation: "livePulse 1.4s infinite" }} />
+            <span style={{ fontSize: 12, color: "#3DDC84", letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 700 }}>Live now</span>
+          </div>
+          <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden", border: "1px solid rgba(61,220,132,0.35)" }}>
+            {liveEv.live.slice(0, 6).map((m, i) => (
+              <ScoreRow key={m.h + m.a + m.date} m={m} last={i === Math.min(liveEv.live.length, 6) - 1}
+                lead={m.status || "LIVE"} leadColor="#3DDC84" />
+            ))}
+          </div>
+        </div>
+      )}
       {liveEv && liveEv.results && liveEv.results.length > 0 && (
         <div style={{ marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
@@ -518,17 +554,8 @@ export function FixturesView({ fixedClub } = {}) {
           </div>
           <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden" }}>
             {liveEv.results.slice(0, 6).map((m, i) => (
-              <div key={m.h + m.a + m.date} style={{
-                display: "flex", alignItems: "center", gap: 8, padding: "9px 13px",
-                borderBottom: i < Math.min(liveEv.results.length, 6) - 1 ? `1px solid ${faint}` : "none",
-              }}>
-                <span style={{ fontSize: 12, color: dim, width: 56, flexShrink: 0 }}>{m.date.slice(5)}</span>
-                <Crest club={m.h} size={16} />
-                <span style={{ fontSize: 12, color: chalk, flex: 1, textAlign: "right", fontWeight: m.hs > m.as ? 700 : 400 }}>{CLUBS[m.h].name}</span>
-                <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 15, color: "#FFB627", fontVariantNumeric: "tabular-nums", padding: "0 6px" }}>{m.hs}–{m.as}</span>
-                <span style={{ fontSize: 12, color: chalk, flex: 1, fontWeight: m.as > m.hs ? 700 : 400 }}>{CLUBS[m.a].name}</span>
-                <Crest club={m.a} size={16} />
-              </div>
+              <ScoreRow key={m.h + m.a + m.date} m={m} last={i === Math.min(liveEv.results.length, 6) - 1}
+                lead={m.date.slice(5)} leadColor={dim} />
             ))}
           </div>
         </div>

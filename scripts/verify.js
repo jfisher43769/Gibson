@@ -916,5 +916,51 @@ check("the Home board leads each side with a crest, not a club code", (() => {
   return /<BoardSide\b/.test(src) && /<Crest\s+club=\{crest\}/.test(src);
 })());
 
+// /api/events used to treat "has a score" as "is a result", so a match still being played
+// appeared under "Latest results" with its half-time score presented as final. Owner spotted
+// it live during Cliftonville v Crusaders on opening night, 7 Aug 2026.
+{
+  const ev = await import("../api/events.js");
+  const KO = Date.parse("2026-08-07T18:45:00Z");
+  const mk = (o) => ({ idLeague: "4659", strHomeTeam: "Cliftonville", strAwayTeam: "Crusaders",
+    dateEvent: "2026-08-07", strTime: "18:45:00", intHomeScore: 1, intAwayScore: 0, ...o });
+
+  check("a match in play is never classified as a result", (() => {
+    const inPlay = [
+      [mk({}), KO + 20 * 60 * 1000],                        // 20 minutes in, no status
+      [mk({ strStatus: "1H" }), KO + 20 * 60 * 1000],
+      [mk({ strStatus: "HT" }), KO + 50 * 60 * 1000],
+      [mk({ strStatus: "2H" }), KO + 70 * 60 * 1000],
+      [mk({ strStatus: "" }), KO + 100 * 60 * 1000],         // still inside the match window
+      [mk({ dateEvent: "", strTime: "" }), KO],              // undateable score proves nothing
+    ];
+    return inPlay.every(([e, now]) => ev.classifyEvent(e, now) === "live");
+  })());
+
+  check("a finished match is classified as a result", (() => (
+    ev.classifyEvent(mk({ strStatus: "FT" }), KO + 60 * 60 * 1000) === "result"
+    && ev.classifyEvent(mk({ strStatus: "Match Finished" }), KO + 60 * 60 * 1000) === "result"
+    // No status, but far enough past kick-off that it cannot still be on.
+    && ev.classifyEvent(mk({}), KO + ev.MATCH_WINDOW_MS + 60 * 1000) === "result"
+  ))());
+
+  check("a fixture with no score is never a result or a live score", (() => (
+    ev.classifyEvent(mk({ intHomeScore: null, intAwayScore: null }), KO + 20 * 60 * 1000) === "upcoming"
+    && ev.classifyEvent(mk({ strStatus: "NS", intHomeScore: null, intAwayScore: null }), KO - 3600e3) === "upcoming"
+    && ev.classifyEvent(mk({ strStatus: "Postponed", intHomeScore: null, intAwayScore: null }), KO) === "upcoming"
+  ))());
+
+  // Golden rule 3: the feed has served English league rows in place of 4659 before.
+  check("events from another league are dropped whatever their status", (() => (
+    ev.classifyEvent(mk({ idLeague: "4328", strStatus: "FT" }), KO + 60 * 60 * 1000) === "skip"
+  ))());
+
+  check("the same tie arriving from both upstream feeds is only listed once", (() => {
+    const e = mk({ idEvent: "123", strStatus: "FT" });
+    const b = ev.bucket([e, { ...e }], KO + 60 * 60 * 1000);
+    return b.results.length === 1 && b.live.length === 0;
+  })());
+}
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);
