@@ -11,6 +11,7 @@ Video generators rendering **1080x1920 (9:16) MP4s** for X and TikTok, plus two 
 | `goal.mjs` | `gibson-goal-<fixture>-<min>.jpg` | Live goal graphic — scorer, minute and the score as it stands, in the scoring club's colours |
 | `status.mjs` | `gibson-<state>-<fixture>.jpg` | Half-time / full-time card — the state, the score, scorers, the ground across the top |
 | `matchstats.mjs` | `gibson-stats-<fixture>-<title>.jpg` | Match stats card — possession, shots, corners and cards as split bars |
+| `banner.mjs` | `gibson-x-banner-<w>x<h>.png` / `.jpg` | X header — the wordmark lockup and a twelve-club colour bar |
 | `poster.mjs` | `gibson-poster-<w>x<h>.png` / `.jpg` | Portrait season poster — headline type block, the season in four numbers, the twelve as a ranked list |
 
 All share `kit.js`, the drawing kit (shields, the Gibson Cup mark, impact type, sweeps, grain).
@@ -130,6 +131,27 @@ than faking a split.
 Percentage rows that don't total 100 stop the render. Transcribing numbers off a screenshot
 mid-match is exactly where a digit gets fumbled, and a stats card that can't be trusted is
 worse than no card.
+
+## X banner
+
+```bash
+node scripts/promo/banner.mjs
+node scripts/promo/banner.mjs --guides     # overlay the unsafe zones before redesigning it
+```
+
+1500x500. An X header is not a rectangle you can fill — the profile picture overlaps the
+bottom-left corner and narrow viewports crop top and bottom, keeping roughly the middle band.
+So the lockup sits right of the avatar and inside that band, and the corners carry texture
+only: a ghost cup off the right edge, which is the first thing to get cropped.
+
+The colour bar along the bottom is the twelve clubs in last season's finishing order, primary
+over secondary, straight from `data.js` — so it reshuffles itself when the league does. It is
+the only colour on the banner and is knocked back only slightly for that reason. It sits below
+the safe band on purpose: it reads as a stripe whether or not a phone crops it.
+
+`--guides` draws the avatar circle and the safe band so the next person editing this can see
+what they're working around. It writes to its own filename, so a guide render can't be posted
+by mistake.
 
 ## The poster's headline
 
