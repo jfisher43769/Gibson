@@ -7,6 +7,7 @@ Two social-video generators that render **1080x1920 (9:16) MP4s** for X and TikT
 | `render.mjs` | `gibson-season-launch.mp4` | Season-launch hype cut — the date, the twelve clubs, the champions, round one |
 | `features.mjs` | `gibson-features.mp4` | Feature tour — nine cards showing what the app does, then what it deliberately doesn't have |
 | `preview.mjs` | `gibson-preview-<h>-<a>.mp4` | Match preview — kick-off, last season, tale of the tape, team news, the call |
+| `cards.mjs` | `gibson-card-*.png` | Five 1080x1350 stills: the round's fixtures, the headline tie, one number, the champions, the season |
 
 Both share `kit.js`, the drawing kit (shields, the Gibson Cup mark, impact type, sweeps, grain).
 
@@ -22,7 +23,13 @@ node scripts/promo/render.mjs        # season launch
 node scripts/promo/features.mjs      # feature tour
 node scripts/promo/preview.mjs       # preview the current Predictor fixture
 node scripts/promo/preview.mjs LIN BAL   # ...or any tie, by club code
+node scripts/promo/cards.mjs         # five still cards for the next round
 ```
+
+`cards.mjs` takes no arguments either: it finds the next round by kick-off time and shows
+only that round's fixtures falling inside the coming week, so a game moved months ahead
+(Larne v Bangor, shifted to September) doesn't appear on a matchday card. Set `NOW_MS` to
+render as if it were another moment — useful for previewing next week's set early.
 
 `preview.mjs` with no arguments previews the first fixture of the current `PREDICTOR_GW`, so
 once the gameweek is rolled over it is a one-command job each week.
