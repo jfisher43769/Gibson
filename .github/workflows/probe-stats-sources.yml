@@ -35,10 +35,28 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
       # No install step: the probe uses only built-in fetch, so there is nothing to install
       # and nothing from npm running against a key.
+      #
+      # The result goes to the job summary as well as the log. The log buries it inside a
+      # collapsed step, which is close to unusable on a phone — the summary renders on the
+      # run page itself with nothing to expand. ANSI colour is stripped on the way in, since
+      # the summary is markdown and would otherwise show the escape codes.
       - name: Probe
+        shell: bash
         env:
           APIFOOTBALL_KEY: ${{ secrets.APIFOOTBALL_KEY }}
-        run: node scripts/probe-stats-sources.js
+        run: |
+          set +e
+          node scripts/probe-stats-sources.js 2>&1 | tee /tmp/probe.log
+          code=${PIPESTATUS[0]}
+          set -e
+          {
+            echo "## Per-match stat sources — NIFL Premiership"
+            echo
+            echo '```'
+            sed -e 's/\x1b\[[0-9;]*m//g' /tmp/probe.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit $code
