@@ -4,4 +4,301 @@ PRODID:-//GIBSON//NIFL Fixtures//EN
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
 X-WR-CALNAME:Limavady United Fixtures — GIBSON
+BEGIN:VEVENT
+UID:gibson-match-GLE-LIM-20260808140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260808T140000Z
+DTEND:20260808T160000Z
+SUMMARY:Glentoran v Limavady United — Premiership · Round 1
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-CAR-20260815140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260815T140000Z
+DTEND:20260815T160000Z
+SUMMARY:Limavady United v Carrick Rangers — Premiership · Round 2
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-LIM-20260822140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260822T140000Z
+DTEND:20260822T160000Z
+SUMMARY:Larne v Limavady United — Premiership · Round 3
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-LIN-20260829140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260829T140000Z
+DTEND:20260829T160000Z
+SUMMARY:Limavady United v Linfield — Premiership · Round 4
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-DUN-20260905140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260905T140000Z
+DTEND:20260905T160000Z
+SUMMARY:Limavady United v Dungannon Swifts — Premiership · Round 5
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-LIM-20260912140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260912T140000Z
+DTEND:20260912T160000Z
+SUMMARY:Crusaders v Limavady United — Premiership · Round 6
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-BAN-20260915184500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260915T184500Z
+DTEND:20260915T204500Z
+SUMMARY:Limavady United v Bangor — Premiership · Round 7
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-LIM-20260919140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260919T140000Z
+DTEND:20260919T160000Z
+SUMMARY:Coleraine v Limavady United — Premiership · Round 8
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-CLI-20260926140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260926T140000Z
+DTEND:20260926T160000Z
+SUMMARY:Limavady United v Cliftonville — Premiership · Round 9
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-LIM-20261003140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261003T140000Z
+DTEND:20261003T160000Z
+SUMMARY:Portadown v Limavady United — Premiership · Round 10
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-BAL-20261010140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261010T140000Z
+DTEND:20261010T160000Z
+SUMMARY:Limavady United v Ballymena United — Premiership · Round 11
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-LIM-20261017140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261017T140000Z
+DTEND:20261017T160000Z
+SUMMARY:Glentoran v Limavady United — Premiership · Round 12
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-LIM-20261024140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261024T140000Z
+DTEND:20261024T160000Z
+SUMMARY:Carrick Rangers v Limavady United — Premiership · Round 13
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-CRU-20261031150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261031T150000Z
+DTEND:20261031T170000Z
+SUMMARY:Limavady United v Crusaders — Premiership · Round 14
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-LIM-20261107150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261107T150000Z
+DTEND:20261107T170000Z
+SUMMARY:Dungannon Swifts v Limavady United — Premiership · Round 15
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-CLI-20261113194500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261113T194500Z
+DTEND:20261113T214500Z
+SUMMARY:Limavady United v Cliftonville — Premiership · Round 16
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-LIM-20261121150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261121T150000Z
+DTEND:20261121T170000Z
+SUMMARY:Linfield v Limavady United — Premiership · Round 17
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-POR-20261128150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261128T150000Z
+DTEND:20261128T170000Z
+SUMMARY:Limavady United v Portadown — Premiership · Round 18
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-COL-20261205150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261205T150000Z
+DTEND:20261205T170000Z
+SUMMARY:Limavady United v Coleraine — Premiership · Round 19
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-LIM-20261212150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261212T150000Z
+DTEND:20261212T170000Z
+SUMMARY:Ballymena United v Limavady United — Premiership · Round 20
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-LAR-20261219150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261219T150000Z
+DTEND:20261219T170000Z
+SUMMARY:Limavady United v Larne — Premiership · Round 21
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-LIM-20261226150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261226T150000Z
+DTEND:20261226T170000Z
+SUMMARY:Bangor v Limavady United — Premiership · Round 22
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-CRU-20261229194500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261229T194500Z
+DTEND:20261229T214500Z
+SUMMARY:Limavady United v Crusaders — Premiership · Round 23
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-LIM-20270102150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270102T150000Z
+DTEND:20270102T170000Z
+SUMMARY:Dungannon Swifts v Limavady United — Premiership · Round 24
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-LIN-20270116150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270116T150000Z
+DTEND:20270116T170000Z
+SUMMARY:Limavady United v Linfield — Premiership · Round 25
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-LIM-20270123150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270123T150000Z
+DTEND:20270123T170000Z
+SUMMARY:Portadown v Limavady United — Premiership · Round 26
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-COL-20270130150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270130T150000Z
+DTEND:20270130T170000Z
+SUMMARY:Limavady United v Coleraine — Premiership · Round 27
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-LIM-20270206150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270206T150000Z
+DTEND:20270206T170000Z
+SUMMARY:Bangor v Limavady United — Premiership · Round 28
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-GLE-20270220150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270220T150000Z
+DTEND:20270220T170000Z
+SUMMARY:Limavady United v Glentoran — Premiership · Round 29
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-LIM-20270227150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270227T150000Z
+DTEND:20270227T170000Z
+SUMMARY:Larne v Limavady United — Premiership · Round 30
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-CAR-20270306150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270306T150000Z
+DTEND:20270306T170000Z
+SUMMARY:Limavady United v Carrick Rangers — Premiership · Round 31
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-LIM-20270320150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270320T150000Z
+DTEND:20270320T170000Z
+SUMMARY:Cliftonville v Limavady United — Premiership · Round 32
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-BAL-20270327150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270327T150000Z
+DTEND:20270327T170000Z
+SUMMARY:Limavady United v Ballymena United — Premiership · Round 33
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/limavady-united
+END:VEVENT
 END:VCALENDAR

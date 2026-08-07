@@ -315,6 +315,51 @@ check("public/rss.xml generated", existsSync(publicPath("rss.xml")));
 check("public/calendar/all-fixtures.ics generated", existsSync(publicPath("calendar/all-fixtures.ics")));
 const routeClubs = Object.keys(D.CLUBS).filter((k) => k !== "GLV");
 check("every current club has a public/calendar/<CODE>.ics", routeClubs.every((code) => existsSync(publicPath(`calendar/${code}.ics`))));
+// The calendars shipped with European ties ONLY — subscribing to a club gave you a few
+// summer qualifiers and then nothing for the entire league season, which is the one thing
+// a fixtures calendar is for. It looked fine from the outside: the files existed, the code
+// path worked, every club had one. So the check has to count what is IN them.
+const ROUTE_CLUBS_V = Object.keys(D.CLUBS).filter((k) => k !== "GLV");
+check("every club's calendar carries all 33 of its league fixtures", (() => {
+  const bad = [];
+  for (const club of ROUTE_CLUBS_V) {
+    let ics = "";
+    try { ics = readFileSync(new URL(`../public/calendar/${club}.ics`, import.meta.url), "utf8"); } catch { bad.push(`${club} unreadable`); continue; }
+    const league = (ics.match(/UID:gibson-match-/g) || []).length;
+    if (league !== 33) bad.push(`${club} has ${league} league events, expected 33`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.slice(0, 4).join("\n      ↳ "));
+  return bad.length === 0;
+})());
+// Both clubs in a match generate an entry; the combined calendar must carry it once, or
+// every league game shows up twice in anyone subscribed to all fixtures.
+check("all-fixtures.ics lists each league match exactly once", (() => {
+  let ics = "";
+  try { ics = readFileSync(new URL("../public/calendar/all-fixtures.ics", import.meta.url), "utf8"); } catch { return false; }
+  const uids = ics.match(/UID:gibson-match-[^@]+/g) || [];
+  const unique = new Set(uids);
+  if (uids.length !== unique.size) console.log(`      ↳ ${uids.length - unique.size} duplicate league events`);
+  return uids.length === unique.size && uids.length === 198;
+})());
+// A calendar entry is only useful if it points at the right moment. Spot-check against the
+// resolver rather than trusting the generator to have used it.
+check("calendar kick-off times match the fixture resolver", (() => {
+  let ics = "";
+  try { ics = readFileSync(new URL("../public/calendar/all-fixtures.ics", import.meta.url), "utf8"); } catch { return false; }
+  for (const r of D.FIXTURES_2627) {
+    for (const m of r.matches) {
+      const ms = D.fixtureKickoffMs(r, m);
+      if (ms === null) return false;
+      const stamp = new Date(ms).toISOString().replace(/[^0-9]/g, "");
+      if (!ics.includes(`UID:gibson-match-${m.h}-${m.a}-${stamp}@`)) {
+        console.log(`      ↳ missing/mistimed: ${m.h} v ${m.a} at ${new Date(ms).toISOString()}`);
+        return false;
+      }
+    }
+  }
+  return true;
+})());
+
 
 // og:description previously stayed the generic site-wide blurb on every prerendered route
 // (scripts/prerender.mjs only ever rewrote <meta name="description">) — so a shared club

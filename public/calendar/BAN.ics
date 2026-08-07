@@ -4,4 +4,301 @@ PRODID:-//GIBSON//NIFL Fixtures//EN
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
 X-WR-CALNAME:Bangor Fixtures — GIBSON
+BEGIN:VEVENT
+UID:gibson-match-BAN-CLI-20260815140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260815T140000Z
+DTEND:20260815T160000Z
+SUMMARY:Bangor v Cliftonville — Premiership · Round 2
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-BAN-20260822140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260822T140000Z
+DTEND:20260822T160000Z
+SUMMARY:Dungannon Swifts v Bangor — Premiership · Round 3
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-CAR-20260829140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260829T140000Z
+DTEND:20260829T160000Z
+SUMMARY:Bangor v Carrick Rangers — Premiership · Round 4
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-BAL-20260905140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260905T140000Z
+DTEND:20260905T160000Z
+SUMMARY:Bangor v Ballymena United — Premiership · Round 5
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-BAN-20260908140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260908T140000Z
+DTEND:20260908T160000Z
+SUMMARY:Larne v Bangor — Premiership · Round 1
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-BAN-20260912140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260912T140000Z
+DTEND:20260912T160000Z
+SUMMARY:Glentoran v Bangor — Premiership · Round 6
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-BAN-20260915184500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260915T184500Z
+DTEND:20260915T204500Z
+SUMMARY:Limavady United v Bangor — Premiership · Round 7
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-POR-20260919140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260919T140000Z
+DTEND:20260919T160000Z
+SUMMARY:Bangor v Portadown — Premiership · Round 8
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-BAN-20260926140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260926T140000Z
+DTEND:20260926T160000Z
+SUMMARY:Crusaders v Bangor — Premiership · Round 9
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-COL-20261003140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261003T140000Z
+DTEND:20261003T160000Z
+SUMMARY:Bangor v Coleraine — Premiership · Round 10
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-BAN-20261010140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261010T140000Z
+DTEND:20261010T160000Z
+SUMMARY:Linfield v Bangor — Premiership · Round 11
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-DUN-20261017140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261017T140000Z
+DTEND:20261017T160000Z
+SUMMARY:Bangor v Dungannon Swifts — Premiership · Round 12
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-LAR-20261024140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261024T140000Z
+DTEND:20261024T160000Z
+SUMMARY:Bangor v Larne — Premiership · Round 13
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-BAN-20261031150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261031T150000Z
+DTEND:20261031T170000Z
+SUMMARY:Ballymena United v Bangor — Premiership · Round 14
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-CRU-20261107150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261107T150000Z
+DTEND:20261107T170000Z
+SUMMARY:Bangor v Crusaders — Premiership · Round 15
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-BAN-20261113194500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261113T194500Z
+DTEND:20261113T214500Z
+SUMMARY:Glentoran v Bangor — Premiership · Round 16
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-BAN-20261121150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261121T150000Z
+DTEND:20261121T170000Z
+SUMMARY:Portadown v Bangor — Premiership · Round 17
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-BAN-20261128150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261128T150000Z
+DTEND:20261128T170000Z
+SUMMARY:Carrick Rangers v Bangor — Premiership · Round 18
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-BAN-20261205150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261205T150000Z
+DTEND:20261205T170000Z
+SUMMARY:Cliftonville v Bangor — Premiership · Round 19
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-LIN-20261212150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261212T150000Z
+DTEND:20261212T170000Z
+SUMMARY:Bangor v Linfield — Premiership · Round 20
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-BAN-20261219150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261219T150000Z
+DTEND:20261219T170000Z
+SUMMARY:Coleraine v Bangor — Premiership · Round 21
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-LIM-20261226150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261226T150000Z
+DTEND:20261226T170000Z
+SUMMARY:Bangor v Limavady United — Premiership · Round 22
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-BAN-20261229194500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261229T194500Z
+DTEND:20261229T214500Z
+SUMMARY:Ballymena United v Bangor — Premiership · Round 23
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-POR-20270102150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270102T150000Z
+DTEND:20270102T170000Z
+SUMMARY:Bangor v Portadown — Premiership · Round 24
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-BAN-20270116150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270116T150000Z
+DTEND:20270116T170000Z
+SUMMARY:Carrick Rangers v Bangor — Premiership · Round 25
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-DUN-20270123150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270123T150000Z
+DTEND:20270123T170000Z
+SUMMARY:Bangor v Dungannon Swifts — Premiership · Round 26
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-BAN-20270130150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270130T150000Z
+DTEND:20270130T170000Z
+SUMMARY:Linfield v Bangor — Premiership · Round 27
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-LIM-20270206150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270206T150000Z
+DTEND:20270206T170000Z
+SUMMARY:Bangor v Limavady United — Premiership · Round 28
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-LAR-20270220150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270220T150000Z
+DTEND:20270220T170000Z
+SUMMARY:Bangor v Larne — Premiership · Round 29
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-BAN-20270227150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270227T150000Z
+DTEND:20270227T170000Z
+SUMMARY:Cliftonville v Bangor — Premiership · Round 30
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-BAN-20270306150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270306T150000Z
+DTEND:20270306T170000Z
+SUMMARY:Coleraine v Bangor — Premiership · Round 31
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-GLE-20270320150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270320T150000Z
+DTEND:20270320T170000Z
+SUMMARY:Bangor v Glentoran — Premiership · Round 32
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-BAN-20270327150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270327T150000Z
+DTEND:20270327T170000Z
+SUMMARY:Crusaders v Bangor — Premiership · Round 33
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
 END:VCALENDAR

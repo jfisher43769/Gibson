@@ -6,7 +6,7 @@ METHOD:PUBLISH
 X-WR-CALNAME:GIBSON — All NIFL Fixtures
 BEGIN:VEVENT
 UID:gibson-LAR-20260708184500@gibsonstats.com
-DTSTAMP:20260804T190000Z
+DTSTAMP:20270327T150000Z
 DTSTART:20260708T184500Z
 DTEND:20260708T204500Z
 SUMMARY:Larne v Tre Fiori (a) — Lusty 45' — UCL Q1 · 1st leg
@@ -14,7 +14,7 @@ URL:https://gibsonstats.com/club/larne
 END:VEVENT
 BEGIN:VEVENT
 UID:gibson-LIN-20260709170000@gibsonstats.com
-DTSTAMP:20260804T190000Z
+DTSTAMP:20270327T150000Z
 DTSTART:20260709T170000Z
 DTEND:20260709T190000Z
 SUMMARY:Linfield v Nõmme Kalju (a) — UECL Q1 · 1st leg
@@ -23,7 +23,7 @@ URL:https://gibsonstats.com/club/linfield
 END:VEVENT
 BEGIN:VEVENT
 UID:gibson-GLE-20260709193000@gibsonstats.com
-DTSTAMP:20260804T190000Z
+DTSTAMP:20270327T150000Z
 DTSTART:20260709T193000Z
 DTEND:20260709T213000Z
 SUMMARY:Glentoran v RFS (h) — Ibsen Rossi 38' — UECL Q1 · 1st leg
@@ -32,7 +32,7 @@ URL:https://gibsonstats.com/club/glentoran
 END:VEVENT
 BEGIN:VEVENT
 UID:gibson-LAR-20260714184500@gibsonstats.com
-DTSTAMP:20260804T190000Z
+DTSTAMP:20270327T150000Z
 DTSTART:20260714T184500Z
 DTEND:20260714T204500Z
 SUMMARY:Larne v Tre Fiori (h) — UCL Q1 · 2nd leg · 3–1 agg
@@ -40,7 +40,7 @@ URL:https://gibsonstats.com/club/larne
 END:VEVENT
 BEGIN:VEVENT
 UID:gibson-GLE-20260716173000@gibsonstats.com
-DTSTAMP:20260804T190000Z
+DTSTAMP:20270327T150000Z
 DTSTART:20260716T173000Z
 DTEND:20260716T193000Z
 SUMMARY:Glentoran v RFS (a) — UECL Q1 · 2nd leg · 1–4 agg · eliminated
@@ -49,7 +49,7 @@ URL:https://gibsonstats.com/club/glentoran
 END:VEVENT
 BEGIN:VEVENT
 UID:gibson-LIN-20260716194500@gibsonstats.com
-DTSTAMP:20260804T190000Z
+DTSTAMP:20270327T150000Z
 DTSTART:20260716T194500Z
 DTEND:20260716T214500Z
 SUMMARY:Linfield v Nõmme Kalju (h) — UECL Q1 · 2nd leg · 2–3 agg · eliminated
@@ -58,7 +58,7 @@ URL:https://gibsonstats.com/club/linfield
 END:VEVENT
 BEGIN:VEVENT
 UID:gibson-LAR-20260721184500@gibsonstats.com
-DTSTAMP:20260804T190000Z
+DTSTAMP:20270327T150000Z
 DTSTART:20260721T184500Z
 DTEND:20260721T204500Z
 SUMMARY:Larne v Red Star Belgrade — UCL Q2 · 1st leg · Inver Park
@@ -66,7 +66,7 @@ URL:https://gibsonstats.com/club/larne
 END:VEVENT
 BEGIN:VEVENT
 UID:gibson-COL-20260723160000@gibsonstats.com
-DTSTAMP:20260804T190000Z
+DTSTAMP:20270327T150000Z
 DTSTART:20260723T160000Z
 DTEND:20260723T180000Z
 SUMMARY:Coleraine v HJK Helsinki (a) — UECL Q2 · 1st leg · 5pm
@@ -75,7 +75,7 @@ URL:https://gibsonstats.com/club/coleraine
 END:VEVENT
 BEGIN:VEVENT
 UID:gibson-LAR-20260729180000@gibsonstats.com
-DTSTAMP:20260804T190000Z
+DTSTAMP:20270327T150000Z
 DTSTART:20260729T180000Z
 DTEND:20260729T200000Z
 SUMMARY:Larne v Red Star Belgrade (a) — Katai 3'\, Arnautović 45' & 60'\, Loizou 49'\, Bukari 79' — UCL Q2 · 2nd leg · Belgrade · 0–9 agg · eliminated
@@ -83,7 +83,7 @@ URL:https://gibsonstats.com/club/larne
 END:VEVENT
 BEGIN:VEVENT
 UID:gibson-COL-20260730184500@gibsonstats.com
-DTSTAMP:20260804T190000Z
+DTSTAMP:20270327T150000Z
 DTSTART:20260730T184500Z
 DTEND:20260730T204500Z
 SUMMARY:Coleraine v HJK Helsinki (h) — UECL Q2 · 2nd leg · The Showgrounds · 0–8 agg · eliminated
@@ -92,11 +92,1793 @@ URL:https://gibsonstats.com/club/coleraine
 END:VEVENT
 BEGIN:VEVENT
 UID:gibson-LAR-20260804190000@gibsonstats.com
-DTSTAMP:20260804T190000Z
+DTSTAMP:20270327T150000Z
 DTSTART:20260804T190000Z
 DTEND:20260804T210000Z
 SUMMARY:Larne v FC Iberia 1999 (h) — UEL Q3 · 1st leg · Inver Park
 LOCATION:Inver Park
 URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-CRU-20260807184500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260807T184500Z
+DTEND:20260807T204500Z
+SUMMARY:Cliftonville v Crusaders — Premiership · Round 1
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-COL-20260808140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260808T140000Z
+DTEND:20260808T160000Z
+SUMMARY:Dungannon Swifts v Coleraine — Premiership · Round 1
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-LIM-20260808140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260808T140000Z
+DTEND:20260808T160000Z
+SUMMARY:Glentoran v Limavady United — Premiership · Round 1
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-BAL-20260808140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260808T140000Z
+DTEND:20260808T160000Z
+SUMMARY:Linfield v Ballymena United — Premiership · Round 1
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-POR-20260808140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260808T140000Z
+DTEND:20260808T160000Z
+SUMMARY:Carrick Rangers v Portadown — Premiership · Round 1
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/portadown
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-LAR-20260815140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260815T140000Z
+DTEND:20260815T160000Z
+SUMMARY:Coleraine v Larne — Premiership · Round 2
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-GLE-20260815140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260815T140000Z
+DTEND:20260815T160000Z
+SUMMARY:Linfield v Glentoran — Premiership · Round 2
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-CLI-20260815140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260815T140000Z
+DTEND:20260815T160000Z
+SUMMARY:Bangor v Cliftonville — Premiership · Round 2
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-DUN-20260815140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260815T140000Z
+DTEND:20260815T160000Z
+SUMMARY:Portadown v Dungannon Swifts — Premiership · Round 2
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/dungannon-swifts
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-BAL-20260815140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260815T140000Z
+DTEND:20260815T160000Z
+SUMMARY:Crusaders v Ballymena United — Premiership · Round 2
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/ballymena-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-CAR-20260815140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260815T140000Z
+DTEND:20260815T160000Z
+SUMMARY:Limavady United v Carrick Rangers — Premiership · Round 2
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/carrick-rangers
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-CLI-20260821184500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260821T184500Z
+DTEND:20260821T204500Z
+SUMMARY:Linfield v Cliftonville — Premiership · Round 3
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-LIM-20260822140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260822T140000Z
+DTEND:20260822T160000Z
+SUMMARY:Larne v Limavady United — Premiership · Round 3
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-COL-20260822140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260822T140000Z
+DTEND:20260822T160000Z
+SUMMARY:Carrick Rangers v Coleraine — Premiership · Round 3
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-GLE-20260822140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260822T140000Z
+DTEND:20260822T160000Z
+SUMMARY:Ballymena United v Glentoran — Premiership · Round 3
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-BAN-20260822140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260822T140000Z
+DTEND:20260822T160000Z
+SUMMARY:Dungannon Swifts v Bangor — Premiership · Round 3
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/dungannon-swifts
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-POR-20260822140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260822T140000Z
+DTEND:20260822T160000Z
+SUMMARY:Crusaders v Portadown — Premiership · Round 3
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/portadown
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-LAR-20260829140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260829T140000Z
+DTEND:20260829T160000Z
+SUMMARY:Ballymena United v Larne — Premiership · Round 4
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-COL-20260829140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260829T140000Z
+DTEND:20260829T160000Z
+SUMMARY:Portadown v Coleraine — Premiership · Round 4
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-CRU-20260829140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260829T140000Z
+DTEND:20260829T160000Z
+SUMMARY:Glentoran v Crusaders — Premiership · Round 4
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-LIN-20260829140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260829T140000Z
+DTEND:20260829T160000Z
+SUMMARY:Limavady United v Linfield — Premiership · Round 4
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-DUN-20260829140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260829T140000Z
+DTEND:20260829T160000Z
+SUMMARY:Cliftonville v Dungannon Swifts — Premiership · Round 4
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-CAR-20260829140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260829T140000Z
+DTEND:20260829T160000Z
+SUMMARY:Bangor v Carrick Rangers — Premiership · Round 4
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-GLE-20260904184500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260904T184500Z
+DTEND:20260904T204500Z
+SUMMARY:Larne v Glentoran — Premiership · Round 5
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-CRU-20260905140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260905T140000Z
+DTEND:20260905T160000Z
+SUMMARY:Coleraine v Crusaders — Premiership · Round 5
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-CAR-20260905140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260905T140000Z
+DTEND:20260905T160000Z
+SUMMARY:Linfield v Carrick Rangers — Premiership · Round 5
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-POR-20260905140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260905T140000Z
+DTEND:20260905T160000Z
+SUMMARY:Cliftonville v Portadown — Premiership · Round 5
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-DUN-20260905140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260905T140000Z
+DTEND:20260905T160000Z
+SUMMARY:Limavady United v Dungannon Swifts — Premiership · Round 5
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/dungannon-swifts
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-BAL-20260905140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260905T140000Z
+DTEND:20260905T160000Z
+SUMMARY:Bangor v Ballymena United — Premiership · Round 5
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/ballymena-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-BAN-20260908140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260908T140000Z
+DTEND:20260908T160000Z
+SUMMARY:Larne v Bangor — Premiership · Round 1
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-LAR-20260912140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260912T140000Z
+DTEND:20260912T160000Z
+SUMMARY:Portadown v Larne — Premiership · Round 6
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-BAL-20260912140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260912T140000Z
+DTEND:20260912T160000Z
+SUMMARY:Coleraine v Ballymena United — Premiership · Round 6
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-BAN-20260912140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260912T140000Z
+DTEND:20260912T160000Z
+SUMMARY:Glentoran v Bangor — Premiership · Round 6
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-LIN-20260912140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260912T140000Z
+DTEND:20260912T160000Z
+SUMMARY:Dungannon Swifts v Linfield — Premiership · Round 6
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-CLI-20260912140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260912T140000Z
+DTEND:20260912T160000Z
+SUMMARY:Carrick Rangers v Cliftonville — Premiership · Round 6
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-LIM-20260912140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260912T140000Z
+DTEND:20260912T160000Z
+SUMMARY:Crusaders v Limavady United — Premiership · Round 6
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/crusaders
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-CLI-20260915184500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260915T184500Z
+DTEND:20260915T204500Z
+SUMMARY:Larne v Cliftonville — Premiership · Round 7
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-COL-20260915184500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260915T184500Z
+DTEND:20260915T204500Z
+SUMMARY:Glentoran v Coleraine — Premiership · Round 7
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-LIN-20260915184500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260915T184500Z
+DTEND:20260915T204500Z
+SUMMARY:Portadown v Linfield — Premiership · Round 7
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-DUN-20260915184500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260915T184500Z
+DTEND:20260915T204500Z
+SUMMARY:Crusaders v Dungannon Swifts — Premiership · Round 7
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/dungannon-swifts
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-CAR-20260915184500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260915T184500Z
+DTEND:20260915T204500Z
+SUMMARY:Ballymena United v Carrick Rangers — Premiership · Round 7
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/ballymena-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-BAN-20260915184500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260915T184500Z
+DTEND:20260915T204500Z
+SUMMARY:Limavady United v Bangor — Premiership · Round 7
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-LAR-20260919140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260919T140000Z
+DTEND:20260919T160000Z
+SUMMARY:Carrick Rangers v Larne — Premiership · Round 8
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-LIM-20260919140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260919T140000Z
+DTEND:20260919T160000Z
+SUMMARY:Coleraine v Limavady United — Premiership · Round 8
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-GLE-20260919140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260919T140000Z
+DTEND:20260919T160000Z
+SUMMARY:Cliftonville v Glentoran — Premiership · Round 8
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-CRU-20260919140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260919T140000Z
+DTEND:20260919T160000Z
+SUMMARY:Linfield v Crusaders — Premiership · Round 8
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-BAL-20260919140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260919T140000Z
+DTEND:20260919T160000Z
+SUMMARY:Dungannon Swifts v Ballymena United — Premiership · Round 8
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/dungannon-swifts
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-POR-20260919140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260919T140000Z
+DTEND:20260919T160000Z
+SUMMARY:Bangor v Portadown — Premiership · Round 8
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/portadown
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-DUN-20260926140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260926T140000Z
+DTEND:20260926T160000Z
+SUMMARY:Larne v Dungannon Swifts — Premiership · Round 9
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-LIN-20260926140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260926T140000Z
+DTEND:20260926T160000Z
+SUMMARY:Coleraine v Linfield — Premiership · Round 9
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-CAR-20260926140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260926T140000Z
+DTEND:20260926T160000Z
+SUMMARY:Glentoran v Carrick Rangers — Premiership · Round 9
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-CLI-20260926140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260926T140000Z
+DTEND:20260926T160000Z
+SUMMARY:Limavady United v Cliftonville — Premiership · Round 9
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-POR-20260926140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260926T140000Z
+DTEND:20260926T160000Z
+SUMMARY:Ballymena United v Portadown — Premiership · Round 9
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/ballymena-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-BAN-20260926140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260926T140000Z
+DTEND:20260926T160000Z
+SUMMARY:Crusaders v Bangor — Premiership · Round 9
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-LIN-20261003140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261003T140000Z
+DTEND:20261003T160000Z
+SUMMARY:Larne v Linfield — Premiership · Round 10
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-COL-20261003140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261003T140000Z
+DTEND:20261003T160000Z
+SUMMARY:Bangor v Coleraine — Premiership · Round 10
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-DUN-20261003140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261003T140000Z
+DTEND:20261003T160000Z
+SUMMARY:Glentoran v Dungannon Swifts — Premiership · Round 10
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-BAL-20261003140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261003T140000Z
+DTEND:20261003T160000Z
+SUMMARY:Cliftonville v Ballymena United — Premiership · Round 10
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-LIM-20261003140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261003T140000Z
+DTEND:20261003T160000Z
+SUMMARY:Portadown v Limavady United — Premiership · Round 10
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/portadown
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-CRU-20261003140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261003T140000Z
+DTEND:20261003T160000Z
+SUMMARY:Carrick Rangers v Crusaders — Premiership · Round 10
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/carrick-rangers
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-LAR-20261010140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261010T140000Z
+DTEND:20261010T160000Z
+SUMMARY:Crusaders v Larne — Premiership · Round 11
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-CLI-20261010140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261010T140000Z
+DTEND:20261010T160000Z
+SUMMARY:Coleraine v Cliftonville — Premiership · Round 11
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-GLE-20261010140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261010T140000Z
+DTEND:20261010T160000Z
+SUMMARY:Portadown v Glentoran — Premiership · Round 11
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-BAN-20261010140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261010T140000Z
+DTEND:20261010T160000Z
+SUMMARY:Linfield v Bangor — Premiership · Round 11
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-CAR-20261010140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261010T140000Z
+DTEND:20261010T160000Z
+SUMMARY:Dungannon Swifts v Carrick Rangers — Premiership · Round 11
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/dungannon-swifts
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-BAL-20261010140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261010T140000Z
+DTEND:20261010T160000Z
+SUMMARY:Limavady United v Ballymena United — Premiership · Round 11
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/ballymena-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-COL-20261017140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261017T140000Z
+DTEND:20261017T160000Z
+SUMMARY:Larne v Coleraine — Premiership · Round 12
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-LIM-20261017140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261017T140000Z
+DTEND:20261017T160000Z
+SUMMARY:Glentoran v Limavady United — Premiership · Round 12
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-LIN-20261017140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261017T140000Z
+DTEND:20261017T160000Z
+SUMMARY:Carrick Rangers v Linfield — Premiership · Round 12
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-POR-20261017140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261017T140000Z
+DTEND:20261017T160000Z
+SUMMARY:Cliftonville v Portadown — Premiership · Round 12
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-DUN-20261017140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261017T140000Z
+DTEND:20261017T160000Z
+SUMMARY:Bangor v Dungannon Swifts — Premiership · Round 12
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/dungannon-swifts
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-CRU-20261017140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261017T140000Z
+DTEND:20261017T160000Z
+SUMMARY:Ballymena United v Crusaders — Premiership · Round 12
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/ballymena-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-LAR-20261024140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261024T140000Z
+DTEND:20261024T160000Z
+SUMMARY:Bangor v Larne — Premiership · Round 13
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-COL-20261024140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261024T140000Z
+DTEND:20261024T160000Z
+SUMMARY:Crusaders v Coleraine — Premiership · Round 13
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-BAL-20261024140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261024T140000Z
+DTEND:20261024T160000Z
+SUMMARY:Glentoran v Ballymena United — Premiership · Round 13
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-LIN-20261024140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261024T140000Z
+DTEND:20261024T160000Z
+SUMMARY:Portadown v Linfield — Premiership · Round 13
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-CLI-20261024140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261024T140000Z
+DTEND:20261024T160000Z
+SUMMARY:Dungannon Swifts v Cliftonville — Premiership · Round 13
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-LIM-20261024140000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261024T140000Z
+DTEND:20261024T160000Z
+SUMMARY:Carrick Rangers v Limavady United — Premiership · Round 13
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/carrick-rangers
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-POR-20261031150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261031T150000Z
+DTEND:20261031T170000Z
+SUMMARY:Larne v Portadown — Premiership · Round 14
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-GLE-20261031150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261031T150000Z
+DTEND:20261031T170000Z
+SUMMARY:Coleraine v Glentoran — Premiership · Round 14
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-DUN-20261031150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261031T150000Z
+DTEND:20261031T170000Z
+SUMMARY:Linfield v Dungannon Swifts — Premiership · Round 14
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-CAR-20261031150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261031T150000Z
+DTEND:20261031T170000Z
+SUMMARY:Cliftonville v Carrick Rangers — Premiership · Round 14
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-BAN-20261031150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261031T150000Z
+DTEND:20261031T170000Z
+SUMMARY:Ballymena United v Bangor — Premiership · Round 14
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/ballymena-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-CRU-20261031150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261031T150000Z
+DTEND:20261031T170000Z
+SUMMARY:Limavady United v Crusaders — Premiership · Round 14
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/crusaders
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-LAR-20261107150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261107T150000Z
+DTEND:20261107T170000Z
+SUMMARY:Cliftonville v Larne — Premiership · Round 15
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-COL-20261107150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261107T150000Z
+DTEND:20261107T170000Z
+SUMMARY:Linfield v Coleraine — Premiership · Round 15
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-GLE-20261107150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261107T150000Z
+DTEND:20261107T170000Z
+SUMMARY:Carrick Rangers v Glentoran — Premiership · Round 15
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-LIM-20261107150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261107T150000Z
+DTEND:20261107T170000Z
+SUMMARY:Dungannon Swifts v Limavady United — Premiership · Round 15
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/dungannon-swifts
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-BAL-20261107150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261107T150000Z
+DTEND:20261107T170000Z
+SUMMARY:Portadown v Ballymena United — Premiership · Round 15
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/ballymena-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-CRU-20261107150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261107T150000Z
+DTEND:20261107T170000Z
+SUMMARY:Bangor v Crusaders — Premiership · Round 15
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-DUN-20261113194500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261113T194500Z
+DTEND:20261113T214500Z
+SUMMARY:Larne v Dungannon Swifts — Premiership · Round 16
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-POR-20261113194500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261113T194500Z
+DTEND:20261113T214500Z
+SUMMARY:Coleraine v Portadown — Premiership · Round 16
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-BAN-20261113194500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261113T194500Z
+DTEND:20261113T214500Z
+SUMMARY:Glentoran v Bangor — Premiership · Round 16
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-LIN-20261113194500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261113T194500Z
+DTEND:20261113T214500Z
+SUMMARY:Ballymena United v Linfield — Premiership · Round 16
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-CLI-20261113194500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261113T194500Z
+DTEND:20261113T214500Z
+SUMMARY:Limavady United v Cliftonville — Premiership · Round 16
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-CAR-20261113194500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261113T194500Z
+DTEND:20261113T214500Z
+SUMMARY:Crusaders v Carrick Rangers — Premiership · Round 16
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/carrick-rangers
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-BAL-20261121150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261121T150000Z
+DTEND:20261121T170000Z
+SUMMARY:Larne v Ballymena United — Premiership · Round 17
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-COL-20261121150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261121T150000Z
+DTEND:20261121T170000Z
+SUMMARY:Carrick Rangers v Coleraine — Premiership · Round 17
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-GLE-20261121150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261121T150000Z
+DTEND:20261121T170000Z
+SUMMARY:Cliftonville v Glentoran — Premiership · Round 17
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-LIM-20261121150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261121T150000Z
+DTEND:20261121T170000Z
+SUMMARY:Linfield v Limavady United — Premiership · Round 17
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-CRU-20261121150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261121T150000Z
+DTEND:20261121T170000Z
+SUMMARY:Dungannon Swifts v Crusaders — Premiership · Round 17
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/dungannon-swifts
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-BAN-20261121150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261121T150000Z
+DTEND:20261121T170000Z
+SUMMARY:Portadown v Bangor — Premiership · Round 17
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/portadown
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-LAR-20261128150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261128T150000Z
+DTEND:20261128T170000Z
+SUMMARY:Glentoran v Larne — Premiership · Round 18
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-DUN-20261128150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261128T150000Z
+DTEND:20261128T170000Z
+SUMMARY:Coleraine v Dungannon Swifts — Premiership · Round 18
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-LIN-20261128150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261128T150000Z
+DTEND:20261128T170000Z
+SUMMARY:Crusaders v Linfield — Premiership · Round 18
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-CLI-20261128150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261128T150000Z
+DTEND:20261128T170000Z
+SUMMARY:Ballymena United v Cliftonville — Premiership · Round 18
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-POR-20261128150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261128T150000Z
+DTEND:20261128T170000Z
+SUMMARY:Limavady United v Portadown — Premiership · Round 18
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/portadown
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-BAN-20261128150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261128T150000Z
+DTEND:20261128T170000Z
+SUMMARY:Carrick Rangers v Bangor — Premiership · Round 18
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-LAR-20261205150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261205T150000Z
+DTEND:20261205T170000Z
+SUMMARY:Linfield v Larne — Premiership · Round 19
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-COL-20261205150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261205T150000Z
+DTEND:20261205T170000Z
+SUMMARY:Limavady United v Coleraine — Premiership · Round 19
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-GLE-20261205150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261205T150000Z
+DTEND:20261205T170000Z
+SUMMARY:Dungannon Swifts v Glentoran — Premiership · Round 19
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-BAN-20261205150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261205T150000Z
+DTEND:20261205T170000Z
+SUMMARY:Cliftonville v Bangor — Premiership · Round 19
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-BAL-20261205150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261205T150000Z
+DTEND:20261205T170000Z
+SUMMARY:Carrick Rangers v Ballymena United — Premiership · Round 19
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/ballymena-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-CRU-20261205150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261205T150000Z
+DTEND:20261205T170000Z
+SUMMARY:Portadown v Crusaders — Premiership · Round 19
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/portadown
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-CRU-20261212150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261212T150000Z
+DTEND:20261212T170000Z
+SUMMARY:Larne v Crusaders — Premiership · Round 20
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-COL-20261212150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261212T150000Z
+DTEND:20261212T170000Z
+SUMMARY:Cliftonville v Coleraine — Premiership · Round 20
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-POR-20261212150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261212T150000Z
+DTEND:20261212T170000Z
+SUMMARY:Glentoran v Portadown — Premiership · Round 20
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-LIN-20261212150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261212T150000Z
+DTEND:20261212T170000Z
+SUMMARY:Bangor v Linfield — Premiership · Round 20
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-DUN-20261212150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261212T150000Z
+DTEND:20261212T170000Z
+SUMMARY:Carrick Rangers v Dungannon Swifts — Premiership · Round 20
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/dungannon-swifts
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-LIM-20261212150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261212T150000Z
+DTEND:20261212T170000Z
+SUMMARY:Ballymena United v Limavady United — Premiership · Round 20
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/ballymena-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-LAR-20261219150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261219T150000Z
+DTEND:20261219T170000Z
+SUMMARY:Limavady United v Larne — Premiership · Round 21
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-BAN-20261219150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261219T150000Z
+DTEND:20261219T170000Z
+SUMMARY:Coleraine v Bangor — Premiership · Round 21
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-GLE-20261219150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261219T150000Z
+DTEND:20261219T170000Z
+SUMMARY:Crusaders v Glentoran — Premiership · Round 21
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-CLI-20261219150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261219T150000Z
+DTEND:20261219T170000Z
+SUMMARY:Linfield v Cliftonville — Premiership · Round 21
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-BAL-20261219150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261219T150000Z
+DTEND:20261219T170000Z
+SUMMARY:Dungannon Swifts v Ballymena United — Premiership · Round 21
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/dungannon-swifts
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-CAR-20261219150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261219T150000Z
+DTEND:20261219T170000Z
+SUMMARY:Portadown v Carrick Rangers — Premiership · Round 21
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/portadown
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-CAR-20261226150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261226T150000Z
+DTEND:20261226T170000Z
+SUMMARY:Larne v Carrick Rangers — Premiership · Round 22
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-BAL-20261226150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261226T150000Z
+DTEND:20261226T170000Z
+SUMMARY:Coleraine v Ballymena United — Premiership · Round 22
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-LIN-20261226150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261226T150000Z
+DTEND:20261226T170000Z
+SUMMARY:Glentoran v Linfield — Premiership · Round 22
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-CLI-20261226150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261226T150000Z
+DTEND:20261226T170000Z
+SUMMARY:Crusaders v Cliftonville — Premiership · Round 22
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-POR-20261226150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261226T150000Z
+DTEND:20261226T170000Z
+SUMMARY:Dungannon Swifts v Portadown — Premiership · Round 22
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/dungannon-swifts
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-LIM-20261226150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261226T150000Z
+DTEND:20261226T170000Z
+SUMMARY:Bangor v Limavady United — Premiership · Round 22
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-LAR-20261229194500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261229T194500Z
+DTEND:20261229T214500Z
+SUMMARY:Portadown v Larne — Premiership · Round 23
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-COL-20261229194500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261229T194500Z
+DTEND:20261229T214500Z
+SUMMARY:Linfield v Coleraine — Premiership · Round 23
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-GLE-20261229194500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261229T194500Z
+DTEND:20261229T214500Z
+SUMMARY:Carrick Rangers v Glentoran — Premiership · Round 23
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-DUN-20261229194500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261229T194500Z
+DTEND:20261229T214500Z
+SUMMARY:Cliftonville v Dungannon Swifts — Premiership · Round 23
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-BAN-20261229194500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261229T194500Z
+DTEND:20261229T214500Z
+SUMMARY:Ballymena United v Bangor — Premiership · Round 23
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/ballymena-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-CRU-20261229194500000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20261229T194500Z
+DTEND:20261229T214500Z
+SUMMARY:Limavady United v Crusaders — Premiership · Round 23
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/crusaders
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-BAL-20270102150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270102T150000Z
+DTEND:20270102T170000Z
+SUMMARY:Larne v Ballymena United — Premiership · Round 24
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-CAR-20270102150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270102T150000Z
+DTEND:20270102T170000Z
+SUMMARY:Coleraine v Carrick Rangers — Premiership · Round 24
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-CLI-20270102150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270102T150000Z
+DTEND:20270102T170000Z
+SUMMARY:Glentoran v Cliftonville — Premiership · Round 24
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-LIN-20270102150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270102T150000Z
+DTEND:20270102T170000Z
+SUMMARY:Crusaders v Linfield — Premiership · Round 24
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-LIM-20270102150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270102T150000Z
+DTEND:20270102T170000Z
+SUMMARY:Dungannon Swifts v Limavady United — Premiership · Round 24
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/dungannon-swifts
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-POR-20270102150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270102T150000Z
+DTEND:20270102T170000Z
+SUMMARY:Bangor v Portadown — Premiership · Round 24
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/portadown
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-LAR-20270116150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270116T150000Z
+DTEND:20270116T170000Z
+SUMMARY:Glentoran v Larne — Premiership · Round 25
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-COL-20270116150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270116T150000Z
+DTEND:20270116T170000Z
+SUMMARY:Dungannon Swifts v Coleraine — Premiership · Round 25
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-LIN-20270116150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270116T150000Z
+DTEND:20270116T170000Z
+SUMMARY:Limavady United v Linfield — Premiership · Round 25
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-CLI-20270116150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270116T150000Z
+DTEND:20270116T170000Z
+SUMMARY:Ballymena United v Cliftonville — Premiership · Round 25
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-POR-20270116150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270116T150000Z
+DTEND:20270116T170000Z
+SUMMARY:Crusaders v Portadown — Premiership · Round 25
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/portadown
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-BAN-20270116150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270116T150000Z
+DTEND:20270116T170000Z
+SUMMARY:Carrick Rangers v Bangor — Premiership · Round 25
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-CRU-20270123150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270123T150000Z
+DTEND:20270123T170000Z
+SUMMARY:Larne v Crusaders — Premiership · Round 26
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-GLE-20270123150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270123T150000Z
+DTEND:20270123T170000Z
+SUMMARY:Coleraine v Glentoran — Premiership · Round 26
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-LIN-20270123150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270123T150000Z
+DTEND:20270123T170000Z
+SUMMARY:Ballymena United v Linfield — Premiership · Round 26
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-CAR-20270123150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270123T150000Z
+DTEND:20270123T170000Z
+SUMMARY:Cliftonville v Carrick Rangers — Premiership · Round 26
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-DUN-20270123150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270123T150000Z
+DTEND:20270123T170000Z
+SUMMARY:Bangor v Dungannon Swifts — Premiership · Round 26
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/dungannon-swifts
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-LIM-20270123150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270123T150000Z
+DTEND:20270123T170000Z
+SUMMARY:Portadown v Limavady United — Premiership · Round 26
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/portadown
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-CLI-20270130150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270130T150000Z
+DTEND:20270130T170000Z
+SUMMARY:Larne v Cliftonville — Premiership · Round 27
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-COL-20270130150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270130T150000Z
+DTEND:20270130T170000Z
+SUMMARY:Limavady United v Coleraine — Premiership · Round 27
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-GLE-20270130150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270130T150000Z
+DTEND:20270130T170000Z
+SUMMARY:Portadown v Glentoran — Premiership · Round 27
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-BAN-20270130150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270130T150000Z
+DTEND:20270130T170000Z
+SUMMARY:Linfield v Bangor — Premiership · Round 27
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-CAR-20270130150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270130T150000Z
+DTEND:20270130T170000Z
+SUMMARY:Dungannon Swifts v Carrick Rangers — Premiership · Round 27
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/dungannon-swifts
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-BAL-20270130150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270130T150000Z
+DTEND:20270130T170000Z
+SUMMARY:Crusaders v Ballymena United — Premiership · Round 27
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/ballymena-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-LAR-20270206150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270206T150000Z
+DTEND:20270206T170000Z
+SUMMARY:Carrick Rangers v Larne — Premiership · Round 28
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-CRU-20270206150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270206T150000Z
+DTEND:20270206T170000Z
+SUMMARY:Coleraine v Crusaders — Premiership · Round 28
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-DUN-20270206150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270206T150000Z
+DTEND:20270206T170000Z
+SUMMARY:Glentoran v Dungannon Swifts — Premiership · Round 28
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-LIN-20270206150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270206T150000Z
+DTEND:20270206T170000Z
+SUMMARY:Cliftonville v Linfield — Premiership · Round 28
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-POR-20270206150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270206T150000Z
+DTEND:20270206T170000Z
+SUMMARY:Ballymena United v Portadown — Premiership · Round 28
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/ballymena-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-LIM-20270206150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270206T150000Z
+DTEND:20270206T170000Z
+SUMMARY:Bangor v Limavady United — Premiership · Round 28
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/bangor
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-LAR-20270220150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270220T150000Z
+DTEND:20270220T170000Z
+SUMMARY:Bangor v Larne — Premiership · Round 29
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-COL-20270220150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270220T150000Z
+DTEND:20270220T170000Z
+SUMMARY:Ballymena United v Coleraine — Premiership · Round 29
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-GLE-20270220150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270220T150000Z
+DTEND:20270220T170000Z
+SUMMARY:Limavady United v Glentoran — Premiership · Round 29
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-CAR-20270220150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270220T150000Z
+DTEND:20270220T170000Z
+SUMMARY:Linfield v Carrick Rangers — Premiership · Round 29
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-CLI-20270220150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270220T150000Z
+DTEND:20270220T170000Z
+SUMMARY:Crusaders v Cliftonville — Premiership · Round 29
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-DUN-20270220150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270220T150000Z
+DTEND:20270220T170000Z
+SUMMARY:Portadown v Dungannon Swifts — Premiership · Round 29
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/dungannon-swifts
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-LIM-20270227150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270227T150000Z
+DTEND:20270227T170000Z
+SUMMARY:Larne v Limavady United — Premiership · Round 30
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-POR-20270227150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270227T150000Z
+DTEND:20270227T170000Z
+SUMMARY:Coleraine v Portadown — Premiership · Round 30
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-CRU-20270227150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270227T150000Z
+DTEND:20270227T170000Z
+SUMMARY:Glentoran v Crusaders — Premiership · Round 30
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-LIN-20270227150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270227T150000Z
+DTEND:20270227T170000Z
+SUMMARY:Dungannon Swifts v Linfield — Premiership · Round 30
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-BAN-20270227150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270227T150000Z
+DTEND:20270227T170000Z
+SUMMARY:Cliftonville v Bangor — Premiership · Round 30
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-BAL-20270227150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270227T150000Z
+DTEND:20270227T170000Z
+SUMMARY:Carrick Rangers v Ballymena United — Premiership · Round 30
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/ballymena-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-LAR-20270306150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270306T150000Z
+DTEND:20270306T170000Z
+SUMMARY:Linfield v Larne — Premiership · Round 31
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-BAN-20270306150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270306T150000Z
+DTEND:20270306T170000Z
+SUMMARY:Coleraine v Bangor — Premiership · Round 31
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-GLE-20270306150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270306T150000Z
+DTEND:20270306T170000Z
+SUMMARY:Ballymena United v Glentoran — Premiership · Round 31
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-CLI-20270306150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270306T150000Z
+DTEND:20270306T170000Z
+SUMMARY:Portadown v Cliftonville — Premiership · Round 31
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-DUN-20270306150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270306T150000Z
+DTEND:20270306T170000Z
+SUMMARY:Crusaders v Dungannon Swifts — Premiership · Round 31
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/dungannon-swifts
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-CAR-20270306150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270306T150000Z
+DTEND:20270306T170000Z
+SUMMARY:Limavady United v Carrick Rangers — Premiership · Round 31
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/carrick-rangers
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LAR-COL-20270320150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270320T150000Z
+DTEND:20270320T170000Z
+SUMMARY:Larne v Coleraine — Premiership · Round 32
+LOCATION:Inver Park\, Larne
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAN-GLE-20270320150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270320T150000Z
+DTEND:20270320T170000Z
+SUMMARY:Bangor v Glentoran — Premiership · Round 32
+LOCATION:Clandeboye Park\, Bangor
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIN-POR-20270320150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270320T150000Z
+DTEND:20270320T170000Z
+SUMMARY:Linfield v Portadown — Premiership · Round 32
+LOCATION:Windsor Park\, Belfast
+URL:https://gibsonstats.com/club/linfield
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CLI-LIM-20270320150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270320T150000Z
+DTEND:20270320T170000Z
+SUMMARY:Cliftonville v Limavady United — Premiership · Round 32
+LOCATION:Solitude\, Belfast
+URL:https://gibsonstats.com/club/cliftonville
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-BAL-DUN-20270320150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270320T150000Z
+DTEND:20270320T170000Z
+SUMMARY:Ballymena United v Dungannon Swifts — Premiership · Round 32
+LOCATION:The Showgrounds\, Ballymena
+URL:https://gibsonstats.com/club/dungannon-swifts
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CAR-CRU-20270320150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270320T150000Z
+DTEND:20270320T170000Z
+SUMMARY:Carrick Rangers v Crusaders — Premiership · Round 32
+LOCATION:Loughshore Hotel Arena\, Carrickfergus
+URL:https://gibsonstats.com/club/carrick-rangers
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-DUN-LAR-20270327150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270327T150000Z
+DTEND:20270327T170000Z
+SUMMARY:Dungannon Swifts v Larne — Premiership · Round 33
+LOCATION:Stangmore Park\, Dungannon
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-COL-CLI-20270327150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270327T150000Z
+DTEND:20270327T170000Z
+SUMMARY:Coleraine v Cliftonville — Premiership · Round 33
+LOCATION:The Showgrounds\, Coleraine
+URL:https://gibsonstats.com/club/coleraine
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-GLE-LIN-20270327150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270327T150000Z
+DTEND:20270327T170000Z
+SUMMARY:Glentoran v Linfield — Premiership · Round 33
+LOCATION:The Oval\, Belfast
+URL:https://gibsonstats.com/club/glentoran
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-LIM-BAL-20270327150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270327T150000Z
+DTEND:20270327T170000Z
+SUMMARY:Limavady United v Ballymena United — Premiership · Round 33
+LOCATION:The Showgrounds\, Limavady
+URL:https://gibsonstats.com/club/ballymena-united
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-POR-CAR-20270327150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270327T150000Z
+DTEND:20270327T170000Z
+SUMMARY:Portadown v Carrick Rangers — Premiership · Round 33
+LOCATION:Shamrock Park\, Portadown
+URL:https://gibsonstats.com/club/portadown
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-match-CRU-BAN-20270327150000000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20270327T150000Z
+DTEND:20270327T170000Z
+SUMMARY:Crusaders v Bangor — Premiership · Round 33
+LOCATION:Seaview\, Belfast
+URL:https://gibsonstats.com/club/bangor
 END:VEVENT
 END:VCALENDAR

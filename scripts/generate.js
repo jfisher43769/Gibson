@@ -132,16 +132,54 @@ const icsEscape = (s) => String(s).replace(/\\/g, "\\\\").replace(/;/g, "\\;").r
 const p2 = (n) => String(n).padStart(2, "0");
 const icsDate = (d) => `${d.getUTCFullYear()}${p2(d.getUTCMonth() + 1)}${p2(d.getUTCDate())}T${p2(d.getUTCHours())}${p2(d.getUTCMinutes())}${p2(d.getUTCSeconds())}Z`;
 
-function fixturesFor(club) {
+// European ties. UIDs here predate league fixtures and MUST NOT change: a calendar app
+// keys off the UID, so a new one leaves the old event orphaned in every subscriber's diary
+// instead of updating it.
+function euroFixturesFor(club) {
   return (D.CLUB_FIXTURES[club] || [])
     .filter((f) => f.dt && !f.opp.includes("*")) // provisional "if through" slots aren't real events yet
     .map((f) => ({
       club,
+      uid: `gibson-${club}-${f.dt.replace(/[^0-9]/g, "")}`,
       dt: f.dt,
       summary: `${D.CLUBS[club].name} v ${f.opp} — ${f.comp}`,
       location: venueByKey[`${club}|${f.dt}`] || null,
       url: clubUrl(club),
     }));
+}
+
+// The 33 league games. These were missing entirely: the calendars carried only European
+// ties, so subscribing to a club gave you a handful of summer qualifiers and then nothing
+// for the whole season — the one thing a fixtures calendar exists to do.
+//
+// Kick-offs come from fixtureKickoffMs(), the same resolver the Home board uses, so a
+// TV reschedule moves the calendar entry with it and there is no second date to maintain.
+// UID is keyed on the MATCH, not the club, so the combined calendar can drop the duplicate
+// copy generated from the other side's perspective.
+function leagueFixturesFor(club) {
+  const out = [];
+  for (const round of D.FIXTURES_2627) {
+    for (const m of round.matches) {
+      if (m.h !== club && m.a !== club) continue;
+      const ms = D.fixtureKickoffMs(round, m);
+      if (ms === null) continue;
+      const dt = new Date(ms).toISOString();
+      out.push({
+        club,
+        uid: `gibson-match-${m.h}-${m.a}-${dt.replace(/[^0-9]/g, "")}`,
+        dt,
+        summary: `${D.CLUBS[m.h].name} v ${D.CLUBS[m.a].name} — Premiership · Round ${round.round}`,
+        location: D.CLUB_META[m.h]?.ground || D.CLUBS[m.h].ground || null,
+        url: clubUrl(club),
+      });
+    }
+  }
+  return out;
+}
+
+function fixturesFor(club) {
+  return [...euroFixturesFor(club), ...leagueFixturesFor(club)]
+    .sort((a, b) => new Date(a.dt) - new Date(b.dt));
 }
 
 // DTSTAMP is DERIVED FROM THE FIXTURE DATA, never the wall clock. These .ics files are
@@ -171,7 +209,7 @@ function icsCalendar(events, calName) {
     const end = new Date(start.getTime() + 2 * 60 * 60 * 1000); // 2-hour duration
     lines.push(
       "BEGIN:VEVENT",
-      `UID:gibson-${e.club}-${e.dt.replace(/[^0-9]/g, "")}@gibsonstats.com`,
+      `UID:${e.uid}@gibsonstats.com`,
       `DTSTAMP:${now}`,
       `DTSTART:${icsDate(start)}`,
       `DTEND:${icsDate(end)}`,
@@ -187,7 +225,10 @@ function icsCalendar(events, calName) {
 for (const club of ROUTE_CLUBS) {
   writeFileSync(join(calendarDir, `${club}.ics`), icsCalendar(fixturesFor(club), `${D.CLUBS[club].name} Fixtures — GIBSON`));
 }
-const allFixtures = ROUTE_CLUBS.flatMap(fixturesFor).sort((a, b) => new Date(a.dt) - new Date(b.dt));
+const seenUid = new Set();
+const allFixtures = ROUTE_CLUBS.flatMap(fixturesFor)
+  .filter((e) => (seenUid.has(e.uid) ? false : seenUid.add(e.uid)))
+  .sort((a, b) => new Date(a.dt) - new Date(b.dt));
 writeFileSync(join(calendarDir, "all-fixtures.ics"), icsCalendar(allFixtures, "GIBSON — All NIFL Fixtures"));
 
 console.log(`generated: sitemap.xml (${ALL_ROUTES.length} routes), rss.xml (${feedItems.length} items), calendar/*.ics (${ROUTE_CLUBS.length} clubs + all-fixtures)`);
