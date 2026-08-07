@@ -993,7 +993,11 @@ check("live scores are fetched through one shared hook, not per tab", (() => {
 // wrong match — a full-time card headed Bangor v Cliftonville. Which fixture a card is about
 // must not change because someone recorded the score. Found on opening night, 7 Aug 2026.
 check("match-card scripts pick a fixture by time, not by whether it has a result", (() => {
-  const files = ["../scripts/promo/goal.mjs", "../scripts/promo/status.mjs", "../scripts/promo/motm.mjs"];
+  // Every script that locates a fixture. matchstats.mjs was missed on the first pass and
+  // duly drew a card headed "Bangor 2-1 Cliftonville" the next time a result was recorded —
+  // the check was right and its file list was wrong, which is its own kind of bug.
+  const files = ["../scripts/promo/goal.mjs", "../scripts/promo/status.mjs",
+    "../scripts/promo/motm.mjs", "../scripts/promo/matchstats.mjs"];
   return files.every((f) => {
     let src = "";
     try { src = readFileSync(new URL(f, import.meta.url), "utf8"); } catch { return false; }

@@ -73,18 +73,19 @@ if (totalShots && onTarget && offTarget) {
   }
 }
 
+// Nearest kick-off, not nearest UNPLAYED kick-off — a stats card is about a match that has
+// just finished, so filtering out played fixtures made it jump to the next game entirely.
 const now = Number(process.env.NOW_MS) || Date.now();
 let fixture = null;
 for (const round of D.FIXTURES_2627) {
   for (const m of round.matches) {
-    if (Array.isArray(m.result)) continue;
     if (m.h !== club && m.a !== club) continue;
     const ms = D.fixtureKickoffMs(round, m);
     if (ms === null) continue;
     if (!fixture || Math.abs(ms - now) < Math.abs(fixture.ms - now)) fixture = { ms, round: round.round, h: m.h, a: m.a };
   }
 }
-if (!fixture) die(`No unplayed fixture found for ${D.CLUBS[club].name}.`);
+if (!fixture) die(`No fixture found for ${D.CLUBS[club].name}.`);
 
 const facts = {
   homeClub: { code: fixture.h, ...D.CLUBS[fixture.h] },

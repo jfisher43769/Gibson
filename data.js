@@ -742,10 +742,10 @@ export const MATCH_EVENTS = [
 // scripts/verify.js enforces all three, because a digit fumbled off a phone screenshot is
 // invisible by eye.
 //
-// EMPTY ON PURPOSE. The only stats supplied for round 1 were at half time, and half-time
-// numbers are not match numbers. Recording them here would be a wrong number (golden rule 1).
 export const MATCH_STATS = [
-  // { round: 1, h: "CLI", a: "CRU", poss: [63, 37], shots: [5, 8], sot: [3, 5], corners: [1, 0], yellows: [1, 1] },
+  // Full time, owner-supplied screenshot marked FINISHED, 7 Aug 2026. Not the half-time set:
+  // at the break it was 63/37, 5-8, 3-5, 1-0, 1-1.
+  { round: 1, h: "CLI", a: "CRU", poss: [61, 39], shots: [8, 10], sot: [4, 6], corners: [1, 1], yellows: [1, 2] },
 ];
 
 export function matchStatsFor(round, h, a) {
