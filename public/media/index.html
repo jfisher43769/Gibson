@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>GIBSON — matchday media</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0; padding: 20px 16px 60px;
+    background: #0B1512; color: #EDF5EF;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  h1 { font-size: 20px; letter-spacing: .1em; text-transform: uppercase; margin: 0 0 4px; color: #FFB627; }
+  p.lede { font-size: 14px; color: rgba(237,245,239,.65); line-height: 1.5; margin: 0 0 22px; max-width: 34em; }
+  .item { margin-bottom: 26px; }
+  .item h2 { font-size: 14px; letter-spacing: .12em; text-transform: uppercase; color: rgba(237,245,239,.6); margin: 0 0 8px; font-weight: 600; }
+  img, video { width: 100%; max-width: 460px; border-radius: 12px; display: block; border: 1px solid rgba(237,245,239,.1); }
+  a.dl {
+    display: inline-block; margin-top: 8px; padding: 10px 18px; border-radius: 999px;
+    background: #FFB627; color: #0B1512; font-weight: 700; font-size: 14px; text-decoration: none;
+  }
+  footer { margin-top: 40px; font-size: 12px; color: rgba(237,245,239,.4); line-height: 1.6; }
+</style>
+</head>
+<body>
+  <h1>Matchday media</h1>
+  <p class="lede">
+    Round 1, 2026/27. Long-press an image to save it, or use the download button.
+    Not linked from the app — this page just exists so the files can be pulled onto a phone.
+  </p>
+
+  <div class="item">
+    <h2>Video — season launch (18s, silent)</h2>
+    <video src="season-launch.mp4" controls playsinline preload="metadata"></video>
+    <a class="dl" href="season-launch.mp4" download>Download video</a>
+  </div>
+
+  <div class="item">
+    <h2>Round 1 fixtures</h2>
+    <img src="matchday.jpg" alt="Round 1 fixtures card" />
+    <a class="dl" href="matchday.jpg" download>Download</a>
+  </div>
+
+  <div class="item">
+    <h2>Tonight — Cliftonville v Crusaders</h2>
+    <img src="tonight.jpg" alt="Cliftonville v Crusaders card" />
+    <a class="dl" href="tonight.jpg" download>Download</a>
+  </div>
+
+  <div class="item">
+    <h2>One number to know</h2>
+    <img src="number.jpg" alt="Crusaders goals per game card" />
+    <a class="dl" href="number.jpg" download>Download</a>
+  </div>
+
+  <div class="item">
+    <h2>The team to catch</h2>
+    <img src="champions.jpg" alt="Larne champions card" />
+    <a class="dl" href="champions.jpg" download>Download</a>
+  </div>
+
+  <div class="item">
+    <h2>The season ahead</h2>
+    <img src="season.jpg" alt="Season in three numbers card" />
+    <a class="dl" href="season.jpg" download>Download</a>
+  </div>
+
+  <footer>
+    Regenerate with <code>node scripts/promo/cards.mjs</code> and <code>node scripts/promo/render.mjs</code>.<br />
+    Safe to delete <code>public/media/</code> once these are posted.
+  </footer>
+</body>
+</html>
