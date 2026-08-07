@@ -95,9 +95,24 @@ const HEADLINES = {
   // The original. Kept so it can be compared against, not because it is any good.
   cup: { lines: [facts.clubWord, "CLUBS.", "ONE CUP."], gold: 2 },
 };
-const HEAD_KEY = process.env.POSTER_HEADLINE || "empty";
+const HEAD_KEY = process.env.POSTER_HEADLINE || "settle";
 if (!HEADLINES[HEAD_KEY]) throw new Error(`unknown POSTER_HEADLINE "${HEAD_KEY}" — try: ${Object.keys(HEADLINES).join(", ")}`);
 facts.head = HEADLINES[HEAD_KEY];
+
+// The four-number strip, with one rule: never print a number the headline already used.
+// "228 MATCHES TO SETTLE IT" over a cell reading 228 MATCHES wastes the cell and reads as a
+// mistake. When that happens the strip swaps in the pre-split round count instead — the
+// detail that explains why 38 and 228 are the right totals in the first place. Whole-word
+// matching, so a headline containing 228 doesn't knock out the cell reading 1.
+const headText = facts.head.lines.join(" ");
+const used = (n) => new RegExp(`\\b${n}\\b`).test(headText);
+facts.cells = [
+  [current.length, "CLUBS"],
+  [rounds, "ROUNDS"],
+  [matches, "MATCHES"],
+  [1, "CUP"],
+].map(([n, label]) => (used(n) ? [D.FIXTURES_2627.length, "BEFORE THE SPLIT"] : [n, label]))
+  .map(([n, label]) => [String(n), label]);
 console.log(`poster ${W}x${H} — ${facts.clubs.length} clubs, champions ${facts.champion}, ${matches} matches`);
 
 const kit = readFileSync(join(HERE, "kit.js"), "utf8");
@@ -232,14 +247,16 @@ function draw(){
 
   // ---- headline: one size, flush left, ragged right ----
   // Sized by whichever runs out first — the height of its zone or the width of the page —
-  // then centred in the zone. So a two-line headline sets bigger than a three-line one and
-  // both still sit in the same optical position.
+  // then sat on the floor of the zone. A three-line headline nearly fills it either way; a
+  // two-line one is width-capped, and hanging it from the bottom drives it into the number
+  // strip and collects the slack up top, where the ghost cup has room to breathe. Centring
+  // it instead split that slack in two and left a slack-looking gap above the strip.
   const lines=F.head.lines;
   const zoneTop=Y(372), zoneH=Y(1035);
   let hs=zoneH/(lines.length*0.80);
   for(const l of lines) hs=Math.min(hs,fit(l,800,IW,hs,0));
   const lead=hs*0.80, blockH=(lines.length-1)*lead+hs*0.715;
-  let by=zoneTop+(zoneH-blockH)/2+hs*0.715;
+  let by=zoneTop+(zoneH-blockH)+hs*0.715;
   lines.forEach((l,i)=>{
     T(l,M,by,{size:hs,weight:800,color:i===F.head.gold?GOLD:INK});
     by+=lead;
@@ -248,13 +265,14 @@ function draw(){
   // ---- the season in four numbers ----
   const stripY=Y(1495);
   rule(M,W-M,stripY,'rgba(237,245,239,0.22)',3*S);
-  const cells=[[String(F.clubs.length),'CLUBS'],[String(F.rounds),'ROUNDS'],[String(F.matches),'MATCHES'],['1','CUP']];
+  const cells=F.cells;
   const cw=IW/cells.length;
   cells.forEach(([n,lbl],i)=>{
     const cx=M+cw*i;
     if(i){ ctx.fillStyle=FAINT; ctx.fillRect(cx-1*S,stripY+22*S,2*S,Y(118)); }
     T(n,cx+30*S,stripY+Y(132),{size:124*S,weight:800,color:GOLD});
-    T(lbl,cx+30*S,stripY+Y(178),{size:32*S,weight:600,color:MUTE,track:8*S});
+    const ls=fit(lbl,600,cw-60*S,32*S,8*S);
+    T(lbl,cx+30*S,stripY+Y(178),{size:ls,weight:600,color:MUTE,track:8*S});
   });
   rule(M,W-M,Y(1700),'rgba(237,245,239,0.22)',3*S);
 

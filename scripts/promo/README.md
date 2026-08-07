@@ -49,17 +49,27 @@ POSTER_HEADLINE=chase node scripts/promo/poster.mjs
 
 | Key | Headline | Tone |
 |---|---|---|
-| `empty` *(default)* | THE TABLE / IS EMPTY / AGAIN. | Sits directly above last season's finishing order, so the headline and the list argue with each other |
+| `settle` *(default)* | 228 MATCHES / TO SETTLE IT. | The season at full size |
+| `empty` | THE TABLE / IS EMPTY / AGAIN. | Sits directly above last season's finishing order, so the headline and the list argue with each other |
 | `level` | EVERYBODY'S / TOP OF / THE LEAGUE. | The terrace joke on the morning of round one, when all twelve are level on nothing |
 | `chase` | WHO TAKES IT / OFF LARNE? | The actual question of the season, and the one most likely to get a reply |
-| `settle` | 228 MATCHES / TO SETTLE IT. | The season at full size — though the number then appears twice, since the strip carries it too |
 | `cup` | TWELVE CLUBS. / ONE CUP. | The original. Kept to compare against, not because it is any good |
 
 The champion's name and the match count come from `data.js`, so no headline can go stale — `chase`
-renames itself the season after somebody takes it off Larne. Type is sized by whichever runs out
-first, the height of its zone or the width of the page, then centred, so a two-line headline sets
-bigger than a three-line one and both sit in the same optical position. Each key writes its own
-file, so variants don't overwrite each other.
+renames itself the season after somebody takes it off Larne. Each key writes its own file, so
+variants don't overwrite each other.
+
+Two rules keep the headline and the rest of the poster out of each other's way:
+
+- **No number is printed twice.** A headline using a figure the four-number strip also carries
+  (`settle` does) would waste a cell and read as a mistake, so the strip swaps that cell for the
+  pre-split round count — the detail that explains why 38 and 228 are the right totals. Matching
+  is whole-word, so a headline containing `228` doesn't knock out the cell reading `1`.
+- **Type is sized by whichever runs out first**, the height of its zone or the width of the page,
+  then hung from the floor of the zone. A three-line headline nearly fills the zone anyway; a
+  two-line one is width-capped, and bottom-hanging drives it into the number strip and collects
+  the slack at the top, where the ghost cup has room. Centring split that slack in two and left a
+  gap above the strip that looked like an accident.
 
 Two things in it are easy to get wrong if you edit it:
 
