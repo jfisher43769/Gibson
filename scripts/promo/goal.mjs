@@ -59,14 +59,16 @@ const sm = /^(\d{1,2})\s*[-–:]\s*(\d{1,2})$/.exec(String(scoreArg || "").trim(
 if (!sm) die(`Score "${scoreArg}" should look like 1-0 (home first).`);
 const score = [Number(sm[1]), Number(sm[2])];
 
-// The fixture this club is playing: whichever of its unplayed games kicks off nearest to now.
-// Mid-match that is the one on the telly; the live window means a game already under way
-// still wins over next week's.
+// The fixture this club is playing: whichever of its games kicks off nearest to now.
+//
+// Deliberately NOT filtered to unplayed fixtures. It used to be, and the moment the result
+// was recorded in data.js the scripts silently jumped to that club's *next* match and drew a
+// card for the wrong fixture — a full-time card headed Bangor v Cliftonville. Which match a
+// card is about must not change because someone wrote down the score.
 const now = Number(process.env.NOW_MS) || Date.now();
 let fixture = null;
 for (const round of D.FIXTURES_2627) {
   for (const m of round.matches) {
-    if (Array.isArray(m.result)) continue;
     if (m.h !== club && m.a !== club) continue;
     const ms = D.fixtureKickoffMs(round, m);
     if (ms === null) continue;
@@ -75,7 +77,7 @@ for (const round of D.FIXTURES_2627) {
     }
   }
 }
-if (!fixture) die(`No unplayed fixture found for ${D.CLUBS[club].name}.`);
+if (!fixture) die(`No fixture found for ${D.CLUBS[club].name}.`);
 
 const scorerIsHome = fixture.h === club;
 const facts = {

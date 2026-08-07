@@ -988,5 +988,46 @@ check("live scores are fetched through one shared hook, not per tab", (() => {
   return /fetch\(\s*["'`]\/api\/events/.test(hook);
 })());
 
+// The match-card scripts picked "the nearest UNPLAYED fixture", so the moment a result was
+// written into data.js they silently jumped to that club's next game and drew a card for the
+// wrong match — a full-time card headed Bangor v Cliftonville. Which fixture a card is about
+// must not change because someone recorded the score. Found on opening night, 7 Aug 2026.
+check("match-card scripts pick a fixture by time, not by whether it has a result", (() => {
+  const files = ["../scripts/promo/goal.mjs", "../scripts/promo/status.mjs", "../scripts/promo/motm.mjs"];
+  return files.every((f) => {
+    let src = "";
+    try { src = readFileSync(new URL(f, import.meta.url), "utf8"); } catch { return false; }
+    const picksByTime = /Math\.abs\(ms - now\) < Math\.abs\(fixture\.ms - now\)/.test(src);
+    // The fixture loop must not skip played matches. Guarded narrowly so an unrelated use of
+    // `result` elsewhere in these files doesn't trip it.
+    const skipsPlayed = /if \(Array\.isArray\(m\.result\)\) continue;/.test(src);
+    return picksByTime && !skipsPlayed;
+  });
+})());
+
+// The table has to go live off our own recorded results, not wait for a community feed.
+check("currentTable() derives standings from recorded results", (() => {
+  const rows = D.currentTable();
+  const clubs = [...new Set(D.FIXTURES_2627.flatMap((r) => r.matches.flatMap((m) => [m.h, m.a])))];
+  if (rows.length !== clubs.length) return false;
+  // Every club present from the start, points/GD consistent with the results recorded.
+  let p = 0, pts = 0, gf = 0, ga = 0;
+  for (const r of rows) { p += r.p; pts += r.pts; gf += r.gf; ga += r.ga; if (r.gd !== r.gf - r.ga) return false; }
+  const played = D.FIXTURES_2627.flatMap((r) => r.matches).filter((m) => Array.isArray(m.result));
+  // Two clubs per match, and every match awards exactly 3 points (win) or 2 (draw).
+  if (p !== played.length * 2) return false;
+  if (gf !== ga) return false;
+  const expected = played.reduce((n, m) => n + (m.result[0] === m.result[1] ? 2 : 3), 0);
+  if (pts !== expected) return false;
+  // Sorted by points, then goal difference, then goals for.
+  for (let i = 1; i < rows.length; i++) {
+    const a = rows[i - 1], b = rows[i];
+    if (a.pts < b.pts) return false;
+    if (a.pts === b.pts && a.gd < b.gd) return false;
+    if (a.pts === b.pts && a.gd === b.gd && a.gf < b.gf) return false;
+  }
+  return true;
+})());
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);

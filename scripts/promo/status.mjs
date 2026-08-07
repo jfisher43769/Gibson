@@ -49,7 +49,6 @@ const now = Number(process.env.NOW_MS) || Date.now();
 let fixture = null;
 for (const round of D.FIXTURES_2627) {
   for (const m of round.matches) {
-    if (Array.isArray(m.result)) continue;
     if (m.h !== club && m.a !== club) continue;
     const ms = D.fixtureKickoffMs(round, m);
     if (ms === null) continue;
@@ -58,7 +57,7 @@ for (const round of D.FIXTURES_2627) {
     }
   }
 }
-if (!fixture) die(`No unplayed fixture found for ${D.CLUBS[club].name}.`);
+if (!fixture) die(`No fixture found for ${D.CLUBS[club].name}.`);
 
 const photoPath = flag("photo");
 if (photoPath && !existsSync(photoPath)) die(`No such photo: ${photoPath}`);

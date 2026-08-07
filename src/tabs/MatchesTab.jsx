@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  CLUBS, CLUB_FIXTURES, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, seasonLabel, seasonStatus,
+  CLUBS, CLUB_FIXTURES, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, SEASON, currentTable, seasonLabel, seasonStatus,
 } from "../../data.js";
 import { Crest } from "../components/Crest.jsx";
 import { TvBadge } from "../components/TvBadge.jsx";
@@ -29,6 +29,17 @@ export function TableView() {
       .finally(() => { if (on) setChecking(false); });
     return () => { on = false; };
   }, []);
+  // The table goes live off our own recorded results the moment there is one, rather than
+  // waiting for TheSportsDB to publish 26/27 standings — that feed is community-edited and can
+  // sit hours behind. The feed still wins once it is ahead of us, because it covers matches
+  // nobody has written into data.js yet.
+  const derived = currentTable();
+  const derivedPlayed = derived.reduce((n, r) => n + r.p, 0) / 2;
+  const livePlayed = live ? live.rows.reduce((n, r) => n + r.p, 0) / 2 : -1;
+  const useFeed = Boolean(live) && livePlayed >= derivedPlayed;
+  const tableRows = useFeed ? live.rows : derived;
+  const showTable = useFeed || derivedPlayed > 0;
+
   const LiveBlock = () => {
     if (checking) return (
       <div style={{ marginBottom: 22 }}>
@@ -39,16 +50,18 @@ export function TableView() {
         <SkelRows n={3} />
       </div>
     );
-    return live && (
+    return showTable && (
     <div style={{ marginBottom: 22, animation: "riseIn 0.4s ease-out" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
         <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#3DDC84", display: "inline-block" }} />
         <span style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>
-          Live table · {live.season} · updated {live.updated}
+          {useFeed
+            ? `Live table · ${live.season} · updated ${live.updated}`
+            : `${SEASON.current.display} table · ${derivedPlayed} game${derivedPlayed === 1 ? "" : "s"} played`}
         </span>
       </div>
       <div style={{ display: "grid", gap: 6 }}>
-        {live.rows.map((row, i) => (
+        {tableRows.map((row, i) => (
           <div key={row.club} style={{
             display: "flex", alignItems: "center", gap: 12,
             ...SURFACE.card,
@@ -83,7 +96,9 @@ export function TableView() {
         ))}
       </div>
       <div style={{ fontSize: 12, color: dim, marginTop: 8 }}>
-        Auto-updated via TheSportsDB (community data) — cross-check big calls against official sources.
+        {useFeed
+          ? "Auto-updated via TheSportsDB (community data) — cross-check big calls against official sources."
+          : "Built from results recorded on GIBSON. Switches to the live feed once it is ahead of us."}
       </div>
     </div>
   );

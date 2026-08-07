@@ -100,6 +100,36 @@ export function currentSeasonGamesPlayed() {
   return counts.length ? Math.max(...counts) : 0;
 }
 
+// The current season's table, computed from results recorded against FIXTURES_2627. Same row
+// shape /api/table returns, so both render through one component.
+//
+// This exists so the table goes live with the first result rather than waiting for
+// TheSportsDB to publish 26/27 standings — that feed is community-edited and can be hours
+// behind, and on opening night "no table yet" is the wrong answer when a game has been played.
+// Every club appears from the start, on zero, which is what a league table looks like in
+// August. Sorted the way the league sorts: points, then goal difference, then goals scored.
+export function currentTable() {
+  const clubs = [...new Set(FIXTURES_2627.flatMap((r) => r.matches.flatMap((m) => [m.h, m.a])))];
+  // `form` matches the shape /api/table returns so one component renders either source.
+  const rows = new Map(clubs.map((c) => [c, { club: c, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0, form: "" }]));
+  for (const round of FIXTURES_2627) {
+    for (const m of round.matches) {
+      if (!Array.isArray(m.result) || m.result.length !== 2) continue;
+      const [hg, ag] = m.result;
+      if (!Number.isFinite(hg) || !Number.isFinite(ag)) continue;
+      const H = rows.get(m.h), A = rows.get(m.a);
+      if (!H || !A) continue;
+      H.p += 1; A.p += 1;
+      H.gf += hg; H.ga += ag; A.gf += ag; A.ga += hg;
+      if (hg > ag) { H.w += 1; H.pts += 3; A.l += 1; H.form += "W"; A.form += "L"; }
+      else if (hg < ag) { A.w += 1; A.pts += 3; H.l += 1; A.form += "W"; H.form += "L"; }
+      else { H.d += 1; A.d += 1; H.pts += 1; A.pts += 1; H.form += "D"; A.form += "D"; }
+    }
+  }
+  for (const r of rows.values()) { r.gd = r.gf - r.ga; r.form = r.form.slice(-5); }
+  return [...rows.values()].sort((x, y) => y.pts - x.pts || y.gd - x.gd || y.gf - x.gf || x.club.localeCompare(y.club));
+}
+
 const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 // "7 August", derived from SEASON.seasonStart so the strip copy can never drift from it.
@@ -140,7 +170,7 @@ export function seasonStatus(now = Date.now()) {
 // Default kick-off 3pm Saturday unless a match specifies d (date) or t (time).
 export const FIXTURES_2627 = [
   { round: 1, date: "Sat 8 Aug", matches: [
-    { h: "CLI", a: "CRU", d: "Fri 7 Aug", t: "7.45pm", tv: "BBC Sport NI" },
+    { h: "CLI", a: "CRU", d: "Fri 7 Aug", t: "7.45pm", tv: "BBC Sport NI", result: [2, 1] }, // Quinn 11', McMaster 61'; Dunlop 90+2'
     { h: "LIN", a: "BAL" }, { h: "CAR", a: "POR" }, { h: "DUN", a: "COL" }, { h: "GLE", a: "LIM" },
     { h: "LAR", a: "BAN", d: "Tue 8 Sep" }, // rescheduled from Sun 9 Aug (NIFL, 27 Jul 2026)
   ]},
@@ -614,7 +644,7 @@ export const PREDICTOR_GW = {
   name: "Round 1 · BoyleSports Premiership",
   deadline: "Cliftonville v Crusaders Fri 7.45pm · rest Sat 3pm",
   fixtures: [
-    { id: "f1", home: { club: "CLI" }, away: { club: "CRU" }, comp: "Round 1 · Solitude · Fri 7 Aug, 7.45pm", result: null, odds: { home: 1.7, draw: 3.6, away: 5.0 } },
+    { id: "f1", home: { club: "CLI" }, away: { club: "CRU" }, comp: "Round 1 · Solitude · Fri 7 Aug, 7.45pm", result: [2, 1], odds: { home: 1.7, draw: 3.6, away: 5.0 } },
     { id: "f2", home: { club: "LIN" }, away: { club: "BAL" }, comp: "Round 1 · Windsor Park · Sat 8 Aug, 3pm", result: null, odds: { home: 1.5, draw: 4.0, away: 6.5 } },
     { id: "f3", home: { club: "CAR" }, away: { club: "POR" }, comp: "Round 1 · Loughview Leisure · Sat 8 Aug, 3pm", result: null, odds: { home: 2.0, draw: 3.3, away: 3.6 } },
     { id: "f4", home: { club: "DUN" }, away: { club: "COL" }, comp: "Round 1 · Stangmore Park · Sat 8 Aug, 3pm", result: null, odds: { home: 4.0, draw: 3.6, away: 1.85 } },
