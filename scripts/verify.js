@@ -1131,10 +1131,12 @@ check("aggregates over hand-entered data are gated on complete coverage", (() =>
   if (c.statsComplete !== (c.played > 0 && c.stats === c.played)) return false;
   let src = "";
   try { src = readFileSync(new URL("../src/components/SeasonSoFar.jsx", import.meta.url), "utf8"); } catch { return false; }
-  // Both hand-entered sections must be behind their own completeness flag.
-  const scorersGated = /cover\.eventsComplete\s*\?\s*topScorers\(/.test(src);
+  // Possession/shooting is the only hand-entered total the panel shows, and it must be behind
+  // its completeness flag. Scorers are not shown at all: graphics aren't made for every match,
+  // so MATCH_EVENTS is always a subset and any scorer total would understate the rest.
   const statsGated = /cover\.statsComplete\s*\?\s*aggregateMatchStats\(/.test(src);
-  return scorersGated && statsGated;
+  const noScorerTotals = !/topScorers\(/.test(src);
+  return statsGated && noScorerTotals;
 })());
 
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);

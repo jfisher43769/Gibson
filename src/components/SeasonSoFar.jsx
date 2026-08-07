@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  SEASON, aggregateMatchStats, currentSeasonStats, recordedCoverage, topScorers,
+  SEASON, aggregateMatchStats, currentSeasonStats, recordedCoverage,
 } from "../../data.js";
 import { Crest } from "./Crest.jsx";
 import { SURFACE, chalk, dim, faint } from "../lib/theme.js";
@@ -13,11 +13,15 @@ import { SURFACE, chalk, dim, faint } from "../lib/theme.js";
 //   Derived (points per game, clean sheets, home/away, goals per game) come from the results
 //   themselves. They are complete by construction — if a match is recorded, it is in them.
 //
-//   Recorded (scorers, possession, shots) are typed in by hand after a match, and not every
-//   match gets written up. Any TOTAL across them would understate whoever played in the games
-//   nobody got round to, so those sections only appear once coverage is complete. Partial data
-//   presented as a total is the wrong-number problem golden rule 1 exists to prevent, and it
-//   is worse than showing nothing because it looks authoritative.
+//   Recorded (possession, shots) are typed in by hand after a match, and not every match gets
+//   written up. Any TOTAL across them would flatter whoever happened to be recorded, so that
+//   section only appears once coverage is complete. Partial data presented as a total is the
+//   wrong-number problem golden rule 1 exists to prevent, and it is worse than showing nothing
+//   because it looks authoritative.
+//
+// Top scorers deliberately absent: graphics aren't made for every match, so MATCH_EVENTS will
+// always be a subset and a scorer table would understate everyone whose goals went unrecorded.
+// The data is still kept per-match in data.js — it just isn't totalled here.
 
 const label = { fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 };
 
@@ -38,7 +42,6 @@ export function SeasonSoFar() {
 
   const cover = recordedCoverage();
   const byPpg = [...s.clubs].filter((c) => c.p > 0).sort((a, b) => b.ppg - a.ppg || b.gd - a.gd);
-  const scorers = cover.eventsComplete ? topScorers(5) : [];
   const teamStats = cover.statsComplete ? aggregateMatchStats().slice(0, 5) : [];
   const g = s.league;
 
@@ -72,26 +75,10 @@ export function SeasonSoFar() {
           </div>
         ))}
       </div>
-      <div style={{ fontSize: 12, color: dim, lineHeight: 1.5, marginBottom: scorers.length || teamStats.length ? 16 : 0 }}>
+      <div style={{ fontSize: 12, color: dim, lineHeight: 1.5, marginBottom: teamStats.length ? 16 : 0 }}>
         Derived from every recorded result — points per game, clean sheets and goal rates need
         nothing but the scorelines, so they are complete for the {s.matches} match{s.matches === 1 ? "" : "es"} played.
       </div>
-
-      {scorers.length > 0 && (<>
-        <div style={{ ...label, marginTop: 4 }}>Top scorers</div>
-        <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden", marginBottom: 10 }}>
-          {scorers.map((p, i) => (
-            <div key={p.club + p.player} style={{
-              display: "flex", alignItems: "center", gap: 10, padding: "9px 13px",
-              borderBottom: i < scorers.length - 1 ? `1px solid ${faint}` : "none",
-            }}>
-              <Crest club={p.club} size={20} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: chalk, flex: 1, minWidth: 0 }}>{p.player}</span>
-              <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, color: "#FFB627", fontVariantNumeric: "tabular-nums" }}>{p.goals}</span>
-            </div>
-          ))}
-        </div>
-      </>)}
 
       {teamStats.length > 0 && (<>
         <div style={{ ...label, marginTop: 4 }}>Possession &amp; shooting · per match</div>
@@ -114,12 +101,12 @@ export function SeasonSoFar() {
 
       {/* Say why a section is missing rather than leaving a silent gap — an absent top-scorer
           table with no explanation reads as a bug rather than as a deliberate omission. */}
-      {(!cover.eventsComplete || !cover.statsComplete) && (
+      {!cover.statsComplete && (
         <div style={{ fontSize: 12, color: dim, lineHeight: 1.5 }}>
-          Scorers and match stats are entered by hand and cover{" "}
-          {cover.events}/{cover.played} and {cover.stats}/{cover.played} matches. Totals appear once
-          a set is complete — a table built from some of the games would understate everyone who
-          played in the rest.
+          Possession and shooting are entered by hand and cover {cover.stats} of the {cover.played}{" "}
+          match{cover.played === 1 ? "" : "es"} played. Averages appear once every match has been
+          written up — figures built from some of the games would flatter whoever happened to be
+          recorded.
         </div>
       )}
     </div>
