@@ -9,6 +9,7 @@ import { Avatar } from "../components/Avatar.jsx";
 import { CountUp } from "../components/CountUp.jsx";
 import { Crest } from "../components/Crest.jsx";
 import { ReportLink } from "../components/ReportLink.jsx";
+import { SeasonSoFar } from "../components/SeasonSoFar.jsx";
 import { NoSeasonData, SeasonSwitch } from "../components/SeasonSwitch.jsx";
 import { DepartedTag } from "../components/DepartedTag.jsx";
 import { ShotMap } from "../components/ShotMap.jsx";
@@ -202,6 +203,10 @@ export function StatsView() {
           {season === SEASON.current.id ? SEASON.current.display : `${SEASON.previous.display} · last season`} · verified team-level numbers
         </div>
       </div>
+      {/* The new season's own numbers, above the season switch: they exist from the first
+          result, and burying them under a control that defaults to last season would hide
+          the only 26/27 data there is. */}
+      <SeasonSoFar />
       <SeasonSwitch value={season} onChange={setSeason} status={status} />
       {season === liveSeasonId() && GOALS_STATS.length > 0 && TEAM_STATS_2526.length > 0
         ? <StatsBody />

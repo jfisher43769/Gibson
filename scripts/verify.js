@@ -1106,5 +1106,32 @@ check("topScorers() counts every recorded goal exactly once", (() => {
   return D.goalMinutes().length === total;
 })());
 
+// Hand-entered match stats. Same three rules the matchstats graphic enforces, because the
+// numbers come from the same place — a phone screenshot read at speed.
+check("MATCH_STATS entries are internally consistent and map to played fixtures", (() => D.MATCH_STATS.every((s) => {
+  const round = D.FIXTURES_2627.find((r) => r.round === s.round);
+  const fixture = round && round.matches.find((m) => m.h === s.h && m.a === s.a);
+  if (!fixture || !Array.isArray(fixture.result)) return false;
+  const pairs = [s.poss, s.shots, s.sot, s.corners, s.yellows];
+  if (!pairs.every((p) => Array.isArray(p) && p.length === 2 && p.every((n) => Number.isFinite(n) && n >= 0))) return false;
+  if (s.poss[0] + s.poss[1] !== 100) return false;          // possession is a share of one ball
+  return [0, 1].every((i) => s.sot[i] <= s.shots[i]);       // can't hit the target more than you shoot
+}))());
+
+// The guard that makes partial hand-entered data safe to hold: a total is only ever built
+// when every played match has been written up. Without this, a top-scorer table assembled
+// from half the fixtures reads as authoritative while understating everyone else.
+check("aggregates over hand-entered data are gated on complete coverage", (() => {
+  const c = D.recordedCoverage();
+  if (c.eventsComplete !== (c.played > 0 && c.events === c.played)) return false;
+  if (c.statsComplete !== (c.played > 0 && c.stats === c.played)) return false;
+  let src = "";
+  try { src = readFileSync(new URL("../src/components/SeasonSoFar.jsx", import.meta.url), "utf8"); } catch { return false; }
+  // Both hand-entered sections must be behind their own completeness flag.
+  const scorersGated = /cover\.eventsComplete\s*\?\s*topScorers\(/.test(src);
+  const statsGated = /cover\.statsComplete\s*\?\s*aggregateMatchStats\(/.test(src);
+  return scorersGated && statsGated;
+})());
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);

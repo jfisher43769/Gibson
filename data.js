@@ -732,6 +732,74 @@ export const MATCH_EVENTS = [
   ]},
 ];
 
+// ===== 26/27 per-match team stats =====
+// Possession, shots and cards, transcribed from a live-score app after each match. No free
+// feed carries these for this league (scripts/probe-stats-sources.js, 7 Aug 2026), so they
+// arrive by hand or not at all.
+//
+// Both values are [home, away], always in that order. Every entry must match a played
+// fixture, possession must total 100, and on-target plus off-target must equal total shots —
+// scripts/verify.js enforces all three, because a digit fumbled off a phone screenshot is
+// invisible by eye.
+//
+// EMPTY ON PURPOSE. The only stats supplied for round 1 were at half time, and half-time
+// numbers are not match numbers. Recording them here would be a wrong number (golden rule 1).
+export const MATCH_STATS = [
+  // { round: 1, h: "CLI", a: "CRU", poss: [63, 37], shots: [5, 8], sot: [3, 5], corners: [1, 0], yellows: [1, 1] },
+];
+
+export function matchStatsFor(round, h, a) {
+  return MATCH_STATS.find((s) => s.round === round && s.h === h && s.a === a) || null;
+}
+
+// How much of the season each hand-entered dataset actually covers.
+//
+// This exists because partial data lies. Scorers and match stats are recorded when someone
+// gets round to it, not for every game, so any total built across them understates whoever
+// played in the matches nobody wrote up. A league top-scorer table built from half the
+// fixtures is worse than no table — so the UI asks this first and only aggregates when the
+// coverage is complete.
+export function recordedCoverage() {
+  const played = FIXTURES_2627.flatMap((r) => r.matches
+    .filter((m) => Array.isArray(m.result))
+    .map((m) => ({ round: r.round, h: m.h, a: m.a })));
+  const has = (list) => played.filter((p) => list.some((e) => e.round === p.round && e.h === p.h && e.a === p.a)).length;
+  const events = has(MATCH_EVENTS);
+  const stats = has(MATCH_STATS);
+  return {
+    played: played.length,
+    events, stats,
+    eventsComplete: played.length > 0 && events === played.length,
+    statsComplete: played.length > 0 && stats === played.length,
+  };
+}
+
+// Aggregate team stats across the matches that have them. Reports its own coverage so the
+// caller can label it honestly, or decline to show it.
+export function aggregateMatchStats() {
+  const by = new Map();
+  const add = (club, s) => {
+    const r = by.get(club) || { club, m: 0, poss: 0, shots: 0, sot: 0, corners: 0, yellows: 0 };
+    r.m += 1; r.poss += s.poss; r.shots += s.shots; r.sot += s.sot; r.corners += s.corners; r.yellows += s.yellows;
+    by.set(club, r);
+  };
+  for (const s of MATCH_STATS) {
+    add(s.h, { poss: s.poss[0], shots: s.shots[0], sot: s.sot[0], corners: s.corners[0], yellows: s.yellows[0] });
+    add(s.a, { poss: s.poss[1], shots: s.shots[1], sot: s.sot[1], corners: s.corners[1], yellows: s.yellows[1] });
+  }
+  return [...by.values()]
+    .map((r) => ({
+      club: r.club, matches: r.m,
+      poss: Number((r.poss / r.m).toFixed(1)),
+      shots: Number((r.shots / r.m).toFixed(1)),
+      sot: Number((r.sot / r.m).toFixed(1)),
+      corners: Number((r.corners / r.m).toFixed(1)),
+      yellows: Number((r.yellows / r.m).toFixed(1)),
+      accuracy: r.shots ? Math.round((r.sot / r.shots) * 100) : 0,
+    }))
+    .sort((a, b) => b.poss - a.poss);
+}
+
 // Top scorers, derived — so it can never disagree with MATCH_EVENTS or need its own upkeep.
 // Ties break alphabetically rather than arbitrarily, so the order is stable between renders.
 export function topScorers(limit = 10) {
