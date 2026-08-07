@@ -962,5 +962,31 @@ check("the Home board leads each side with a crest, not a club code", (() => {
   })());
 }
 
+// The Home board advertised "NEXT MATCH · 7 AUG · 7.45PM" for a game that had already kicked
+// off, because it only ever read the fixture list. Owner asked for the live score to be on the
+// front page, 7 Aug 2026.
+check("the Home board shows the live score once its fixture kicks off", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/HomeTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const asks = /findLive\(\s*live\.data/.test(src) && /useLiveEvents\(\)/.test(src);
+  const showsScore = /\{liveMatch\.hs\}.–.\{liveMatch\.as\}|\{liveMatch\.hs\}[^}]*\{liveMatch\.as\}/.test(src);
+  return asks && showsScore;
+})());
+
+// Two components each fetching /api/events is how one of them ends up a version behind and
+// the front page contradicts the fixtures list.
+check("live scores are fetched through one shared hook, not per tab", (() => {
+  const files = ["../src/tabs/HomeTab.jsx", "../src/tabs/MatchesTab.jsx"];
+  for (const f of files) {
+    let src = "";
+    try { src = readFileSync(new URL(f, import.meta.url), "utf8"); } catch { return false; }
+    if (/fetch\(\s*["'`]\/api\/events/.test(src)) return false;
+    if (!/useLiveEvents\(\)/.test(src)) return false;
+  }
+  let hook = "";
+  try { hook = readFileSync(new URL("../src/lib/live.js", import.meta.url), "utf8"); } catch { return false; }
+  return /fetch\(\s*["'`]\/api\/events/.test(hook);
+})());
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);

@@ -8,6 +8,7 @@ import { SeasonStrip } from "../components/SeasonSwitch.jsx";
 import { OddsDisclaimer, OddsStrip } from "../components/Odds.jsx";
 import { OfflineNote } from "../components/OfflineNote.jsx";
 import { Skel, SkelRows } from "../components/Skeleton.jsx";
+import { useLiveEvents } from "../lib/live.js";
 import { OVERLAY, SURFACE, chalk, dim, faint, formColor, rise } from "../lib/theme.js";
 import { LiveTeaser } from "../components/LiveTeaser.jsx";
 
@@ -403,18 +404,9 @@ export function FixturesView({ fixedClub } = {}) {
   const [mode, setMode] = useState("club"); // 'club' | 'round'
   const [round, setRound] = useState(1);
   const [showAll, setShowAll] = useState(false);
-  const [liveEv, setLiveEv] = useState(null);
-  const [evLoading, setEvLoading] = useState(true);
-  const [offline, setOffline] = useState(false);
-  useEffect(() => {
-    let on = true;
-    fetch("/api/events")
-      .then((r) => r.json())
-      .then((j) => { if (on && j && j.ok) setLiveEv(j); })
-      .catch(() => { if (on) setOffline(true); })
-      .finally(() => { if (on) setEvLoading(false); });
-    return () => { on = false; };
-  }, []);
+  // Same hook the Home board uses, so the front page and this list can't disagree about
+  // whether a match is on.
+  const { data: liveEv, loading: evLoading, offline } = useLiveEvents();
   const euro = CLUB_FIXTURES[club];
   const c = CLUBS[club];
   const leagueFixtures = [];

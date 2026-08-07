@@ -6,6 +6,7 @@ import {
 import { ClubNavContext, Crest } from "../components/Crest.jsx";
 import { TvBadge } from "../components/TvBadge.jsx";
 import { CountUp } from "../components/CountUp.jsx";
+import { findLive, useLiveEvents } from "../lib/live.js";
 import { SURFACE, chalk, dim, faint } from "../lib/theme.js";
 
 // One side of the scoreboard. A Premiership club shows its crest, which is what the rest of
@@ -32,6 +33,7 @@ function BoardSide({ crest, code, name }) {
 
 export function HomeView({ goTo }) {
   const openClub = useContext(ClubNavContext);
+  const live = useLiveEvents();
   const now = Date.now();
   // LIVE_WINDOW_MS (a kick-off within the last 2.5h still counts as "the match", because
   // the result isn't in data.js while the game is on) comes from data.js so this and
@@ -117,6 +119,10 @@ export function HomeView({ goTo }) {
         }`,
         tv: leagueFix.tv || null,
       };
+  // If the match the board is advertising has actually kicked off, stop advertising it and
+  // show the score. Without this the front page says "NEXT MATCH · 7 AUG · 7.45PM" for a game
+  // that is already an hour old, which is the same wrong-number problem the results list had.
+  const liveMatch = findLive(live.data, board.home, board.away);
   const heroDate = board.date.match(/^(\d+)(\S*)(.*)$/);
   return (
     <div className="gb-narrow" style={{ animation: "riseIn 0.4s ease-out" }}>
@@ -135,20 +141,39 @@ export function HomeView({ goTo }) {
         {board.awayColor && (
           <div aria-hidden="true" style={{ position: "absolute", right: 0, top: 10, bottom: 10, width: 3, borderRadius: "2px 0 0 2px", background: board.awayColor, opacity: 0.85 }} />
         )}
-        <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 12 }}>Next match</div>
+        <div style={{ fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
+          {liveMatch ? (<>
+            <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: "#3DDC84", display: "inline-block", animation: "livePulse 1.4s infinite" }} />
+            <span style={{ color: "#3DDC84", fontWeight: 800 }}>Live now</span>
+          </>) : <span style={{ color: dim }}>Next match</span>}
+        </div>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "center", gap: 18 }}>
           <BoardSide crest={board.homeCrest} code={board.home} name={board.homeName} />
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-            <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 48, lineHeight: 1, color: "#FFB627", fontVariantNumeric: "tabular-nums", textShadow: "0 0 18px rgba(255,182,39,0.35)" }}>
-              {heroDate ? <><CountUp value={parseInt(heroDate[1], 10)} />{heroDate[2]}</> : board.date}
-              {heroDate && heroDate[3] && <span style={{ fontSize: 20, letterSpacing: "0.12em", color: dim }}>{heroDate[3].toUpperCase()}</span>}
-            </span>
-            {board.time && (
-              <span style={{
-                fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 19, lineHeight: 1,
-                letterSpacing: "0.08em", color: chalk, fontVariantNumeric: "tabular-nums",
-              }}>{board.time.toUpperCase()}</span>
-            )}
+            {liveMatch ? (<>
+              <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 48, lineHeight: 1, color: "#FFB627", fontVariantNumeric: "tabular-nums", textShadow: "0 0 18px rgba(255,182,39,0.35)" }}>
+                {liveMatch.hs}–{liveMatch.as}
+              </span>
+              {/* The feed's own status (2H, HT) rather than anything we work out ourselves —
+                  a minute counted on the client would drift from the actual game. */}
+              {liveMatch.status && (
+                <span style={{
+                  fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 19, lineHeight: 1,
+                  letterSpacing: "0.08em", color: "#3DDC84", textTransform: "uppercase",
+                }}>{liveMatch.status}</span>
+              )}
+            </>) : (<>
+              <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 48, lineHeight: 1, color: "#FFB627", fontVariantNumeric: "tabular-nums", textShadow: "0 0 18px rgba(255,182,39,0.35)" }}>
+                {heroDate ? <><CountUp value={parseInt(heroDate[1], 10)} />{heroDate[2]}</> : board.date}
+                {heroDate && heroDate[3] && <span style={{ fontSize: 20, letterSpacing: "0.12em", color: dim }}>{heroDate[3].toUpperCase()}</span>}
+              </span>
+              {board.time && (
+                <span style={{
+                  fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 19, lineHeight: 1,
+                  letterSpacing: "0.08em", color: chalk, fontVariantNumeric: "tabular-nums",
+                }}>{board.time.toUpperCase()}</span>
+              )}
+            </>)}
           </div>
           <BoardSide crest={board.awayCrest} code={board.away} name={board.awayName} />
         </div>
