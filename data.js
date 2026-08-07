@@ -130,6 +130,82 @@ export function currentTable() {
   return [...rows.values()].sort((x, y) => y.pts - x.pts || y.gd - x.gd || y.gf - x.gf || x.club.localeCompare(y.club));
 }
 
+// Everything a scoreline can tell you, derived from the same results that build the table.
+//
+// This exists because there is no free feed carrying possession or shots for this league —
+// scripts/probe-stats-sources.js established that on opening night — so the numbers we CAN
+// stand behind are the ones arithmetic gives us for nothing. It grows every week with no
+// maintenance, and it cannot contradict the table because it reads the same source.
+//
+// Deliberately absent: anything needing more than a final score. No half-time average (we
+// don't record half-time scores), no xG, no possession. Golden rule 1 — omit rather than
+// estimate. The 25/26 blocks that carry those came from a real provider.
+export function currentSeasonStats() {
+  const table = currentTable();
+  const byClub = new Map(table.map((r) => [r.club, {
+    ...r,
+    ppg: 0, cs: 0, failedToScore: 0, o25: 0, bts: 0,
+    home: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 },
+    away: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 },
+  }]));
+
+  let matches = 0, goals = 0, o25 = 0, bts = 0, homeWins = 0, draws = 0, awayWins = 0;
+  for (const round of FIXTURES_2627) {
+    for (const m of round.matches) {
+      if (!Array.isArray(m.result) || m.result.length !== 2) continue;
+      const [hg, ag] = m.result;
+      if (!Number.isFinite(hg) || !Number.isFinite(ag)) continue;
+      const H = byClub.get(m.h), A = byClub.get(m.a);
+      if (!H || !A) continue;
+
+      matches += 1;
+      goals += hg + ag;
+      if (hg + ag > 2.5) { o25 += 1; H.o25 += 1; A.o25 += 1; }
+      if (hg > 0 && ag > 0) { bts += 1; H.bts += 1; A.bts += 1; }
+      if (hg > ag) homeWins += 1; else if (hg < ag) awayWins += 1; else draws += 1;
+
+      if (ag === 0) H.cs += 1;
+      if (hg === 0) A.cs += 1;
+      if (hg === 0) H.failedToScore += 1;
+      if (ag === 0) A.failedToScore += 1;
+
+      const pts = (a, b) => (a > b ? 3 : a === b ? 1 : 0);
+      const push = (side, gf, ga) => {
+        side.p += 1; side.gf += gf; side.ga += ga; side.pts += pts(gf, ga);
+        if (gf > ga) side.w += 1; else if (gf < ga) side.l += 1; else side.d += 1;
+      };
+      push(H.home, hg, ag);
+      push(A.away, ag, hg);
+    }
+  }
+
+  const pct = (n) => (matches ? Math.round((n / matches) * 100) : 0);
+  const clubs = [...byClub.values()].map((c) => ({
+    ...c,
+    ppg: c.p ? Number((c.pts / c.p).toFixed(2)) : 0,
+    // Per-club rates are shares of that club's own games, not of the league's.
+    o25Pct: c.p ? Math.round((c.o25 / c.p) * 100) : 0,
+    btsPct: c.p ? Math.round((c.bts / c.p) * 100) : 0,
+    csPct: c.p ? Math.round((c.cs / c.p) * 100) : 0,
+  }));
+
+  return {
+    matches,
+    clubs,
+    league: {
+      matches,
+      goals,
+      avgGoals: matches ? Number((goals / matches).toFixed(2)) : 0,
+      o25Pct: pct(o25),
+      btsPct: pct(bts),
+      homeWinPct: pct(homeWins),
+      drawPct: pct(draws),
+      awayWinPct: pct(awayWins),
+      homeWins, draws, awayWins,
+    },
+  };
+}
+
 const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 // "7 August", derived from SEASON.seasonStart so the strip copy can never drift from it.
@@ -639,6 +715,50 @@ export const LEAGUE_LORE = [
 // Scoring: exact score = 3 pts, correct result = 1 pt.
 // When results are known, fill in `result: [home, away]` on each fixture and redeploy —
 // saved predictions on each player's device are scored automatically.
+// ===== 26/27 goalscorers =====
+// One entry per played match, recorded as the results come in. This is the cheapest real
+// data GIBSON has: the scorers and minutes are already being written out for the matchday
+// graphics, so capturing them here costs nothing extra and turns them into top-scorer tables,
+// goals-by-minute and late-goal counts.
+//
+// `minute` is the clock; `added` is stoppage time on top of it, so 90+2 is {minute: 90,
+// added: 2} and sorts correctly against an 89th-minute goal. `note` is free editorial.
+// A player recorded with a surname only stays a surname — never invent a first name.
+export const MATCH_EVENTS = [
+  { round: 1, h: "CLI", a: "CRU", goals: [
+    { club: "CLI", player: "Ben Quinn", minute: 11, note: "debut goal" },
+    { club: "CLI", player: "McMaster", minute: 61 },
+    { club: "CRU", player: "Dunlop", minute: 90, added: 2 },
+  ]},
+];
+
+// Top scorers, derived — so it can never disagree with MATCH_EVENTS or need its own upkeep.
+// Ties break alphabetically rather than arbitrarily, so the order is stable between renders.
+export function topScorers(limit = 10) {
+  const tally = new Map();
+  for (const m of MATCH_EVENTS) {
+    for (const g of m.goals || []) {
+      if (!g.player || !g.club) continue;
+      const key = `${g.club}:${g.player}`;
+      const row = tally.get(key) || { player: g.player, club: g.club, goals: 0 };
+      row.goals += 1;
+      tally.set(key, row);
+    }
+  }
+  return [...tally.values()]
+    .sort((a, b) => b.goals - a.goals || a.player.localeCompare(b.player))
+    .slice(0, limit);
+}
+
+// Every goal on one timeline, for "when do goals go in" — the kind of thing a scoreline
+// alone can't tell you and a provider would charge for.
+export function goalMinutes() {
+  return MATCH_EVENTS
+    .flatMap((m) => (m.goals || []).map((g) => (g.minute || 0) + (g.added || 0)))
+    .filter((n) => n > 0)
+    .sort((a, b) => a - b);
+}
+
 export const PREDICTOR_GW = {
   id: "prem-round-1",
   name: "Round 1 · BoyleSports Premiership",

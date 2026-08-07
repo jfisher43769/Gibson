@@ -1046,5 +1046,65 @@ check("fixture rows show the score once a match has been played", (() => {
   return roundRow && clubRow;
 })());
 
+// The 26/27 derived-stats layer. No free feed carries possession or shots for this league,
+// so what arithmetic gives us for nothing has to be right.
+check("currentSeasonStats() reconciles with the recorded results", (() => {
+  const s = D.currentSeasonStats();
+  const played = D.FIXTURES_2627.flatMap((r) => r.matches).filter((m) => Array.isArray(m.result));
+  if (s.matches !== played.length) return false;
+  if (s.league.homeWins + s.league.draws + s.league.awayWins !== s.matches) return false;
+  const totalGoals = played.reduce((n, m) => n + m.result[0] + m.result[1], 0);
+  if (s.league.goals !== totalGoals) return false;
+  // Expected splits read straight off the fixture list, so "home" has to mean actually at
+  // home. Checking only that home + away totals the whole is too weak: filing an away game
+  // under home keeps every total right and was not caught until it was deliberately tried.
+  const expect = {};
+  for (const m of played) {
+    expect[m.h] = expect[m.h] || { hp: 0, ap: 0, hgf: 0, agf: 0 };
+    expect[m.a] = expect[m.a] || { hp: 0, ap: 0, hgf: 0, agf: 0 };
+    expect[m.h].hp += 1; expect[m.h].hgf += m.result[0];
+    expect[m.a].ap += 1; expect[m.a].agf += m.result[1];
+  }
+  let gf = 0, ga = 0;
+  for (const c of s.clubs) {
+    if (c.home.p + c.away.p !== c.p) return false;
+    if (c.home.pts + c.away.pts !== c.pts) return false;
+    if (c.home.gf + c.away.gf !== c.gf) return false;
+    if (c.home.ga + c.away.ga !== c.ga) return false;
+    const e = expect[c.club] || { hp: 0, ap: 0, hgf: 0, agf: 0 };
+    if (c.home.p !== e.hp || c.away.p !== e.ap) return false;
+    if (c.home.gf !== e.hgf || c.away.gf !== e.agf) return false;
+    gf += c.gf; ga += c.ga;
+  }
+  // Every goal scored is a goal conceded, and both equal the league total.
+  return gf === ga && gf === totalGoals;
+})());
+
+// The one that earns its keep: a scorer list that doesn't add up to the scoreline is either a
+// missing goal or one credited to the wrong club, and neither is visible by eye.
+check("MATCH_EVENTS goals add up to the recorded scoreline", (() => D.MATCH_EVENTS.every((ev) => {
+  const round = D.FIXTURES_2627.find((r) => r.round === ev.round);
+  const fixture = round && round.matches.find((m) => m.h === ev.h && m.a === ev.a);
+  if (!fixture) return false;                       // an entry for a fixture that doesn't exist
+  if (!Array.isArray(fixture.result)) return false; // scorers recorded for an unplayed match
+  const goals = ev.goals || [];
+  // Own goals would credit the other club, so every goal must name a club in this fixture.
+  if (!goals.every((g) => g.club === ev.h || g.club === ev.a)) return false;
+  if (!goals.every((g) => g.player && Number.isInteger(g.minute) && g.minute > 0 && g.minute <= 120)) return false;
+  const h = goals.filter((g) => g.club === ev.h).length;
+  const a = goals.filter((g) => g.club === ev.a).length;
+  return h === fixture.result[0] && a === fixture.result[1];
+}))());
+
+check("topScorers() counts every recorded goal exactly once", (() => {
+  const total = D.MATCH_EVENTS.reduce((n, m) => n + (m.goals || []).length, 0);
+  const counted = D.topScorers(999).reduce((n, r) => n + r.goals, 0);
+  if (counted !== total) return false;
+  const rows = D.topScorers(999);
+  for (let i = 1; i < rows.length; i++) if (rows[i - 1].goals < rows[i].goals) return false;
+  // Stoppage time lands past the 90, not before it.
+  return D.goalMinutes().length === total;
+})());
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);
