@@ -19,6 +19,17 @@ import { ClubsGrid, HistoryView, SupportView, TransfersView } from "./src/tabs/M
 import { PredictorView } from "./src/tabs/PredictorTab.jsx";
 import { DuelView, PlayersView, StatsView } from "./src/tabs/StatsTab.jsx";
 
+// Brand glyphs for the header's social links, keyed to SOCIALS in data.js. The handles and
+// URLs live in data.js because they are content; the paths live here because they are UI.
+// Add a network to SOCIALS and it needs an entry in both maps — scripts/verify.js fails the
+// build if it doesn't, so a new account can't ship as a blank square.
+const SOCIAL_ICONS = {
+  x: "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z",
+  tiktok: "M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z",
+  instagram: "M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 1 0 0 12.325 6.162 6.162 0 0 0 0-12.325zm0 10.162a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z",
+};
+const SOCIAL_NAMES = { x: "X", tiktok: "TikTok", instagram: "Instagram" };
+
 export default function App() {
   return (
     <TopBoundary>
@@ -124,22 +135,17 @@ function AppShell() {
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <a href={SOCIALS.x.url} target="_blank" rel="noopener noreferrer" aria-label={`GIBSON on X: ${SOCIALS.x.handle}`} style={{
-              width: 34, height: 34, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center",
-              background: OVERLAY.fill, border: `1px solid ${faint}`, textDecoration: "none",
-            }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill={chalk}>
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              </svg>
-            </a>
-            <a href={SOCIALS.tiktok.url} target="_blank" rel="noopener noreferrer" aria-label={`GIBSON on TikTok: ${SOCIALS.tiktok.handle}`} style={{
-              width: 34, height: 34, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center",
-              background: OVERLAY.fill, border: `1px solid ${faint}`, textDecoration: "none",
-            }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill={chalk}>
-                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
-              </svg>
-            </a>
+            {Object.entries(SOCIALS).map(([key, { url, handle }]) => (
+              <a key={key} href={url} target="_blank" rel="noopener noreferrer"
+                aria-label={`GIBSON on ${SOCIAL_NAMES[key]}: ${handle}`} style={{
+                  width: 34, height: 34, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center",
+                  background: OVERLAY.fill, border: `1px solid ${faint}`, textDecoration: "none",
+                }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill={chalk} aria-hidden="true">
+                  <path d={SOCIAL_ICONS[key]} />
+                </svg>
+              </a>
+            ))}
           </div>
         </div>
         <nav className="gb-nav" style={{ display: "flex", gap: 6, marginTop: 16, flexWrap: "wrap", position: "relative" }} aria-label="Views">

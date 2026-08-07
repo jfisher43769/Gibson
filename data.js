@@ -621,6 +621,7 @@ export const KOFI_URL = "https://ko-fi.com/gibson575";
 export const SOCIALS = {
   x: { handle: "@GibsonStats", url: "https://x.com/GibsonStats" },
   tiktok: { handle: "@gibsonstats", url: "https://www.tiktok.com/@gibsonstats" },
+  instagram: { handle: "@gibsonstats", url: "https://www.instagram.com/gibsonstats" },
 };
 
 

@@ -857,5 +857,25 @@ check("crest text colour is the higher-contrast option and clears 3:1 for every 
   });
 })());
 
+// Every social account in data.js must actually reach the header. The handles/URLs are
+// content and the glyphs are UI, so they live in different files — which means adding an
+// account to SOCIALS without its icon renders a link as an empty 34px square that still
+// looks clickable. Cheap to get wrong, invisible in a green build.
+check("every SOCIALS account has a handle, an https URL and a header icon", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../App.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const keys = Object.keys(D.SOCIALS);
+  if (!keys.length) return false;
+  return keys.every((k) => {
+    const s = D.SOCIALS[k];
+    if (!s?.handle?.startsWith("@")) return false;
+    if (!/^https:\/\/[^\s"']+$/.test(s.url || "")) return false;
+    // The maps are object literals in App.jsx, so the key has to appear in both.
+    const inIcons = new RegExp(`SOCIAL_ICONS\\s*=\\s*\\{[\\s\\S]*?\\b${k}\\s*:`).test(src);
+    const inNames = new RegExp(`SOCIAL_NAMES\\s*=\\s*\\{[^}]*?\\b${k}\\s*:`).test(src);
+    return inIcons && inNames;
+  });
+})());
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);
