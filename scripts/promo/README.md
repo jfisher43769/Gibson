@@ -62,6 +62,28 @@ The scoring club's colours carry the design and their side of the scoreline stay
 the other dims — that is the convention every club follows, and it is why a fan knows whose
 goal it is before reading a word.
 
+### Adding the scorer's photo
+
+```bash
+node scripts/promo/goal.mjs CLI "Ben Quinn" 11 1-0 "DEBUT GOAL" --photo=/path/to/headshot.jpg
+```
+
+The portrait is masked to a circle, and that mask is doing compliance work as well as design
+work. A club headshot shows the shirt, and Irish League shirts carry bookmaker sponsors —
+Cliftonville's is Sean Graham — which CLAUDE.md golden rule 2 keeps off anything GIBSON
+publishes. The default crop (`0.125,0,0.75`, fractions of the image: x, y, side) frames head
+and shoulders and stops above the front sponsor band, and the circular mask removes the
+corners, which is where sleeve patches sit. Aim it at a different photo with `--crop`.
+
+**Always look at the render before posting it.** The crop is a default, not a guarantee: a
+photo framed differently can bring a sponsor back into shot, and no check in this repo can
+see a logo.
+
+A note containing the word GOAL replaces the headline rather than being appended to it, so
+`"DEBUT GOAL"` reads as `DEBUT GOAL` and not `GOAL · DEBUT GOAL`. With a portrait the headline
+and name share the left column and the minute disc hangs off the circle's lower-left; without
+one they take the full width and the minute sits top-right.
+
 ## The poster's headline
 
 The headline is a named option rather than a literal, because it is the one part of the poster
