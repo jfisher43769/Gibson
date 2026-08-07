@@ -9,6 +9,7 @@ Video generators rendering **1080x1920 (9:16) MP4s** for X and TikTok, plus two 
 | `preview.mjs` | `gibson-preview-<h>-<a>.mp4` | Match preview — kick-off, last season, tale of the tape, team news, the call |
 | `cards.mjs` | `gibson-card-*.png` | Five 1080x1350 stills: the round's fixtures, the headline tie, one number, the champions, the season |
 | `goal.mjs` | `gibson-goal-<fixture>-<min>.jpg` | Live goal graphic — scorer, minute and the score as it stands, in the scoring club's colours |
+| `status.mjs` | `gibson-<state>-<fixture>.jpg` | Half-time / full-time card — the state, the score, scorers, the ground across the top |
 | `poster.mjs` | `gibson-poster-<w>x<h>.png` / `.jpg` | Portrait season poster — headline type block, the season in four numbers, the twelve as a ranked list |
 
 All share `kit.js`, the drawing kit (shields, the Gibson Cup mark, impact type, sweeps, grain).
@@ -83,6 +84,30 @@ A note containing the word GOAL replaces the headline rather than being appended
 `"DEBUT GOAL"` reads as `DEBUT GOAL` and not `GOAL · DEBUT GOAL`. With a portrait the headline
 and name share the left column and the minute disc hangs off the circle's lower-left; without
 one they take the full width and the minute sits top-right.
+
+## Half time and full time
+
+```bash
+node scripts/promo/status.mjs CLI HT 1-0 --home="Quinn 11'"
+node scripts/promo/status.mjs CLI FT 2-1 --home="Quinn 11', Curran 78'" --away="Owens 62'"
+node scripts/promo/status.mjs CLI HT 1-0 --home="Quinn 11'" --photo=/path/to/ground.jpg
+```
+
+Club, state (`HT`, `FT` or `KO`), score home-first. Scorer lines are free text under `--home`
+and `--away` because they are editorial — nobody's goals are in `data.js` while the match is
+still on — and they split on commas so a brace stacks instead of running off the card. The
+panel grows to fit the deepest list, so a one-goal card isn't mostly empty panel. `KO` prints
+"V" instead of a score.
+
+`--photo` runs a ground shot across the top as a band, not full-bleed. A phone or drone shot is
+usually around 800x600; covering 1080x1350 would mean upscaling past 2x and it goes to mush,
+whereas a band is about 1.35x and holds. The lower edge fades into the card so the state
+headline can straddle it.
+
+Same warning as the goal portraits: **look at the render before posting.** Ground photography
+picks up pitchside hoardings, and Irish League hoardings carry bookmakers. At band scale they
+are normally an unreadable smear — verified on the Solitude shot by zooming the source before
+using it — but a closer photo would not be, and nothing here can check that for you.
 
 ## The poster's headline
 
