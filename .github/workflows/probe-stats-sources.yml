@@ -1,0 +1,44 @@
+name: Probe stats sources
+
+# Runs scripts/probe-stats-sources.js on a runner and prints the answer to the job log.
+#
+# Why this exists: agent sessions run behind an egress policy that blocks thesportsdb.com
+# and api-sports.io, so the question "does anyone actually carry per-match stats for the
+# Irish League?" can't be answered from there. Actions runners have open internet, and this
+# works from a phone: tap "Run workflow", then read the log.
+#
+# Read-only by construction — the script writes nothing, commits nothing and opens no PR.
+# There is nothing to review afterwards, which is why this one prints rather than proposing.
+#
+# The API-Football key is optional. Without it the run still answers the cheaper question:
+# whether TheSportsDB — the feed GIBSON already uses — carries match stats on the free key.
+# To test API-Football too, add a repository secret named APIFOOTBALL_KEY (a free key from
+# api-football.com allows 100 requests/day; this probe uses about three).
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: probe-stats-sources
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    # Never run under someone else's fork: it would spend their API quota, not ours.
+    if: github.repository == 'jfisher43769/Gibson'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      # No install step: the probe uses only built-in fetch, so there is nothing to install
+      # and nothing from npm running against a key.
+      - name: Probe
+        env:
+          APIFOOTBALL_KEY: ${{ secrets.APIFOOTBALL_KEY }}
+        run: node scripts/probe-stats-sources.js
