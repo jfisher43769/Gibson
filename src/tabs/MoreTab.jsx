@@ -391,7 +391,7 @@ export function SupportView() {
           { v: "1.1", when: "Jul 2026", title: "Every club, one tap from Home", desc: "A club-selector strip on the Home tab, automatic crest text contrast, and name labels on every club picker in the app.", status: "done" },
           { v: "1.11", when: "Aug 2026", title: "Season one kicks off", desc: "Global Predictor leaderboard, live 26/27 table, and GIBSON on the Play Store.", status: "next" },
           { v: "1.2", when: "Aug 2026", title: "Live scores", desc: "In-play scores on the front page and the fixtures list, refreshed while matches are on, with the table updating off them — shipped, and free to everyone.", status: "done" },
-          { v: "v1.2", when: "Pre-season", title: "Fixtures & Predictor gameweeks", desc: "26/27 fixture list, opening-day countdown, and weekly Predictor rounds all season long.", status: "planned" },
+          { v: "v1.2", when: "Aug 2026", title: "Fixtures & Predictor gameweeks", desc: "The full 26/27 fixture list, browsable by round or by club, and weekly Predictor rounds — round one played and scored.", status: "done" },
           { v: "v1.3", when: "In season", title: "Weekly GIBSON Index", desc: "Ratings updated every matchweek, plus a Team of the Week in the Stats Lab.", status: "planned" },
           { v: "v2.0", when: "Future", title: "Accounts, Premium & leaderboards", desc: "Sign in, save your club, follow players, and battle the whole league on global Predictor leaderboards.", status: "planned" },
         ].map((r, i, arr) => (
