@@ -51,14 +51,24 @@ const goals = D.GOALS_STATS.find((g) => g.club === next.a) || D.GOALS_STATS.find
 const champion = D.FULL_TABLE[0];
 const clubCount = [...new Set(D.FIXTURES_2627.flatMap((r) => r.matches.flatMap((m) => [m.h, m.a])))].length;
 
+// "It starts today" is true on one morning a season. After that the card is a matchday
+// card, not a launch card, and printing the launch line over a round that is already
+// under way says the season hasn't begun when it plainly has.
+const opener = D.seasonOpener();
+const seasonStarted = opener ? now >= opener.kickoffMs : false;
+const sameDay = (a, b) => new Date(a).toDateString() === new Date(b).toDateString();
+const matchdayTitle = !seasonStarted && opener && sameDay(now, opener.kickoffMs)
+  ? "IT STARTS TODAY"
+  : (fixtures.length && sameDay(now, next.kickoffMs) ? "TODAY IN THE LEAGUE" : "NEXT UP");
+
 const facts = {
-  round: next.round, fixtures, headline,
+  round: next.round, fixtures, headline, matchdayTitle,
   goals: { code: goals.club, name: D.CLUBS[goals.club].name, avg: goals.avg, o25: goals.o25 },
   champion: { ...clubOf(champion.club), pts: champion.pts, note: D.ROLL_OF_HONOUR[0].note },
   chasing: clubCount - 1, clubCount, rounds: D.FIXTURES_2627.length,
   seasonDisplay: D.SEASON.current.display,
 };
-console.log(`round ${facts.round} · ${fixtures.length} fixtures · headline ${headline.h.name} v ${headline.a.name}`);
+console.log(`round ${facts.round} · ${fixtures.length} fixtures · "${matchdayTitle}" · headline ${headline.h.name} v ${headline.a.name}`);
 
 const kit = readFileSync(join(HERE, "kit.js"), "utf8");
 const f800 = readFileSync(join(FONT_DIR, "barlow-condensed-latin-800-normal.woff2")).toString("base64");
@@ -94,9 +104,9 @@ CARDS['matchday']=()=>{
   frame();
   ctx.textAlign='left';
   rowText('ROUND '+F.round,PX,132,44,GOLD,800);
-  const s=fitFont('IT STARTS TODAY',800,PW,132);
+  const s=fitFont(F.matchdayTitle,800,PW,132);
   ctx.font='800 '+s+'px "Barlow Condensed"';ctx.textAlign='left';ctx.textBaseline='alphabetic';
-  ctx.fillStyle=CHALK;ctx.fillText('IT STARTS TODAY',PX,246);
+  ctx.fillStyle=CHALK;ctx.fillText(F.matchdayTitle,PX,246);
   const n=F.fixtures.length, top=306, gap=Math.min(210,(H-top-176)/n);
   F.fixtures.forEach((f,i)=>{
     const y=top+i*gap;
