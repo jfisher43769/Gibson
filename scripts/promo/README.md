@@ -12,6 +12,8 @@ Video generators rendering **1080x1920 (9:16) MP4s** for X and TikTok, plus two 
 | `status.mjs` | `gibson-<state>-<fixture>.jpg` | Half-time / full-time card — the state, the score, scorers, the ground across the top |
 | `matchstats.mjs` | `gibson-stats-<fixture>-<title>.jpg` | Match stats card — possession, shots, corners and cards as split bars |
 | `banner.mjs` | `gibson-x-banner-<w>x<h>.png` / `.jpg` | X header — the wordmark lockup and a twelve-club colour bar |
+| `roundup.mjs` | `gibson-roundup-<state>-r<n>.jpg` | Multi-match round-up — every score in the round on one card |
+| `motm.mjs` | `gibson-motm-<club>-<player>.jpg` | Man of the match — portrait, name, the line, the result |
 | `poster.mjs` | `gibson-poster-<w>x<h>.png` / `.jpg` | Portrait season poster — headline type block, the season in four numbers, the twelve as a ranked list |
 
 All share `kit.js`, the drawing kit (shields, the Gibson Cup mark, impact type, sweeps, grain).
@@ -152,6 +154,27 @@ the safe band on purpose: it reads as a stripe whether or not a phone crops it.
 `--guides` draws the avatar circle and the safe band so the next person editing this can see
 what they're working around. It writes to its own filename, so a guide render can't be posted
 by mistake.
+
+## A whole round on one card
+
+```bash
+node scripts/promo/roundup.mjs HT "LIN 1-0 BAL" "CAR 0-0 POR" "DUN 2-1 COL" "GLE 1-1 LIM"
+node scripts/promo/roundup.mjs FT "LIN 2-1 BAL" "CAR 0-0 POR"
+```
+
+`status.mjs` covers one match; this covers an afternoon. Six 3pm kick-offs is the normal shape
+of a Saturday, so the half-time and full-time posts want every score on one card rather than
+six cards nobody scrolls through. Up to six matches; rows are a fixed height and the block is
+centred, so four don't stretch into tall empty panels. The leading club's name is lifted out of
+the muted tone, so the card reads at a glance without doing the arithmetic.
+
+**What the validation can and can't do.** Twelve clubs meeting three times means every ordered
+pair happens at some point in a season, so "is this a real fixture?" cannot tell you a pairing
+is wrong — it only rejects a club that isn't in the fixture list at all. The real work is done
+by two other rules: each pairing resolves to the fixture **nearest today**, and a card whose
+matches span more than one round is refused. Type one wrong pair on a Saturday and it lands in
+a different round from its neighbours, and the render stops with both round numbers named. A
+club appearing twice is refused for the same reason.
 
 ## The poster's headline
 
