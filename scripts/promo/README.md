@@ -14,6 +14,7 @@ Video generators rendering **1080x1920 (9:16) MP4s** for X and TikTok, plus two 
 | `banner.mjs` | `gibson-x-banner-<w>x<h>.png` / `.jpg` | X header — the wordmark lockup and a twelve-club colour bar |
 | `roundup.mjs` | `gibson-roundup-<state>-r<n>.jpg` | Multi-match round-up — every score in the round on one card |
 | `motm.mjs` | `gibson-motm-<club>-<player>.jpg` | Man of the match — portrait, name, the line, the result |
+| `announce.mjs` | `gibson-announce-<head>.jpg` | Feature announcement — what the app can now do, shown with a real match's real numbers |
 | `poster.mjs` | `gibson-poster-<w>x<h>.png` / `.jpg` | Portrait season poster — headline type block, the season in four numbers, the twelve as a ranked list |
 
 All share `kit.js`, the drawing kit (shields, the Gibson Cup mark, impact type, sweeps, grain).
@@ -133,6 +134,32 @@ than faking a split.
 Percentage rows that don't total 100 stop the render. Transcribing numbers off a screenshot
 mid-match is exactly where a digit gets fumbled, and a stats card that can't be trusted is
 worse than no card.
+
+## Announcing a feature
+
+```bash
+node scripts/promo/announce.mjs
+node scripts/promo/announce.mjs --match=DUN-COL
+node scripts/promo/announce.mjs --head="MATCH STATS" --sub="Tap any result."
+```
+
+Every other card here reports a match. This one announces something the app can now do, and
+argues for it the way a stats site should: by showing a real match's real numbers, read
+through the same `matchDetail()` the app itself renders. Nothing on the card is sample data —
+if a number here is wrong, the app is wrong too.
+
+With no arguments it demonstrates on the most recently played match that has stats recorded,
+so the card stays current without being told. `--match=HOME-AWAY` picks one; a pairing with no
+recorded stats stops the render rather than drawing an empty panel.
+
+The panel's height follows the row count, because matches don't all have the same stats
+recorded — Linfield v Ballymena had no card row, and a fixed height left a quarter of the
+panel empty under the last bar.
+
+The footer line is counted, never asserted: "every Premiership match so far" appears only when
+`recordedCoverage()` says stats exist for every played match, and otherwise it reads "3 of 5
+matches covered so far". A claim about coverage on a card is a promise, and the count is the
+only thing that can keep it.
 
 ## X banner
 

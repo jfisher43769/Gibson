@@ -702,6 +702,36 @@ check("every stats export is tagged in SEASON_TAGS with a resolvable season id",
 check("seasonLabel() returns a non-empty label for every tagged stats export",
   STATS_EXPORTS.every((name) => typeof D.seasonLabel(name) === "string" && D.seasonLabel(name).length > 0));
 
+// seasonLabel() takes an EXPORT NAME and returns "" for anything it doesn't recognise — it
+// fails to nothing rather than to an error, so a wrong argument shows up as a missing label
+// on a card or a heading and nowhere else. Calling it with a season id (seasonLabel(
+// SEASON.current.id)) silently blanked the season out of a promo card's header, 8 Aug 2026.
+check("every seasonLabel() call passes a name that SEASON_TAGS knows", (() => {
+  const promoRoot = new URL("../scripts/promo/", import.meta.url);
+  const promo = existsSync(promoRoot)
+    ? readdirSync(promoRoot).filter((f) => /\.mjs$/.test(f)).map((f) => new URL(f, promoRoot))
+    : [];
+  const tagged = new Set(Object.keys(D.SEASON_TAGS || {}));
+  // Comments are prose about the code, not calls — a note reading "not seasonLabel()" is not
+  // a bug. Crude stripping is fine here: the worst it does is chew a URL inside a string,
+  // and nothing in this check cares about URLs.
+  const decomment = (s) => s.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/\/\/[^\n]*/g, " ");
+  for (const p of [...shippedFiles, ...promo]) {
+    let src = "";
+    try { src = decomment(readFileSync(p, "utf8")); } catch { continue; }
+    for (const m of src.matchAll(/seasonLabel\(\s*([^)]*?)\s*\)/g)) {
+      const arg = m[1];
+      if (!arg) return false;                       // seasonLabel() with nothing to look up
+      const lit = /^["'`]([^"'`]*)["'`]$/.exec(arg);
+      // A variable argument can't be resolved here; data.js's own definition and the check
+      // above cover the function itself. String literals are the ones that go stale.
+      if (!lit) continue;
+      if (!tagged.has(lit[1])) return false;
+    }
+  }
+  return true;
+})());
+
 // CLUB_TOP_SCORERS is Transfermarkt all-competitions data with NO published xG, while
 // XG_PLAYERS is league-only FootyStats data. Keeping them separate is the whole point of the
 // export: if an xG field ever appears here, someone has either merged the two sources or
