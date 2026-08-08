@@ -361,6 +361,46 @@ check("kick-off times respect the BST/GMT changeover", (() => {
 
 check("every CLUB_FIXTURES/EURO fixture has a valid ISO dt matching its display date", allEuroFixtures.every(dtMatchesDisplayDate));
 
+// The roadmap promised a "Global Predictor leaderboard" for Aug 2026 while the Predictor tab
+// told users global leaderboards arrive with accounts in v2.0. Two dated promises, in the same
+// app, contradicting each other — and the roadmap's was the one with a month on it. A roadmap
+// is a promise to users, so it has to agree with what the rest of the app says and it has to
+// be readable: one "up next", and versions in order. Found on 8 Aug 2026.
+check("the roadmap is ordered, has one 'up next', and doesn't promise leaderboards before v2.0", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/MoreTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const block = /The Roadmap<\/div>\s*\{\[([\s\S]*?)\]\.map\(/.exec(src);
+  if (!block) { console.log("      ↳ couldn't find the roadmap array"); return false; }
+  const rows = [...block[1].matchAll(/\{\s*v:\s*"([^"]+)"[\s\S]*?status:\s*"([^"]+)"\s*\}/g)]
+    .map((m) => ({ v: m[1], status: m[2], text: m[0] }));
+  if (rows.length < 5) { console.log(`      ↳ only parsed ${rows.length} rows`); return false; }
+
+  const problems = [];
+  const next = rows.filter((r) => r.status === "next");
+  if (next.length !== 1) problems.push(`${next.length} rows marked "next" — exactly one should be`);
+
+  // Version strings carry a stray "v" on some rows; compare the numbers.
+  const num = (v) => Number(String(v).replace(/^v/, ""));
+  for (let i = 1; i < rows.length; i++) {
+    if (!(num(rows[i].v) > num(rows[i - 1].v))) problems.push(`${rows[i - 1].v} then ${rows[i].v} is out of order`);
+  }
+
+  // Whatever the Predictor tab tells users about leaderboards is the binding version.
+  let predictor = "";
+  try { predictor = readFileSync(new URL("../src/tabs/PredictorTab.jsx", import.meta.url), "utf8"); } catch { /* checked below */ }
+  const promised = /leaderboards? .{0,40}?\bv?(\d+\.\d+)\b/i.exec(predictor);
+  if (!promised) problems.push("PredictorTab no longer states when leaderboards arrive — this check has nothing to compare against");
+  else {
+    for (const r of rows) {
+      if (/leaderboard/i.test(r.text) && num(r.v) < Number(promised[1])) {
+        problems.push(`row ${r.v} promises a leaderboard, but the Predictor tab says v${promised[1]}`);
+      }
+    }
+  }
+  if (problems.length) console.log("      ↳ " + problems.join("\n      ↳ "));
+  return problems.length === 0;
+})());
+
 // A European tie lives in two places: EURO drives the tie card, CLUB_FIXTURES drives the
 // club page's "In Europe first" list. They are separate arrays and nothing tied them
 // together, so recording Larne's Q3 second leg in EURO alone left the app knowing the date
