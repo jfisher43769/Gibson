@@ -813,6 +813,35 @@ export function matchStatsFor(round, h, a) {
   return MATCH_STATS.find((s) => s.round === round && s.h === h && s.a === a) || null;
 }
 
+// Everything recorded about one match, or null if nothing was. Callers use the null to decide
+// whether a fixture row is worth making tappable — offering to open a match and then showing
+// an empty panel is worse than not offering.
+export function matchDetail(round, h, a) {
+  const stats = matchStatsFor(round, h, a);
+  const ev = MATCH_EVENTS.find((m) => m.round === round && m.h === h && m.a === a);
+  const goals = ev && Array.isArray(ev.goals) && ev.goals.length ? ev.goals : null;
+  if (!stats && !goals) return null;
+  return {
+    stats,
+    goals,
+    // Ordered as a match is read, and only the rows actually recorded. Percent rows carry a
+    // suffix so the panel doesn't need to know which is which.
+    rows: stats ? [
+      { label: "Possession", pair: stats.poss, suffix: "%" },
+      { label: "Shots", pair: stats.shots },
+      { label: "On target", pair: stats.sot },
+      { label: "Corners", pair: stats.corners },
+      { label: "Yellow cards", pair: stats.yellows },
+    ].filter((r) => Array.isArray(r.pair)) : [],
+  };
+}
+
+// "90+2'" for stoppage time, "61'" otherwise.
+export function goalMinuteLabel(g) {
+  if (!g || !Number.isInteger(g.minute)) return "";
+  return `${g.minute}${g.added ? `+${g.added}` : ""}'`;
+}
+
 // How much of the season each hand-entered dataset actually covers.
 //
 // This exists because partial data lies. Scorers and match stats are recorded when someone

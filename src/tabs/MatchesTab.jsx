@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import {
-  CLUBS, CLUB_FIXTURES, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, SEASON, currentTable, dayMonth, seasonLabel, seasonStartDisplay, seasonStatus,
+  CLUBS, CLUB_FIXTURES, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, SEASON, currentTable, dayMonth, matchDetail, seasonLabel, seasonStartDisplay, seasonStatus,
 } from "../../data.js";
 import { Crest } from "../components/Crest.jsx";
 import { TvBadge } from "../components/TvBadge.jsx";
 import { SeasonStrip } from "../components/SeasonSwitch.jsx";
 import { OddsDisclaimer, OddsStrip } from "../components/Odds.jsx";
 import { OfflineNote } from "../components/OfflineNote.jsx";
+import { MatchDetail } from "../components/MatchDetail.jsx";
 import { LiveTick, ScoreRow } from "../components/ScoreRow.jsx";
 import { Skel, SkelRows } from "../components/Skeleton.jsx";
 import { findLive, useLiveEvents } from "../lib/live.js";
@@ -398,6 +399,10 @@ export function FixturesView({ fixedClub } = {}) {
   const [mode, setMode] = useState("club"); // 'club' | 'round'
   const [round, setRound] = useState(1);
   const [showAll, setShowAll] = useState(false);
+  // Which match is open, if any. One at a time: on a phone, two open panels means neither is
+  // readable without scrolling past the other.
+  const [openMatch, setOpenMatch] = useState(null);
+  const matchKey = (round, h, a) => `${round}-${h}-${a}`;
   // Same hook the Home board uses, so the front page and this list can't disagree about
   // whether a match is on.
   const { data: liveEv, loading: evLoading, offline } = useLiveEvents();
@@ -473,12 +478,25 @@ export function FixturesView({ fixedClub } = {}) {
                 // no score at all.
                 const inPlay = findLive(liveEv, m.h, m.a);
                 const played = inPlay ? [inPlay.hs, inPlay.as] : (Array.isArray(m.result) ? m.result : null);
+                // Only offer to open a match we actually recorded something about — a tap
+                // that reveals an empty panel is worse than no tap at all.
+                const detail = matchDetail(r.round, m.h, m.a);
+                const key = matchKey(r.round, m.h, m.a);
+                const open = openMatch === key;
                 return (
                   <div key={i} style={{
                     display: "flex", flexDirection: "column", gap: 5, padding: "12px 14px",
                     borderBottom: i < r.matches.length - 1 ? `1px solid ${faint}` : "none",
                     background: i % 2 ? "rgba(240,255,245,0.02)" : "transparent",
-                  }}>
+                    cursor: detail ? "pointer" : "default",
+                  }}
+                    onClick={detail ? () => setOpenMatch(open ? null : key) : undefined}
+                    role={detail ? "button" : undefined}
+                    tabIndex={detail ? 0 : undefined}
+                    aria-expanded={detail ? open : undefined}
+                    aria-label={detail ? `${CLUBS[m.h].name} v ${CLUBS[m.a].name} — match stats` : undefined}
+                    onKeyDown={detail ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpenMatch(open ? null : key); } } : undefined}
+                  >
                     <div style={{ display: "flex", alignItems: "center" }}>
                       <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, justifyContent: "flex-end" }}>
                         <span style={{ fontSize: 13, fontWeight: 600, color: chalk, textAlign: "right" }}>{CLUBS[m.h].name}</span>
@@ -493,13 +511,19 @@ export function FixturesView({ fixedClub } = {}) {
                         <span style={{ fontSize: 13, fontWeight: 600, color: chalk }}>{CLUBS[m.a].name}</span>
                       </div>
                     </div>
-                    {(moved || m.tv || inPlay) && (
+                    {(moved || m.tv || inPlay || detail) && (
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
                         {inPlay && <LiveTick status={inPlay.status} />}
                         {moved && !inPlay && <span style={{ fontSize: 12, color: dim }}>{meta}</span>}
                         <TvBadge tv={m.tv} />
+                        {detail && (
+                          <span style={{ fontSize: 11, color: "#FFB627", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 800 }}>
+                            {open ? "Hide stats ▲" : "Match stats ▼"}
+                          </span>
+                        )}
                       </div>
                     )}
+                    {open && <MatchDetail round={r.round} h={m.h} a={m.a} />}
                   </div>
                 );
               })}
@@ -618,11 +642,24 @@ export function FixturesView({ fixedClub } = {}) {
           const forGoals = played ? (f.home ? played[0] : played[1]) : null;
           const against = played ? (f.home ? played[1] : played[0]) : null;
           const outcome = played ? (forGoals > against ? "W" : forGoals < against ? "L" : "D") : null;
+          const detail = matchDetail(f.round, f.h, f.a);
+          const key = matchKey(f.round, f.h, f.a);
+          const open = openMatch === key;
           return (
             <div key={i} style={{
-              display: "flex", alignItems: "center", gap: 12, padding: "11px 13px",
               borderBottom: i < nextLeague.length - 1 ? `1px solid ${faint}` : "none",
             }}>
+            <div style={{
+              display: "flex", alignItems: "center", gap: 12, padding: "11px 13px",
+              cursor: detail ? "pointer" : "default",
+            }}
+              onClick={detail ? () => setOpenMatch(open ? null : key) : undefined}
+              role={detail ? "button" : undefined}
+              tabIndex={detail ? 0 : undefined}
+              aria-expanded={detail ? open : undefined}
+              aria-label={detail ? `${CLUBS[f.h].name} v ${CLUBS[f.a].name} — match stats` : undefined}
+              onKeyDown={detail ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpenMatch(open ? null : key); } } : undefined}
+            >
               <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#FFB627", width: 74, flexShrink: 0, lineHeight: 1.2 }}>
                 {f.date}
                 <div style={{ fontSize: 12, color: dim, fontWeight: 600 }}>{f.time}</div>
@@ -636,6 +673,11 @@ export function FixturesView({ fixedClub } = {}) {
                   <span>Round {f.round} · {f.venue}</span>
                   {inPlay && <LiveTick status={inPlay.status} />}
                   <TvBadge tv={f.tv} />
+                  {detail && (
+                    <span style={{ fontSize: 11, color: "#FFB627", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 800 }}>
+                      {open ? "Hide stats ▲" : "Match stats ▼"}
+                    </span>
+                  )}
                 </div>
               </div>
               {played && (
@@ -651,6 +693,8 @@ export function FixturesView({ fixedClub } = {}) {
                   }}>{outcome}</span>
                 </div>
               )}
+            </div>
+            {open && <div style={{ padding: "0 13px 12px" }}><MatchDetail round={f.round} h={f.h} a={f.a} /></div>}
             </div>
           );
         })}

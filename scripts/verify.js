@@ -1202,5 +1202,48 @@ check("the score row is defined once and shared", (() => {
   return true;
 })());
 
+// Per-match detail, opened from a fixture row. The owner is sending stats for every match, so
+// the app should show them rather than only feeding the graphics.
+check("matchDetail() returns what was recorded, and nothing when nothing was", (() => {
+  // Every match we have stats or scorers for must resolve, and carry only recorded rows.
+  for (const s of D.MATCH_STATS) {
+    const d = D.matchDetail(s.round, s.h, s.a);
+    if (!d || d.rows.length === 0) return false;
+    if (!d.rows.every((r) => Array.isArray(r.pair) && r.pair.length === 2)) return false;
+    if (d.rows.filter((r) => r.suffix === "%").length !== 1) return false;   // possession only
+  }
+  for (const e of D.MATCH_EVENTS) {
+    const d = D.matchDetail(e.round, e.h, e.a);
+    if (!d || !d.goals || d.goals.length !== e.goals.length) return false;
+  }
+  // A fixture nobody has written up returns null, which is what keeps its row un-tappable.
+  const bare = D.FIXTURES_2627.flatMap((r) => r.matches.map((m) => ({ round: r.round, ...m })))
+    .find((m) => !D.MATCH_STATS.some((s) => s.round === m.round && s.h === m.h && s.a === m.a)
+      && !D.MATCH_EVENTS.some((e) => e.round === m.round && e.h === m.h && e.a === m.a));
+  if (bare && D.matchDetail(bare.round, bare.h, bare.a) !== null) return false;
+  return D.goalMinuteLabel({ minute: 90, added: 2 }) === "90+2'"
+    && D.goalMinuteLabel({ minute: 61 }) === "61'"
+    && D.goalMinuteLabel(null) === "";
+})());
+
+check("fixture rows only offer match stats when there are some", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/MatchesTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  // Both views derive `detail` and hang the toggle, the panel and the click handler off it.
+  const derives = (src.match(/const detail = matchDetail\(/g) || []).length;
+  const panels = (src.match(/<MatchDetail\s/g) || []).length;
+  const gatedClick = (src.match(/onClick=\{detail \?/g) || []).length;
+  return derives >= 2 && panels >= 2 && gatedClick >= 2;
+})());
+
+// Cliftonville against Crusaders is red against red, so club colour cannot carry a
+// head-to-head — the same reason the matchday graphics use gold and sky.
+check("match stat bars use the home/away pairing, not club colours", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/components/MatchDetail.jsx", import.meta.url), "utf8"); } catch { return false; }
+  if (/CLUBS\[[^\]]+\]\.colors/.test(src)) return false;
+  return /HOME = "#FFB627"/.test(src) && /AWAY = "#5EC8F2"/.test(src);
+})());
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);
