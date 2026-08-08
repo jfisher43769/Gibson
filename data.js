@@ -446,6 +446,38 @@ export function londonKickoffLabel(dt) {
   return minute === 0 ? `${h12}${suffix}` : `${h12}.${String(minute).padStart(2, "0")}${suffix}`;
 }
 
+// The season's first fixture by kick-off, and whether it is an evening game.
+//
+// "Opening night" was being applied to every round-1 fixture, so once the Friday opener had
+// been played the board went on calling a 3pm Saturday match opening night. It is true of
+// exactly one game in a season, and only if that game is actually at night.
+export function seasonOpener() {
+  let best = null;
+  for (const round of FIXTURES_2627) {
+    for (const m of round.matches) {
+      const ms = fixtureKickoffMs(round, m);
+      if (ms === null) continue;
+      if (!best || ms < best.kickoffMs) {
+        const hour = Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", hour: "numeric", hour12: false })
+          .formatToParts(new Date(ms)).find((p) => p.type === "hour")?.value);
+        best = { round: round.round, h: m.h, a: m.a, kickoffMs: ms, evening: Number.isFinite(hour) && hour >= 17 };
+      }
+    }
+  }
+  return best;
+}
+
+// What to call a league fixture on a board: the opener gets its moment, everything else is
+// named by its round.
+export function leagueFixtureLabel(fixture) {
+  if (!fixture) return "Premiership";
+  if (fixture.done) return "Final round";
+  const opener = seasonOpener();
+  const isOpener = opener && opener.round === fixture.round && opener.h === fixture.h && opener.a === fixture.a;
+  if (isOpener) return opener.evening ? "Premiership opening night" : "Premiership opening day";
+  return `Premiership round ${fixture.round}`;
+}
+
 // A kick-off within this window still counts as "the match" rather than as past — the
 // result is rarely in data.js while the game is still on. Matches HomeTab's own window.
 export const LIVE_WINDOW_MS = 2.5 * 60 * 60 * 1000;

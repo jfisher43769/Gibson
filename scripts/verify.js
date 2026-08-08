@@ -1139,5 +1139,29 @@ check("aggregates over hand-entered data are gated on complete coverage", (() =>
   return statsGated && noScorerTotals;
 })());
 
+// "Opening night" was keyed off round === 1, so once the Friday opener had been played the
+// board went on calling a 3pm Saturday game opening night. It belongs to exactly one fixture
+// in a season, and only if that fixture is actually in the evening. Owner spotted it live.
+check("only the season opener is called opening night", (() => {
+  const opener = D.seasonOpener();
+  if (!opener) return false;
+  const all = D.FIXTURES_2627.flatMap((r) => r.matches.map((m) => ({ round: r.round, h: m.h, a: m.a })));
+  // Exactly one fixture may carry an "opening" label, and it must be the earliest kick-off.
+  const opening = all.filter((f) => /opening/i.test(D.leagueFixtureLabel(f)));
+  if (opening.length !== 1) return false;
+  const [o] = opening;
+  if (o.round !== opener.round || o.h !== opener.h || o.a !== opener.a) return false;
+  // Night only if it is actually at night; an afternoon opener is opening day.
+  const label = D.leagueFixtureLabel(o);
+  if (opener.evening !== /night/i.test(label)) return false;
+  // Every other fixture is named by its round, and a played one by its state.
+  const other = all.find((f) => f.round === opener.round && (f.h !== opener.h || f.a !== opener.a));
+  if (other && D.leagueFixtureLabel(other) !== `Premiership round ${other.round}`) return false;
+  // The UI must go through the helper rather than testing the round number itself.
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/HomeTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  return !/round === 1 \?/.test(src) && /leagueFixtureLabel\(/.test(src);
+})());
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);

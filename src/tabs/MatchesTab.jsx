@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  CLUBS, CLUB_FIXTURES, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, SEASON, currentTable, seasonLabel, seasonStatus,
+  CLUBS, CLUB_FIXTURES, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, SEASON, currentTable, seasonLabel, seasonStartDisplay, seasonStatus,
 } from "../../data.js";
 import { Crest } from "../components/Crest.jsx";
 import { TvBadge } from "../components/TvBadge.jsx";
@@ -559,9 +559,14 @@ export function FixturesView({ fixedClub } = {}) {
       {evLoading && (
         <div style={{ marginBottom: 14 }}><SkelRows n={2} /></div>
       )}
+      {/* Before a ball is kicked this promises the feed is coming; once the season is under
+          way that promise has been kept, and repeating it would be telling the reader the
+          league hasn't started. */}
       {!evLoading && !liveEv && (
         <div style={{ fontSize: 12, color: dim, marginBottom: 14, lineHeight: 1.5, animation: "riseIn 0.3s ease-out" }}>
-          ⚡ The live results feed wakes up when the league does — opening night, Friday 7 August at Solitude.
+          {seasonStatus().started
+            ? "⚡ The live results feed isn't answering right now — fixtures below come from the published schedule."
+            : `⚡ The live results feed wakes up when the league does — ${seasonStartDisplay()}.`}
         </div>
       )}
       {liveEv && liveEv.live && liveEv.live.length > 0 && (

@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import {
   CLUBS, CLUB_FIXTURES, EURO, FIXTURES_2627, LEAGUE_LORE, LIVE_WINDOW_MS, PREDICTOR_GW, STATUS_META, TRANSFERS,
-  londonKickoffLabel, nextLeagueFixture,
+  leagueFixtureLabel, londonKickoffLabel, nextLeagueFixture,
 } from "../../data.js";
 import { ClubNavContext, Crest } from "../components/Crest.jsx";
 import { TvBadge } from "../components/TvBadge.jsx";
@@ -112,11 +112,10 @@ export function HomeView({ goTo }) {
         // Past the last fixture the board is showing a game that has been played, so the
         // kick-off time would be stating something that already happened.
         time: leagueFix.done ? null : leagueFix.time || null,
-        // "Opening night" is true exactly once. After that the board names the round, and
-        // once the fixture list runs out it stops claiming anything is coming.
-        sub: `${CLUBS[leagueFix.h].name} v ${CLUBS[leagueFix.a].name} · ${
-          leagueFix.done ? "Final round" : leagueFix.round === 1 ? "Premiership opening night" : `Premiership round ${leagueFix.round}`
-        }`,
+        // "Opening night" belongs to one fixture, not to a round — leagueFixtureLabel()
+        // decides, so the board can't call a 3pm Saturday game opening night just because
+        // it is still round 1.
+        sub: `${CLUBS[leagueFix.h].name} v ${CLUBS[leagueFix.a].name} · ${leagueFixtureLabel(leagueFix)}`,
         tv: leagueFix.tv || null,
       };
   // If the match the board is advertising has actually kicked off, stop advertising it and
@@ -227,7 +226,7 @@ export function HomeView({ goTo }) {
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: chalk }}>{CLUBS[upcomingLeague.h].name} v {CLUBS[upcomingLeague.a].name}</div>
                 <div style={{ fontSize: 12, color: dim, marginTop: 2 }}>
-                  {upcomingLeague.round === 1 ? "Premiership opening night" : "Premiership"} · Round {upcomingLeague.round}{upcomingLeague.time ? ` · ${upcomingLeague.time}` : ""}
+                  {leagueFixtureLabel(upcomingLeague)}{upcomingLeague.time ? ` · ${upcomingLeague.time}` : ""}
                 </div>
               </div>
             </div>
