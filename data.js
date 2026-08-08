@@ -478,6 +478,35 @@ export function leagueFixtureLabel(fixture) {
   return `Premiership round ${fixture.round}`;
 }
 
+// Day/month, the way it is written and said here. The results list used to slice an ISO date
+// to "08-07", which is month-day and reads as 8 July to everyone in these islands.
+// Accepts an ISO date, a timestamp, or a Date.
+export function dayMonth(value) {
+  const ms = typeof value === "number" ? value
+    : value instanceof Date ? value.getTime()
+    : Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(String(value)) ? `${value}T12:00:00Z` : String(value));
+  if (!Number.isFinite(ms)) return "";
+  const p = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", day: "2-digit", month: "2-digit" })
+    .formatToParts(new Date(ms));
+  const day = p.find((x) => x.type === "day")?.value;
+  const month = p.find((x) => x.type === "month")?.value;
+  return day && month ? `${day}/${month}` : "";
+}
+
+// Results we have recorded, most recent first. The feed is the app's other source, but this
+// one needs no network and is the verified copy, so any surface can lead with it.
+export function recentResults(limit = 5) {
+  const out = [];
+  for (const round of FIXTURES_2627) {
+    for (const m of round.matches) {
+      if (!Array.isArray(m.result) || m.result.length !== 2) continue;
+      const ms = fixtureKickoffMs(round, m);
+      out.push({ round: round.round, h: m.h, a: m.a, hs: m.result[0], as: m.result[1], kickoffMs: ms ?? 0 });
+    }
+  }
+  return out.sort((a, b) => b.kickoffMs - a.kickoffMs).slice(0, limit);
+}
+
 // A kick-off within this window still counts as "the match" rather than as past — the
 // result is rarely in data.js while the game is still on. Matches HomeTab's own window.
 export const LIVE_WINDOW_MS = 2.5 * 60 * 60 * 1000;

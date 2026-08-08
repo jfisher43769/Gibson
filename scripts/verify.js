@@ -1163,5 +1163,44 @@ check("only the season opener is called opening night", (() => {
   return !/round === 1 \?/.test(src) && /leagueFixtureLabel\(/.test(src);
 })());
 
+// Results dates were sliced out of an ISO string as "08-07", which is month-day and reads as
+// 8 July to anyone here. Owner spotted it, 7 Aug 2026.
+check("dates in results lists are day/month, not month/day", (() => {
+  if (D.dayMonth("2026-08-07") !== "07/08") return false;      // the exact case that was wrong
+  if (D.dayMonth("2026-12-25") !== "25/12") return false;
+  if (D.dayMonth(Date.parse("2026-01-03T15:00:00Z")) !== "03/01") return false;
+  if (D.dayMonth("nonsense") !== "") return false;
+  // And nothing may go back to slicing an ISO date by hand.
+  for (const f of ["../src/tabs/MatchesTab.jsx", "../src/tabs/HomeTab.jsx", "../src/components/ScoreRow.jsx"]) {
+    let src = "";
+    try { src = readFileSync(new URL(f, import.meta.url), "utf8"); } catch { return false; }
+    if (/\.date\.slice\(5\)/.test(src)) return false;
+  }
+  return true;
+})());
+
+check("recentResults() returns recorded results, newest first", (() => {
+  const rows = D.recentResults(50);
+  const played = D.FIXTURES_2627.flatMap((r) => r.matches).filter((m) => Array.isArray(m.result));
+  if (rows.length !== played.length) return false;
+  for (let i = 1; i < rows.length; i++) if (rows[i - 1].kickoffMs < rows[i].kickoffMs) return false;
+  return rows.every((r) => Number.isFinite(r.hs) && Number.isFinite(r.as) && D.CLUBS[r.h] && D.CLUBS[r.a]);
+})());
+
+// One row component, used by both tabs. Two copies is how the front page and the fixtures
+// list end up disagreeing about what a scoreline looks like.
+check("the score row is defined once and shared", (() => {
+  let comp = "";
+  try { comp = readFileSync(new URL("../src/components/ScoreRow.jsx", import.meta.url), "utf8"); } catch { return false; }
+  if (!/export function ScoreRow/.test(comp)) return false;
+  for (const f of ["../src/tabs/MatchesTab.jsx", "../src/tabs/HomeTab.jsx"]) {
+    let src = "";
+    try { src = readFileSync(new URL(f, import.meta.url), "utf8"); } catch { return false; }
+    if (/function ScoreRow\s*\(/.test(src)) return false;                 // no local redefinition
+    if (!/from "\.\.\/components\/ScoreRow\.jsx"/.test(src)) return false;
+  }
+  return true;
+})());
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);

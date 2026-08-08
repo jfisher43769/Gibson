@@ -1,9 +1,10 @@
 import React, { useContext } from "react";
 import {
   CLUBS, CLUB_FIXTURES, EURO, FIXTURES_2627, LEAGUE_LORE, LIVE_WINDOW_MS, PREDICTOR_GW, STATUS_META, TRANSFERS,
-  leagueFixtureLabel, londonKickoffLabel, nextLeagueFixture,
+  dayMonth, leagueFixtureLabel, londonKickoffLabel, nextLeagueFixture, recentResults,
 } from "../../data.js";
 import { ClubNavContext, Crest } from "../components/Crest.jsx";
+import { ScoreRow } from "../components/ScoreRow.jsx";
 import { TvBadge } from "../components/TvBadge.jsx";
 import { CountUp } from "../components/CountUp.jsx";
 import { findLive, useLiveEvents } from "../lib/live.js";
@@ -122,6 +123,17 @@ export function HomeView({ goTo }) {
   // show the score. Without this the front page says "NEXT MATCH · 7 AUG · 7.45PM" for a game
   // that is already an hour old, which is the same wrong-number problem the results list had.
   const liveMatch = findLive(live.data, board.home, board.away);
+  // Latest results for the front page. Ours first — they're the verified copy and need no
+  // network — then anything the feed has finished that we haven't recorded yet, so a Saturday
+  // afternoon fills in before anyone has sat down to write the scores into data.js.
+  const recorded = recentResults(5);
+  const feedOnly = (live.data?.results || []).filter(
+    (f) => !recorded.some((r) => r.h === f.h && r.a === f.a),
+  );
+  const latest = [
+    ...recorded.map((r) => ({ ...r, when: r.kickoffMs })),
+    ...feedOnly.map((f) => ({ ...f, when: Date.parse(`${f.date}T12:00:00Z`) || 0 })),
+  ].sort((a, b) => b.when - a.when).slice(0, 5);
   const heroDate = board.date.match(/^(\d+)(\S*)(.*)$/);
   return (
     <div className="gb-narrow" style={{ animation: "riseIn 0.4s ease-out" }}>
@@ -184,6 +196,17 @@ export function HomeView({ goTo }) {
           </div>
         )}
       </div>
+      {latest.length > 0 && (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ ...label, marginBottom: 8 }}>Latest results</div>
+          <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden" }}>
+            {latest.map((m, i) => (
+              <ScoreRow key={`${m.h}${m.a}${m.when}`} m={m} last={i === latest.length - 1}
+                lead={dayMonth(m.when)} leadColor={dim} />
+            ))}
+          </div>
+        </div>
+      )}
       {openClub && (<>
         <div style={{ ...label, marginBottom: 8 }}>Your club</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 8, marginBottom: 18 }}>
