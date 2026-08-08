@@ -41,6 +41,23 @@ function Scorers({ goals, club, align }) {
   );
 }
 
+// The "open me" affordance. Defined once so the fixtures list and the front page can't drift
+// into labelling the same interaction differently.
+//
+// `compact` is a chevron alone, for rows that read across rather than down: on the front page
+// the full label pushed the club names into ellipses, and "Clifto… 2–1 Crusa…" is a worse
+// trade than a smaller hint. The row itself carries the accessible name, so nothing is lost.
+export function StatsAffordance({ open, compact }) {
+  const base = {
+    fontSize: 11, color: "#FFB627", letterSpacing: "0.1em",
+    textTransform: "uppercase", fontWeight: 800, whiteSpace: "nowrap",
+  };
+  if (compact) {
+    return <span aria-hidden="true" style={{ ...base, fontSize: 10, flexShrink: 0, paddingLeft: 6 }}>{open ? "\u25B2" : "\u25BC"}</span>;
+  }
+  return <span style={base}>{open ? "Hide stats \u25B2" : "Match stats \u25BC"}</span>;
+}
+
 export function MatchDetail({ round, h, a }) {
   const d = matchDetail(round, h, a);
   if (!d) return null;

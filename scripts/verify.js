@@ -1226,14 +1226,23 @@ check("matchDetail() returns what was recorded, and nothing when nothing was", (
     && D.goalMinuteLabel(null) === "";
 })());
 
-check("fixture rows only offer match stats when there are some", (() => {
-  let src = "";
-  try { src = readFileSync(new URL("../src/tabs/MatchesTab.jsx", import.meta.url), "utf8"); } catch { return false; }
-  // Both views derive `detail` and hang the toggle, the panel and the click handler off it.
-  const derives = (src.match(/const detail = matchDetail\(/g) || []).length;
-  const panels = (src.match(/<MatchDetail\s/g) || []).length;
-  const gatedClick = (src.match(/onClick=\{detail \?/g) || []).length;
-  return derives >= 2 && panels >= 2 && gatedClick >= 2;
+check("every list that shows a played match only offers stats when there are some", (() => {
+  // Fixtures (by round, by club) and the front page's latest results. Each derives `detail`
+  // and hangs the toggle, the panel and the click handler off it, so a match nobody wrote up
+  // is never tappable — the front page also sees feed-only rows, which have no round at all.
+  const want = { "../src/tabs/MatchesTab.jsx": 2, "../src/tabs/HomeTab.jsx": 1 };
+  for (const [file, n] of Object.entries(want)) {
+    let src = "";
+    try { src = readFileSync(new URL(file, import.meta.url), "utf8"); } catch { return false; }
+    if ((src.match(/matchDetail\(/g) || []).length < n) return false;
+    if ((src.match(/<MatchDetail\s/g) || []).length < n) return false;
+    if ((src.match(/onClick=\{detail \?/g) || []).length < n) return false;
+    if (!/<StatsAffordance /.test(src)) return false;
+  }
+  // The affordance itself is defined once, not re-styled per view.
+  let comp = "";
+  try { comp = readFileSync(new URL("../src/components/MatchDetail.jsx", import.meta.url), "utf8"); } catch { return false; }
+  return /export function StatsAffordance/.test(comp);
 })());
 
 // Cliftonville against Crusaders is red against red, so club colour cannot carry a

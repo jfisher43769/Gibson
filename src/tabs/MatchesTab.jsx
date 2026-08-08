@@ -7,7 +7,7 @@ import { TvBadge } from "../components/TvBadge.jsx";
 import { SeasonStrip } from "../components/SeasonSwitch.jsx";
 import { OddsDisclaimer, OddsStrip } from "../components/Odds.jsx";
 import { OfflineNote } from "../components/OfflineNote.jsx";
-import { MatchDetail } from "../components/MatchDetail.jsx";
+import { MatchDetail, StatsAffordance } from "../components/MatchDetail.jsx";
 import { LiveTick, ScoreRow } from "../components/ScoreRow.jsx";
 import { Skel, SkelRows } from "../components/Skeleton.jsx";
 import { findLive, useLiveEvents } from "../lib/live.js";
@@ -517,9 +517,7 @@ export function FixturesView({ fixedClub } = {}) {
                         {moved && !inPlay && <span style={{ fontSize: 12, color: dim }}>{meta}</span>}
                         <TvBadge tv={m.tv} />
                         {detail && (
-                          <span style={{ fontSize: 11, color: "#FFB627", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 800 }}>
-                            {open ? "Hide stats ▲" : "Match stats ▼"}
-                          </span>
+                          <StatsAffordance open={open} />
                         )}
                       </div>
                     )}
@@ -674,9 +672,7 @@ export function FixturesView({ fixedClub } = {}) {
                   {inPlay && <LiveTick status={inPlay.status} />}
                   <TvBadge tv={f.tv} />
                   {detail && (
-                    <span style={{ fontSize: 11, color: "#FFB627", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 800 }}>
-                      {open ? "Hide stats ▲" : "Match stats ▼"}
-                    </span>
+                    <StatsAffordance open={open} />
                   )}
                 </div>
               </div>

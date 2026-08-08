@@ -1,9 +1,10 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import {
   CLUBS, CLUB_FIXTURES, EURO, FIXTURES_2627, LEAGUE_LORE, LIVE_WINDOW_MS, PREDICTOR_GW, STATUS_META, TRANSFERS,
-  dayMonth, leagueFixtureLabel, londonKickoffLabel, nextLeagueFixture, recentResults,
+  dayMonth, leagueFixtureLabel, londonKickoffLabel, matchDetail, nextLeagueFixture, recentResults,
 } from "../../data.js";
 import { ClubNavContext, Crest } from "../components/Crest.jsx";
+import { MatchDetail, StatsAffordance } from "../components/MatchDetail.jsx";
 import { ScoreRow } from "../components/ScoreRow.jsx";
 import { TvBadge } from "../components/TvBadge.jsx";
 import { CountUp } from "../components/CountUp.jsx";
@@ -35,6 +36,8 @@ function BoardSide({ crest, code, name }) {
 export function HomeView({ goTo }) {
   const openClub = useContext(ClubNavContext);
   const live = useLiveEvents();
+  // Which result is expanded on the front page. One at a time, same as the fixtures list.
+  const [openResult, setOpenResult] = useState(null);
   const now = Date.now();
   // LIVE_WINDOW_MS (a kick-off within the last 2.5h still counts as "the match", because
   // the result isn't in data.js while the game is on) comes from data.js so this and
@@ -200,10 +203,31 @@ export function HomeView({ goTo }) {
         <div style={{ marginBottom: 14 }}>
           <div style={{ ...label, marginBottom: 8 }}>Latest results</div>
           <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden" }}>
-            {latest.map((m, i) => (
-              <ScoreRow key={`${m.h}${m.a}${m.when}`} m={m} last={i === latest.length - 1}
-                lead={dayMonth(m.when)} leadColor={dim} />
-            ))}
+            {latest.map((m, i) => {
+              // Feed-only rows have no round, and by definition are matches nobody has
+              // written up — so there is nothing to open and no toggle is offered.
+              const detail = m.round ? matchDetail(m.round, m.h, m.a) : null;
+              const key = `${m.h}${m.a}${m.when}`;
+              const open = openResult === key;
+              const last = i === latest.length - 1;
+              return (
+                <div key={key} style={{ borderBottom: last && !open ? "none" : undefined }}>
+                  <div
+                    style={{ cursor: detail ? "pointer" : "default" }}
+                    onClick={detail ? () => setOpenResult(open ? null : key) : undefined}
+                    role={detail ? "button" : undefined}
+                    tabIndex={detail ? 0 : undefined}
+                    aria-expanded={detail ? open : undefined}
+                    aria-label={detail ? `${CLUBS[m.h].name} v ${CLUBS[m.a].name} — match stats` : undefined}
+                    onKeyDown={detail ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpenResult(open ? null : key); } } : undefined}
+                  >
+                    <ScoreRow m={m} last={last && !detail} lead={dayMonth(m.when)} leadColor={dim}
+                      trailing={detail ? <StatsAffordance open={open} compact /> : null} />
+                  </div>
+                  {open && <div style={{ padding: "0 13px 12px" }}><MatchDetail round={m.round} h={m.h} a={m.a} /></div>}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
