@@ -166,98 +166,121 @@ function wrap(s,size,weight,maxW){
   return lines;
 }
 
-// The ground runs across the top as a band, same as status.mjs and for the same reason: the
-// source is around 1000px wide and covering the full 1350 would mean upscaling past 2x.
-const BAND=Y(560);
+// Full bleed, not a band. The first version ran the ground as a strip across the top at 38%
+// opacity and faded it to black by halfway — a dramatic empty stadium under storm clouds
+// reduced to background texture. Let the photograph be the photograph, and put the type on
+// a gradient that only gets heavy where the words actually are.
 function ground(){
-  ctx.fillStyle='#080F0C'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#060C0A'; ctx.fillRect(0,0,W,H);
+  // No photo: the card still has to look deliberate. Left flat, two thirds of it was an empty
+  // black rectangle that read as a missing image rather than a dark poster.
+  if(!IMG){
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,'#0A1611'); g.addColorStop(0.5,'#0B1815'); g.addColorStop(1,'#060C0A');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    const glow=ctx.createRadialGradient(W*0.5,Y(420),10,W*0.5,Y(420),W*0.95);
+    glow.addColorStop(0,'rgba(255,182,39,0.16)'); glow.addColorStop(1,'rgba(255,182,39,0)');
+    ctx.fillStyle=glow; ctx.fillRect(0,0,W,H);
+    // The competition, set enormous and nearly invisible, so the empty half is textured
+    // rather than blank — and it is the one thing on the card that can't be wrong.
+    const gs=fit(F.legName,800,W*1.25,300*S,0);
+    T(F.legName,W/2,Y(430),{size:gs,weight:800,align:'center',color:'rgba(237,245,239,0.05)'});
+    vignette();
+    return;
+  }
+  // Cropped to a BAND, not to the card. The distinction is the whole thing: filling
+  // 1080x1350 means taking a 4:5 slice out of a 16:9 ground shot, which loses 55% of the
+  // width — the entire sweep of the main stand — and still upscales what survives by 2.4x.
+  // Cropping the same photo to 1080x690 loses about 12% and upscales 1.24x. It bleeds off
+  // the top and both edges, and the type sits below it on solid ground.
+  const bottom=Y(690);
   if(IMG){
-    const need=W/BAND, iw=IMG.naturalWidth, ih=IMG.naturalHeight;
+    const iw=IMG.naturalWidth, ih=IMG.naturalHeight, need=W/bottom;
     let sw=iw, sh=iw/need;
     if(sh>ih){ sh=ih; sw=ih*need; }
-    ctx.drawImage(IMG,(iw-sw)/2,(ih-sh)*0.40,sw,sh,0,0,W,BAND);
-    ctx.fillStyle='rgba(8,15,12,0.38)'; ctx.fillRect(0,0,W,BAND);
-    const fade=ctx.createLinearGradient(0,BAND*0.40,0,BAND);
-    fade.addColorStop(0,'rgba(8,15,12,0)'); fade.addColorStop(0.70,'rgba(8,15,12,0.88)'); fade.addColorStop(1,'#080F0C');
-    ctx.fillStyle=fade; ctx.fillRect(0,0,W,BAND);
-    const top=ctx.createLinearGradient(0,0,0,Y(230));
-    top.addColorStop(0,'rgba(8,15,12,0.80)'); top.addColorStop(1,'rgba(8,15,12,0)');
-    ctx.fillStyle=top; ctx.fillRect(0,0,W,Y(230));
+    // Biased above centre: the stand roof and the sky carry this frame, and the near
+    // touchline is the least interesting part of any empty-ground shot.
+    ctx.drawImage(IMG,(iw-sw)/2,(ih-sh)*0.34,sw,sh,0,0,W,bottom);
   }
-  const glow=ctx.createRadialGradient(W*0.5,Y(880),10,W*0.5,Y(880),W*0.85);
-  glow.addColorStop(0,'rgba(255,182,39,0.13)'); glow.addColorStop(1,'rgba(255,182,39,0)');
-  ctx.fillStyle=glow; ctx.fillRect(0,0,W,H);
+  // Melt the photo's lower edge into the card rather than cutting it off square, then hold
+  // solid underneath so the type block sits on real ground.
+  const fade=ctx.createLinearGradient(0,bottom*0.55,0,bottom);
+  fade.addColorStop(0,'rgba(6,12,10,0)');
+  fade.addColorStop(0.62,'rgba(6,12,10,0.55)');
+  fade.addColorStop(1,'#060C0A');
+  ctx.fillStyle=fade; ctx.fillRect(0,bottom*0.55,W,bottom-bottom*0.55+2);
+  ctx.fillStyle='#060C0A'; ctx.fillRect(0,bottom,W,H-bottom);
+  // A light scrim at the very top so the wordmark holds against a bright sky.
+  const top=ctx.createLinearGradient(0,0,0,Y(190));
+  top.addColorStop(0,'rgba(6,12,10,0.66)'); top.addColorStop(1,'rgba(6,12,10,0)');
+  ctx.fillStyle=top; ctx.fillRect(0,0,W,Y(190));
+  vignette();
 }
 
-// Names, stacked, no badges. GIBSON has Larne's real crest but nothing for FC Iberia, and a
-// real crest beside a disc invented for the occasion looks like the invented one is a crest
-// too. Set the names big instead and let a rule in each side's colour carry the identity —
-// full width each, so they read at a glance in a feed.
-function side(y,name,country,color){
-  const s=fit(name.toUpperCase(),800,W-M*2-40*S,74*S,2*S);
-  T(name.toUpperCase(),W/2,y,{size:s,weight:800,align:'center',track:2*S,shadow:true});
-  ctx.fillStyle=color; ctx.fillRect(W/2-46*S,y+16*S,92*S,6*S);
-  let next=y+16*S+6*S;
-  if(country){
-    T(country.toUpperCase(),W/2,next+34*S,{size:23*S,weight:600,align:'center',color:MUTE,track:6*S});
-    next+=34*S;
+// One line of the fixture: a small muted "v" that sits on the same baseline as a very large
+// name. Mixed sizes on one line rather than a "V" floating on its own row — that row was
+// pure spacer, and it collided with the name below it.
+function fixtureLine(x,y,prefix,name,size){
+  let cx=x;
+  if(prefix){
+    const ps=size*0.30;
+    T(prefix,cx,y,{size:ps,weight:800,color:GOLD,track:2*S});
+    cx+=measure(prefix,ps,800,2*S)+size*0.16;
   }
-  return next;
+  T(name.toUpperCase(),cx,y,{size,weight:800,track:1*S,shadow:true});
 }
 
 function draw(){
   ground();
 
-  // Top right says which side of the tie this is for the club, NOT the venue — the venue is
-  // printed under the date where it belongs, and having it twice on one card just read as a
-  // mistake.
-  T('GIBSON',M,Y(88),{size:26*S,weight:800,color:GOLD,track:8*S,shadow:true});
-  T(F.awayLabel,W-M,Y(88),{size:24*S,weight:600,align:'right',color:'rgba(237,245,239,0.8)',track:6*S,shadow:true});
+  T('GIBSON',M,Y(84),{size:26*S,weight:800,color:GOLD,track:8*S,shadow:true});
+  T(F.awayLabel,W-M,Y(84),{size:23*S,weight:600,align:'right',color:'rgba(237,245,239,0.75)',track:6*S,shadow:true});
 
-  const cs=fit(F.comp,600,W-M*2,26*S,6*S);
-  T(F.comp,W/2,Y(300),{size:cs,weight:600,align:'center',color:'rgba(237,245,239,0.85)',track:6*S,shadow:true});
-  const ls=fit(F.legName,800,W-M*2,124*S,4*S);
-  T(F.legName,W/2,Y(410),{size:ls,weight:800,align:'center',color:GOLD,track:4*S,shadow:true});
+  // One left axis for everything. Centring eight elements down a column gave them all equal
+  // weight and no reading order; a hard left edge with a big scale jump between levels gives
+  // the eye somewhere to start and somewhere to go.
+  const AX=M;
 
-  // The two sides, in the order they'd be written in a scoreline — home first.
-  const first=F.clubAtHome
-    ? { name:F.home.name, country:'', color:F.home.colors[0] }
-    : { name:F.opp.name, country:F.opp.country, color:F.opp.color };
-  const second=F.clubAtHome
-    ? { name:F.opp.name, country:F.opp.country, color:F.opp.color }
-    : { name:F.home.name, country:'', color:F.home.colors[0] };
-  // Everything below the headline flows from the block above it rather than sitting at fixed
-  // heights. The country line exists on one side only, so fixed positions leave a hole on a
-  // home leg — and the first attempt at this had the V landing on top of the second name.
-  let y=Y(586);
-  y=side(y,first.name,first.country,first.color);
-  T('V',W/2,y+50*S,{size:40*S,weight:800,align:'center',color:MUTE,track:4*S});
-  y=side(y+132*S,second.name,second.country,second.color);
+  // Kicker: a short gold rule, then the competition. Small and tracked, so the names below
+  // land about four times its size — that jump is the hierarchy.
+  ctx.fillStyle=GOLD; ctx.fillRect(AX,Y(742),74*S,5*S);
+  const kicker=F.comp+' · '+F.legName;
+  const ks=fit(kicker,600,W-M*2,23*S,7*S);
+  T(kicker,AX,Y(792),{size:ks,weight:600,color:'rgba(237,245,239,0.88)',track:7*S,shadow:true});
 
-  // The state of the tie, only when a previous leg gave us one to state.
+  // The two clubs, in the order they'd be written in a scoreline — home side first.
+  const first=F.clubAtHome ? F.home.name : F.opp.name;
+  const second=F.clubAtHome ? F.opp.name : F.home.name;
+  // Sized off whichever name is longer so both lines share one scale. Sizing them
+  // independently makes the shorter club look like the bigger deal.
+  const room=W-M*2;
+  const size=Math.min(
+    fit(first.toUpperCase(),800,room,116*S,1*S),
+    fit('V '+second.toUpperCase(),800,room,116*S,1*S),
+  );
+  fixtureLine(AX,Y(900),'',first,size);
+  fixtureLine(AX,Y(900)+size*0.94,'V',second,size);
+
+  // The state of the tie, as a line of type rather than a boxed UI component — the gold panel
+  // read as an app widget dropped onto a poster. Only drawn when a previous leg gave us one.
+  let y=Y(900)+size*0.94;
   if(F.standing){
-    const bx=M, by=y+44*S, bw=W-M*2, bh=Y(112);
-    ctx.beginPath(); ctx.roundRect(bx,by,bw,bh,18*S);
-    ctx.fillStyle='rgba(255,182,39,0.09)'; ctx.fill();
-    ctx.lineWidth=2*S; ctx.strokeStyle='rgba(255,182,39,0.35)'; ctx.stroke();
-    const ss=fit(F.standing.line,800,bw-56*S,46*S,3*S);
-    T(F.standing.line,W/2,by+bh*0.46,{size:ss,weight:800,align:'center',color:GOLD,track:3*S});
-    T(F.standing.sub,W/2,by+bh*0.80,{size:24*S,weight:600,align:'center',color:MUTE});
-    y=by+bh;
+    y+=68*S;
+    const ss=fit(F.standing.line,800,room,40*S,3*S);
+    const lw=T(F.standing.line,AX,y,{size:ss,weight:800,color:GOLD,track:3*S,shadow:true});
+    T(F.standing.sub,AX+lw+14*S,y,{size:24*S,weight:600,color:'rgba(237,245,239,0.62)'});
   }
 
-  // When and where.
-  const wy=y+66*S;
-  const when=[F.date,F.kickoff].filter(Boolean).join(' · ');
-  const ws=fit(when,800,W-M*2,60*S,4*S);
-  T(when,W/2,wy,{size:ws,weight:800,align:'center',track:4*S});
-  if(F.venue) T(F.venue,W/2,wy+38*S,{size:25*S,weight:600,align:'center',color:MUTE,track:4*S});
+  // When and where, on one line. Two lines of small centred type was three separate things
+  // fighting for the same job.
+  const when=[F.date,F.kickoff,F.venue].filter(Boolean).join('  ·  ');
+  const ws=fit(when,800,room,30*S,3*S);
+  T(when,AX,y+62*S,{size:ws,weight:800,color:CHALK,track:3*S,shadow:true});
 
-  // What the winner gets. Muted, because it is context, not the headline.
+  // What the winner gets. One line, quiet — context, not headline.
   if(F.prize){
-    const py=wy+92*S;
-    const lines=wrap(F.prize,22*S,600,W-M*2).slice(0,2);
-    lines.forEach((ln,i)=>T(ln,W/2,py+i*28*S,{size:22*S,weight:600,align:'center',color:'rgba(237,245,239,0.42)'}));
+    const ps=fit(F.prize,600,room,21*S,0);
+    T(F.prize,AX,y+102*S,{size:ps,weight:600,color:'rgba(237,245,239,0.45)'});
   }
 
   ctx.fillStyle='rgba(237,245,239,0.18)'; ctx.fillRect(M,Y(1222),W-M*2,2*S);

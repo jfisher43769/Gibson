@@ -161,7 +161,18 @@ It is the one claim on the card that nobody can check at a glance and everybody 
 
 No badges. GIBSON has Larne's real crest but nothing for FC Iberia 1999, and a real crest
 beside a disc invented for the occasion makes the invented one look like a crest too. The
-names are set large with a rule underneath in each side's colour instead.
+names are set large instead, on one hard left axis with the competition as a small tracked
+kicker above them — the scale jump between those two levels is the whole hierarchy.
+
+**The photo is cropped to a band, not to the card.** Filling 1080x1350 means taking a 4:5
+slice out of a 16:9 ground shot: it loses 55% of the width — the entire sweep of the main
+stand — and still upscales what survives by 2.4x. Cropping the same photo to 1080x690 loses
+about 12% and upscales 1.24x. It bleeds off the top and both edges and melts into the type
+block below. Give it the widest shot you have.
+
+With no `--photo` the card falls back to a gradient with the leg name ghosted across it at 5%
+opacity. Left flat, two thirds of the card was an empty black rectangle that read as a
+missing image rather than a dark poster.
 
 Same photo warning as everywhere else: **look at the render before posting.** Ground shots
 pick up pitchside hoardings. The Mikheil Meskhi shot used for the Iberia tie was checked at
