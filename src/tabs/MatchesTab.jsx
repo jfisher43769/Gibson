@@ -8,6 +8,7 @@ import { SeasonStrip } from "../components/SeasonSwitch.jsx";
 import { OddsDisclaimer, OddsStrip } from "../components/Odds.jsx";
 import { OfflineNote } from "../components/OfflineNote.jsx";
 import { MatchDetail, StatsAffordance } from "../components/MatchDetail.jsx";
+import { LiveNow } from "../components/LiveNow.jsx";
 import { LiveTick, ScoreRow } from "../components/ScoreRow.jsx";
 import { Skel, SkelRows } from "../components/Skeleton.jsx";
 import { findLive, useLiveEvents } from "../lib/live.js";
@@ -557,20 +558,7 @@ export function FixturesView({ fixedClub } = {}) {
             : `⚡ The live results feed wakes up when the league does — ${seasonStartDisplay()}.`}
         </div>
       )}
-      {liveEv && liveEv.live && liveEv.live.length > 0 && (
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#3DDC84", display: "inline-block", animation: "livePulse 1.4s infinite" }} />
-            <span style={{ fontSize: 12, color: "#3DDC84", letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 700 }}>Live now</span>
-          </div>
-          <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden", border: "1px solid rgba(61,220,132,0.35)" }}>
-            {liveEv.live.slice(0, 6).map((m, i) => (
-              <ScoreRow key={m.h + m.a + m.date} m={m} last={i === Math.min(liveEv.live.length, 6) - 1}
-                lead={m.status || "LIVE"} leadColor="#3DDC84" />
-            ))}
-          </div>
-        </div>
-      )}
+      <LiveNow matches={liveEv && liveEv.live} />
       {liveEv && liveEv.results && liveEv.results.length > 0 && (
         <div style={{ marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>

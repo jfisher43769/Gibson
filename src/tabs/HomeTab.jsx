@@ -4,6 +4,7 @@ import {
   dayMonth, leagueFixtureLabel, londonKickoffLabel, matchDetail, nextLeagueFixture, recentResults,
 } from "../../data.js";
 import { ClubNavContext, Crest } from "../components/Crest.jsx";
+import { LiveNow } from "../components/LiveNow.jsx";
 import { MatchDetail, StatsAffordance } from "../components/MatchDetail.jsx";
 import { ScoreRow } from "../components/ScoreRow.jsx";
 import { TvBadge } from "../components/TvBadge.jsx";
@@ -199,6 +200,10 @@ export function HomeView({ goTo }) {
           </div>
         )}
       </div>
+      {/* Anything else in play. The board above carries one fixture; on a Saturday with four
+          or six 3pm kick-offs the rest were appearing nowhere on the front page. */}
+      <LiveNow matches={live.data && live.data.live} exclude={{ h: board.home, a: board.away }}
+        title={liveMatch ? "Also live" : "Live now"} />
       {latest.length > 0 && (
         <div style={{ marginBottom: 14 }}>
           <div style={{ ...label, marginBottom: 8 }}>Latest results</div>

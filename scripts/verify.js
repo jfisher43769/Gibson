@@ -1254,5 +1254,23 @@ check("match stat bars use the home/away pairing, not club colours", (() => {
   return /HOME = "#FFB627"/.test(src) && /AWAY = "#5EC8F2"/.test(src);
 })());
 
+// The front page showed at most one live score: its board carries the featured fixture, so
+// with four 3pm kick-offs the other three appeared nowhere. Owner spotted it.
+check("every live match reaches the front page, not just the board's own", (() => {
+  let home = "", comp = "", matches = "";
+  try {
+    home = readFileSync(new URL("../src/tabs/HomeTab.jsx", import.meta.url), "utf8");
+    comp = readFileSync(new URL("../src/components/LiveNow.jsx", import.meta.url), "utf8");
+    matches = readFileSync(new URL("../src/tabs/MatchesTab.jsx", import.meta.url), "utf8");
+  } catch { return false; }
+  // Home renders the whole live array, not a single findLive() result.
+  if (!/<LiveNow[\s\S]{0,200}matches=\{live\.data && live\.data\.live\}/.test(home)) return false;
+  // ...and drops the board's own fixture so it isn't listed twice beneath itself.
+  if (!/exclude=\{\{ h: board\.home, a: board\.away \}\}/.test(home)) return false;
+  // One component, used by both surfaces — not a second copy of the live list.
+  if (!/export function LiveNow/.test(comp)) return false;
+  return /<LiveNow /.test(matches) && !/function LiveNow/.test(matches);
+})());
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);
