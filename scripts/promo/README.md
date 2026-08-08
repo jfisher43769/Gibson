@@ -15,6 +15,7 @@ Video generators rendering **1080x1920 (9:16) MP4s** for X and TikTok, plus two 
 | `roundup.mjs` | `gibson-roundup-<state>-r<n>.jpg` | Multi-match round-up — every score in the round on one card |
 | `motm.mjs` | `gibson-motm-<club>-<player>.jpg` | Man of the match — portrait, name, the line, the result |
 | `announce.mjs` | `gibson-announce-<head>.jpg` | Feature announcement — what the app can now do, shown with a real match's real numbers |
+| `release.mjs` | `gibson-release-<version>.jpg` | Release notes — what shipped and what got fixed, version read from package.json |
 | `poster.mjs` | `gibson-poster-<w>x<h>.png` / `.jpg` | Portrait season poster — headline type block, the season in four numbers, the twelve as a ranked list |
 
 All share `kit.js`, the drawing kit (shields, the Gibson Cup mark, impact type, sweeps, grain).
@@ -160,6 +161,31 @@ The footer line is counted, never asserted: "every Premiership match so far" app
 `recordedCoverage()` says stats exist for every played match, and otherwise it reads "3 of 5
 matches covered so far". A claim about coverage on a card is a promise, and the count is the
 only thing that can keep it.
+
+## Release notes
+
+```bash
+node scripts/promo/release.mjs \
+  --notes="NEW|Live scores, in-play;FIXED|Round-up cards dated one day when a round spanned two"
+```
+
+Each note is `CATEGORY|text`, semicolon-separated, category being `NEW`, `FIXED` or `CHANGED`.
+The chip colour is the category, so the shape of a release is legible before a word is read:
+mostly gold is a feature drop, mostly green is a week spent paying down bugs. Seven notes is
+the limit — post the rest as a second card.
+
+The version is **read from `package.json`**, never typed. The app footer stamps the same value
+through vite's `define`, so a card claiming 1.2.0 while the site reports 1.1.0 can't happen —
+and that version is the only thing on the card that could be quietly wrong, since everything
+else is a sentence somebody chose to write.
+
+Notes wrap rather than shrink, and the gap between them stretches to fill the card. A fixed
+gap left six short lines sitting in the middle of an empty 1350px frame, which made the
+release look like an afterthought.
+
+Post the fixes, not just the features. A changelog that only ever announces good news reads
+as marketing; one that says "a nav label one word longer scrolled the entire page sideways"
+reads as someone who actually knows where the bodies are.
 
 ## X banner
 
