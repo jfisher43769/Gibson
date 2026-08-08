@@ -1211,6 +1211,10 @@ const EURO = [
     opp: "FC Iberia 1999", oppCountry: "Georgia", oppColor: "#DC2626", odds: null,
     legs: [
       { label: "1st leg · home", date: "Tue 4 Aug · 20:00", dt: "2026-08-04T19:00:00Z", venue: "Inver Park" },
+      // Date, venue and kick-off from Larne FC's own next-match graphic, 8 Aug 2026. The
+      // club published it as "5pm (UK time)", and `date` carries Belfast wall time the same
+      // way the Helsinki and Riga legs above do — so 17:00 here, 16:00Z, 21:00 in Georgia.
+      { label: "2nd leg · away", date: "Tue 11 Aug · 17:00", dt: "2026-08-11T16:00:00Z", venue: "Mikheil Meskhi Stadium" },
     ],
     prize: "Winner advances to the UEL play-off round; the loser drops into the UECL play-off round",
     note: "GOALLESS AT INVER PARK: Larne 0-0 FC Iberia 1999 in the Europa League Q3 first leg. Nothing between them going to Georgia — the tie is level with the second leg to come. Larne dropped into the Europa League after Red Star Belgrade won Champions League Q2 9-0 on aggregate.",
@@ -1278,6 +1282,9 @@ export const CLUB_FIXTURES = {
     { date: "21 Jul", dt: "2026-07-21T18:45:00Z", res: "0–4 L", opp: "Red Star Belgrade", comp: "UCL Q2 · 1st leg · Inver Park" },
     { date: "29 Jul", dt: "2026-07-29T18:00:00Z", res: "0–5 L", opp: "Red Star Belgrade (a) — Katai 3', Arnautović 45' & 60', Loizou 49', Bukari 79'", comp: "UCL Q2 · 2nd leg · Belgrade · 0–9 agg · eliminated" },
     { date: "4 Aug", dt: "2026-08-04T19:00:00Z", res: "0–0 D", opp: "FC Iberia 1999 (h)", comp: "UEL Q3 · 1st leg · Inver Park" },
+    // No `res` yet — the row renders without a scoreline until there is one. The 5pm is worth
+    // printing because it is nowhere near a normal kick-off: it is an evening game in Georgia.
+    { date: "11 Aug", dt: "2026-08-11T16:00:00Z", opp: "FC Iberia 1999 (a)", comp: "UEL Q3 · 2nd leg · Mikheil Meskhi Stadium · 5pm" },
   ],
   GLE: [
     { date: "9 Jul", dt: "2026-07-09T19:30:00Z", res: "1–2 L", opp: "RFS (h) — Ibsen Rossi 38'", comp: "UECL Q1 · 1st leg" },

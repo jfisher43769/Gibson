@@ -325,6 +325,23 @@ check("kick-off times respect the BST/GMT changeover", (() => {
 })());
 
 check("every CLUB_FIXTURES/EURO fixture has a valid ISO dt matching its display date", allEuroFixtures.every(dtMatchesDisplayDate));
+
+// A European tie lives in two places: EURO drives the tie card, CLUB_FIXTURES drives the
+// club page's "In Europe first" list. They are separate arrays and nothing tied them
+// together, so recording Larne's Q3 second leg in EURO alone left the app knowing the date
+// while Larne's own fixture list still stopped at the first leg. Every leg must appear in
+// both, at the same kick-off. Found adding the Iberia second leg, 8 Aug 2026.
+check("every EURO leg also appears in that club's CLUB_FIXTURES at the same kick-off", (() => {
+  const missing = [];
+  for (const tie of D.EURO) {
+    const fixtures = D.CLUB_FIXTURES[tie.club] || [];
+    for (const leg of tie.legs) {
+      if (!fixtures.some((f) => f.dt === leg.dt)) missing.push(`${tie.club} ${tie.opp} ${leg.label} (${leg.dt})`);
+    }
+  }
+  if (missing.length) console.log("      ↳ in EURO but not in CLUB_FIXTURES: " + missing.join("\n      ↳ "));
+  return missing.length === 0;
+})());
 // Service worker must fetch page navigations fresh from the network (bypassing the HTTP
 // cache), or a device gets stranded on an old build — the "new domain served the old
 // page" bug. Guard the two things that fix matter: navigation handling + a no-store fetch.

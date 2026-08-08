@@ -46,6 +46,15 @@ LOCATION:Inver Park
 URL:https://gibsonstats.com/club/larne
 END:VEVENT
 BEGIN:VEVENT
+UID:gibson-LAR-20260811160000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260811T160000Z
+DTEND:20260811T180000Z
+SUMMARY:Larne v FC Iberia 1999 (a) — UEL Q3 · 2nd leg · Mikheil Meskhi Stadium · 5pm
+LOCATION:Mikheil Meskhi Stadium
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
 UID:gibson-match-COL-LAR-20260815140000000@gibsonstats.com
 DTSTAMP:20270327T150000Z
 DTSTART:20260815T140000Z
