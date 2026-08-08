@@ -45,7 +45,7 @@ export function SeasonSoFar() {
 
   const cover = recordedCoverage();
   const byPpg = [...s.clubs].filter((c) => c.p > 0).sort((a, b) => b.ppg - a.ppg || b.gd - a.gd);
-  const teamStats = cover.statsComplete ? aggregateMatchStats().slice(0, 5) : [];
+  const teamStats = cover.statsComplete ? aggregateMatchStats().slice(0, 6) : [];
   const g = s.league;
 
   return (
@@ -94,9 +94,11 @@ export function SeasonSoFar() {
               <Crest club={t.club} size={20} />
               <span style={{ fontSize: 13, fontWeight: 600, color: chalk, flex: 1, minWidth: 0 }}>{t.club}</span>
               <span style={{ fontSize: 12, color: dim, fontVariantNumeric: "tabular-nums" }}>
-                {t.shots} shots · {t.accuracy}% on target
+                {t.shots ?? "—"} shots · {t.accuracy}% on target
               </span>
-              <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, color: "#FFB627", fontVariantNumeric: "tabular-nums" }}>{t.poss}%</span>
+              <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, color: "#FFB627", fontVariantNumeric: "tabular-nums" }}>
+                {t.poss === null ? "—" : `${t.poss}%`}
+              </span>
             </div>
           ))}
         </div>

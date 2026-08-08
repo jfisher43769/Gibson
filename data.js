@@ -807,9 +807,15 @@ export const MATCH_EVENTS = [
 // invisible by eye.
 //
 export const MATCH_STATS = [
-  // Full time, owner-supplied screenshot marked FINISHED, 7 Aug 2026. Not the half-time set:
-  // at the break it was 63/37, 5-8, 3-5, 1-0, 1-1.
+  // Round 1, full time. Owner-supplied screenshots, 8 Aug 2026.
+  // Fields are optional: a stat the source didn't show is omitted rather than recorded as
+  // zero. Linfield v Ballymena listed no yellow-card row at all, and "the app didn't show it"
+  // is not the same fact as "there were none" (golden rule 1).
   { round: 1, h: "CLI", a: "CRU", poss: [61, 39], shots: [8, 10], sot: [4, 6], corners: [1, 1], yellows: [1, 2] },
+  { round: 1, h: "LIN", a: "BAL", poss: [61, 39], shots: [4, 7], sot: [1, 3], corners: [7, 3] },
+  { round: 1, h: "CAR", a: "POR", poss: [62, 38], shots: [5, 3], sot: [1, 0], corners: [3, 3], yellows: [2, 4], reds: [0, 1] },
+  { round: 1, h: "DUN", a: "COL", poss: [48, 52], shots: [12, 6], sot: [6, 4], corners: [5, 10], yellows: [1, 1] },
+  { round: 1, h: "GLE", a: "LIM", poss: [62, 38], shots: [11, 5], sot: [3, 1], corners: [5, 2], yellows: [2, 3] },
 ];
 
 export function matchStatsFor(round, h, a) {
@@ -870,27 +876,34 @@ export function recordedCoverage() {
 // Aggregate team stats across the matches that have them. Reports its own coverage so the
 // caller can label it honestly, or decline to show it.
 export function aggregateMatchStats() {
+  const FIELDS = ["poss", "shots", "sot", "corners", "yellows", "reds"];
   const by = new Map();
-  const add = (club, s) => {
-    const r = by.get(club) || { club, m: 0, poss: 0, shots: 0, sot: 0, corners: 0, yellows: 0 };
-    r.m += 1; r.poss += s.poss; r.shots += s.shots; r.sot += s.sot; r.corners += s.corners; r.yellows += s.yellows;
+  const add = (club, s, side) => {
+    const r = by.get(club) || { club, m: 0, sum: {}, n: {} };
+    r.m += 1;
+    for (const f of FIELDS) {
+      if (!Array.isArray(s[f])) continue;              // not recorded for this match
+      r.sum[f] = (r.sum[f] || 0) + s[f][side];
+      r.n[f] = (r.n[f] || 0) + 1;
+    }
     by.set(club, r);
   };
-  for (const s of MATCH_STATS) {
-    add(s.h, { poss: s.poss[0], shots: s.shots[0], sot: s.sot[0], corners: s.corners[0], yellows: s.yellows[0] });
-    add(s.a, { poss: s.poss[1], shots: s.shots[1], sot: s.sot[1], corners: s.corners[1], yellows: s.yellows[1] });
-  }
+  for (const s of MATCH_STATS) { add(s.h, s, 0); add(s.a, s, 1); }
+
   return [...by.values()]
-    .map((r) => ({
-      club: r.club, matches: r.m,
-      poss: Number((r.poss / r.m).toFixed(1)),
-      shots: Number((r.shots / r.m).toFixed(1)),
-      sot: Number((r.sot / r.m).toFixed(1)),
-      corners: Number((r.corners / r.m).toFixed(1)),
-      yellows: Number((r.yellows / r.m).toFixed(1)),
-      accuracy: r.shots ? Math.round((r.sot / r.shots) * 100) : 0,
-    }))
-    .sort((a, b) => b.poss - a.poss);
+    .map((r) => {
+      const avg = (f) => (r.n[f] ? Number((r.sum[f] / r.n[f]).toFixed(1)) : null);
+      const shots = r.sum.shots || 0, sot = r.sum.sot || 0;
+      return {
+        club: r.club, matches: r.m,
+        poss: avg("poss"), shots: avg("shots"), sot: avg("sot"),
+        corners: avg("corners"), yellows: avg("yellows"), reds: avg("reds"),
+        // Accuracy is a ratio of totals, not an average of averages — a club with 1 of 2 in
+        // one match and 4 of 12 in another is 5 of 14, not 37%.
+        accuracy: shots ? Math.round((sot / shots) * 100) : 0,
+      };
+    })
+    .sort((a, b) => (b.poss ?? 0) - (a.poss ?? 0));
 }
 
 // Top scorers, derived — so it can never disagree with MATCH_EVENTS or need its own upkeep.

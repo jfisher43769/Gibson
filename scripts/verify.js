@@ -1116,9 +1116,14 @@ check("MATCH_STATS entries are internally consistent and map to played fixtures"
   const round = D.FIXTURES_2627.find((r) => r.round === s.round);
   const fixture = round && round.matches.find((m) => m.h === s.h && m.a === s.a);
   if (!fixture || !Array.isArray(fixture.result)) return false;
-  const pairs = [s.poss, s.shots, s.sot, s.corners, s.yellows];
-  if (!pairs.every((p) => Array.isArray(p) && p.length === 2 && p.every((n) => Number.isFinite(n) && n >= 0))) return false;
+  // Possession and shots are the spine and must be there; the rest are optional, because a
+  // source that doesn't show a yellow-card row is not the same fact as no yellow cards.
+  const required = ["poss", "shots", "sot"], optional = ["corners", "yellows", "reds"];
+  const wellFormed = (p) => Array.isArray(p) && p.length === 2 && p.every((n) => Number.isFinite(n) && n >= 0);
+  if (!required.every((f) => wellFormed(s[f]))) return false;
+  if (!optional.every((f) => s[f] === undefined || wellFormed(s[f]))) return false;
   if (s.poss[0] + s.poss[1] !== 100) return false;          // possession is a share of one ball
+  if (Array.isArray(s.reds) && s.reds.some((n) => n > 5)) return false;
   return [0, 1].every((i) => s.sot[i] <= s.shots[i]);       // can't hit the target more than you shoot
 }))());
 
