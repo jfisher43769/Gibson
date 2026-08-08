@@ -247,7 +247,10 @@ export function seasonStatus(now = Date.now()) {
 export const FIXTURES_2627 = [
   { round: 1, date: "Sat 8 Aug", matches: [
     { h: "CLI", a: "CRU", d: "Fri 7 Aug", t: "7.45pm", tv: "BBC Sport NI", result: [2, 1] }, // Quinn 11', McMaster 61'; Dunlop 90+2'
-    { h: "LIN", a: "BAL" }, { h: "CAR", a: "POR" }, { h: "DUN", a: "COL" }, { h: "GLE", a: "LIM" },
+    { h: "LIN", a: "BAL", result: [0, 3] }, // McKee 2 for Ballymena, v his old club
+    { h: "CAR", a: "POR", result: [1, 0] }, // Portadown finished with ten
+    { h: "DUN", a: "COL", result: [1, 3] },
+    { h: "GLE", a: "LIM", result: [2, 0] },
     { h: "LAR", a: "BAN", d: "Tue 8 Sep" }, // rescheduled from Sun 9 Aug (NIFL, 27 Jul 2026)
   ]},
   { round: 2, date: "Sat 15 Aug", matches: [
@@ -923,10 +926,10 @@ export const PREDICTOR_GW = {
   deadline: "Cliftonville v Crusaders Fri 7.45pm · rest Sat 3pm",
   fixtures: [
     { id: "f1", home: { club: "CLI" }, away: { club: "CRU" }, comp: "Round 1 · Solitude · Fri 7 Aug, 7.45pm", result: [2, 1], odds: { home: 1.7, draw: 3.6, away: 5.0 } },
-    { id: "f2", home: { club: "LIN" }, away: { club: "BAL" }, comp: "Round 1 · Windsor Park · Sat 8 Aug, 3pm", result: null, odds: { home: 1.5, draw: 4.0, away: 6.5 } },
-    { id: "f3", home: { club: "CAR" }, away: { club: "POR" }, comp: "Round 1 · Loughview Leisure · Sat 8 Aug, 3pm", result: null, odds: { home: 2.0, draw: 3.3, away: 3.6 } },
-    { id: "f4", home: { club: "DUN" }, away: { club: "COL" }, comp: "Round 1 · Stangmore Park · Sat 8 Aug, 3pm", result: null, odds: { home: 4.0, draw: 3.6, away: 1.85 } },
-    { id: "f5", home: { club: "GLE" }, away: { club: "LIM" }, comp: "Round 1 · The Oval · Sat 8 Aug, 3pm", result: null, odds: { home: 1.4, draw: 4.5, away: 7.5 } },
+    { id: "f2", home: { club: "LIN" }, away: { club: "BAL" }, comp: "Round 1 · Windsor Park · Sat 8 Aug, 3pm", result: [0, 3], odds: { home: 1.5, draw: 4.0, away: 6.5 } },
+    { id: "f3", home: { club: "CAR" }, away: { club: "POR" }, comp: "Round 1 · Loughview Leisure · Sat 8 Aug, 3pm", result: [1, 0], odds: { home: 2.0, draw: 3.3, away: 3.6 } },
+    { id: "f4", home: { club: "DUN" }, away: { club: "COL" }, comp: "Round 1 · Stangmore Park · Sat 8 Aug, 3pm", result: [1, 3], odds: { home: 4.0, draw: 3.6, away: 1.85 } },
+    { id: "f5", home: { club: "GLE" }, away: { club: "LIM" }, comp: "Round 1 · The Oval · Sat 8 Aug, 3pm", result: [2, 0], odds: { home: 1.4, draw: 4.5, away: 7.5 } },
   ],
 };
 // Larne v Bangor (originally round 1) was rescheduled to Tue 8 Sep — see FIXTURES_2627 —
