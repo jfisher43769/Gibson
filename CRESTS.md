@@ -27,12 +27,32 @@ club's colours and three-letter code — no trademark is reproduced.
 | **Revocation** | Revocable at any time |
 | **File** | `public/crests/GLE.png` |
 
+### LAR — Larne
+
+| | |
+|---|---|
+| **Status** | Permission granted |
+| **Date granted** | 8 August 2026 |
+| **Granted by** | Mark, Larne FC — by WhatsApp, answering an emailed request: "Got your email. No problem at all to use the Larne FC logo" |
+| **Scope** | Editorial and identification use only |
+| **Merchandise** | Not permitted |
+| **Endorsement** | No implied endorsement or affiliation |
+| **Alteration** | Unaltered reproduction only — no recolouring, cropping or distortion |
+| **Revocation** | Revocable at any time |
+| **File** | `public/crests/LAR.png` |
+
+Larne set no conditions beyond granting use. The scope, merchandise, endorsement and
+alteration lines above are therefore GIBSON's own standing limits, not terms the club
+imposed — recorded here so a later reader can tell the two apart. Permission with no stated
+terms is not permission for anything: the narrower reading is the one that keeps faith with
+a club that said yes in one line.
+
 ## Not yet granted
 
 No permission has been sought or granted for the remaining clubs. Each shows the generated
 shield until an entry is added here and a file is placed in `public/crests/`:
 
-`LAR` Larne · `COL` Coleraine · `LIN` Linfield · `CLI` Cliftonville · `DUN` Dungannon Swifts ·
+`COL` Coleraine · `LIN` Linfield · `CLI` Cliftonville · `DUN` Dungannon Swifts ·
 `BAL` Ballymena United · `POR` Portadown · `BAN` Bangor · `CAR` Carrick Rangers ·
 `CRU` Crusaders · `LIM` Limavady United · `GLV` Glenavon (archived)
 
