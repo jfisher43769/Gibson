@@ -16,6 +16,7 @@ Video generators rendering **1080x1920 (9:16) MP4s** for X and TikTok, plus two 
 | `motm.mjs` | `gibson-motm-<club>-<player>.jpg` | Man of the match — portrait, name, the line, the result |
 | `announce.mjs` | `gibson-announce-<head>.jpg` | Feature announcement — what the app can now do, shown with a real match's real numbers |
 | `release.mjs` | `gibson-release-<version>.jpg` | Release notes — what shipped and what got fixed, version read from package.json |
+| `euro.mjs` | `gibson-euro-<club>-<opp>-<leg>.jpg` | European tie — the leg, the aggregate so far, when and where, over the ground |
 | `poster.mjs` | `gibson-poster-<w>x<h>.png` / `.jpg` | Portrait season poster — headline type block, the season in four numbers, the twelve as a ranked list |
 
 All share `kit.js`, the drawing kit (shields, the Gibson Cup mark, impact type, sweeps, grain).
@@ -135,6 +136,37 @@ than faking a split.
 Percentage rows that don't total 100 stop the render. Transcribing numbers off a screenshot
 mid-match is exactly where a digit gets fumbled, and a stats card that can't be trusted is
 worse than no card.
+
+## European ties
+
+```bash
+node scripts/promo/euro.mjs LAR
+node scripts/promo/euro.mjs LAR --photo=/path/to/ground.jpg
+```
+
+Club code only — everything else comes from `EURO`: competition, round, opponent, country,
+which leg, the venue and what the winner goes on to. It picks the leg nearest to now, same
+rule as every other card here, so on the night it is about the match that's on.
+
+**Why this exists separately.** Every other match card reads `FIXTURES_2627`, which is the
+league and nothing but the league. Point `status.mjs` at a club playing in Europe and it draws
+that club's next *domestic* fixture — different opponent, different date, and no sign that
+anything is wrong. European opponents also have no crest and no entry in `CLUBS`, only a name,
+a country and a colour the owner supplied.
+
+The aggregate line — "level at 0–0 after the first leg at Inver Park" — is **derived from the
+previous leg's recorded result**, matched on kick-off against `CLUB_FIXTURES`, never typed in.
+It is the one claim on the card that nobody can check at a glance and everybody will believe.
+`verify.js` fails the build if that ever becomes a command-line argument.
+
+No badges. GIBSON has Larne's real crest but nothing for FC Iberia 1999, and a real crest
+beside a disc invented for the occasion makes the invented one look like a crest too. The
+names are set large with a rule underneath in each side's colour instead.
+
+Same photo warning as everywhere else: **look at the render before posting.** Ground shots
+pick up pitchside hoardings. The Mikheil Meskhi shot used for the Iberia tie was checked at
+4x zoom first — Hisense, visitQatar, Alipay and UEFA Under-21 branding, no bookmakers — and
+nothing in this script can do that check for you.
 
 ## Announcing a feature
 

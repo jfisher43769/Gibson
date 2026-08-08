@@ -436,6 +436,25 @@ check("the roadmap is ordered, has one 'up next', and doesn't promise leaderboar
   return problems.length === 0;
 })());
 
+// The European tie card states the aggregate — "level at 0–0 after the first leg". That is
+// the one claim on it nobody watching can check at a glance and everybody will believe, so it
+// has to come from the recorded result of the previous leg, never from a scoreline typed on
+// the command line at 4pm on a Tuesday. Same row the app reads, matched on kick-off.
+check("the European tie card derives the aggregate from recorded results, not arguments", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../scripts/promo/euro.mjs", import.meta.url), "utf8"); } catch { return false; }
+  const problems = [];
+  if (!/D\.CLUB_FIXTURES\[club\]/.test(src)) problems.push("no longer reads CLUB_FIXTURES for the previous leg's result");
+  if (!/f\.dt === prev\.dt/.test(src)) problems.push("no longer matches the previous leg on kick-off");
+  // The tie state must never be settable by hand — no flag, no positional score.
+  if (/flag\(["'](agg|aggregate|score|standing)["']\)/.test(src)) problems.push("accepts the aggregate as a command-line flag");
+  if (/\bstanding\s*=\s*\{[^}]*argv/.test(src)) problems.push("builds the tie state out of argv");
+  // Ties are in EURO; reading the league fixture list here is how you draw the wrong match.
+  if (/D\.FIXTURES_2627/.test(src)) problems.push("reads FIXTURES_2627 — European legs live in EURO");
+  if (problems.length) console.log("      ↳ " + problems.join("\n      ↳ "));
+  return problems.length === 0;
+})());
+
 // A European tie lives in two places: EURO drives the tie card, CLUB_FIXTURES drives the
 // club page's "In Europe first" list. They are separate arrays and nothing tied them
 // together, so recording Larne's Q3 second leg in EURO alone left the app knowing the date
