@@ -56,7 +56,7 @@ function findFixture(h, a) {
       if (m.h !== h || m.a !== a) continue;
       const ms = D.fixtureKickoffMs(round, m);
       const dist = ms === null ? Infinity : Math.abs(ms - NOW);
-      if (!best || dist < best.dist) best = { round: round.round, date: m.d || round.date, dist };
+      if (!best || dist < best.dist) best = { round: round.round, date: m.d || round.date, ms, dist };
     }
   }
   return best;
@@ -76,17 +76,41 @@ const matches = scorelines.map((raw) => {
   }
   const fx = findFixture(h, a);
   if (!fx) die(`${D.CLUBS[h].name} v ${D.CLUBS[a].name} isn't a fixture. Check the order — home club first.`);
-  return { h, a, hs: Number(m[2]), as: Number(m[3]), round: fx.round, date: fx.date };
+  return { h, a, hs: Number(m[2]), as: Number(m[3]), round: fx.round, date: fx.date, ms: fx.ms };
 });
+
+// Rows read in kick-off order, not the order they were typed on the command line. A round-up
+// posted after a Friday-and-Saturday round should open with the Friday game whichever way the
+// scorelines were pasted in.
+matches.sort((x, y) => (x.ms ?? Infinity) - (y.ms ?? Infinity));
 
 // One card is one round. Mixing rounds would need two headers and means somebody mistyped.
 const rounds = [...new Set(matches.map((m) => m.round))];
 if (rounds.length > 1) die(`These matches span rounds ${rounds.join(" and ")} — a round-up card covers one round.`);
 
+// A round is not always one day. Round 1 opened on the Friday night and finished on the
+// Saturday, and taking the first match's date stamped the whole card "FRI 7 AUG" — a card
+// showing four Saturday results under a Friday date is simply wrong. Span the range instead,
+// dropping the repeated month ("FRI 7 – SAT 8 AUG") so the header still fits.
+function dateSpan(list) {
+  const seenDates = [];
+  for (const m of list) {
+    const d = String(m.date || "").trim();
+    if (d && !seenDates.includes(d)) seenDates.push(d);
+  }
+  if (!seenDates.length) return "";
+  const first = seenDates[0], last = seenDates[seenDates.length - 1];
+  if (first === last) return first.toUpperCase();
+  const split = (s) => { const m = /^(.*)\s+(\S+)$/.exec(s); return m ? [m[1], m[2]] : [s, ""]; };
+  const [fHead, fMonth] = split(first), [lHead, lMonth] = split(last);
+  const head = fMonth && fMonth === lMonth ? fHead : first;
+  return `${head} – ${lHead} ${lMonth}`.trim().toUpperCase();
+}
+
 const facts = {
   state: STATES[state],
   round: rounds[0],
-  date: String(matches[0].date || "").toUpperCase(),
+  date: dateSpan(matches),
   matches: matches.map((m) => ({
     ...m,
     homeClub: { code: m.h, ...D.CLUBS[m.h] },

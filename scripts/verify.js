@@ -1009,6 +1009,22 @@ check("match-card scripts pick a fixture by time, not by whether it has a result
   });
 })());
 
+// A round-up card stamped one date over matches played on two. Round 1 opened on Friday night
+// and finished on the Saturday; the header took matches[0].date and headed four Saturday
+// results "FRI 7 AUG". Found rendering the first Saturday's card, 8 Aug 2026.
+check("round-up card dates the whole span, and lists matches in kick-off order", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../scripts/promo/roundup.mjs", import.meta.url), "utf8"); } catch { return false; }
+  // The header date must be derived from every match, never from one of them.
+  if (/date:\s*String\(matches\[0\]/.test(src)) return false;
+  if (!/date:\s*dateSpan\(matches\)/.test(src)) return false;
+  // dateSpan has to walk the list rather than peek at an end of it.
+  const body = /function dateSpan\(list\)\s*\{([\s\S]*?)\n\}/.exec(src);
+  if (!body || !/for \(const m of list\)/.test(body[1])) return false;
+  // And the rows themselves follow kick-off, not argv order.
+  return /matches\.sort\(\(x, y\) => \(x\.ms \?\? Infinity\) - \(y\.ms \?\? Infinity\)\)/.test(src);
+})());
+
 // The table has to go live off our own recorded results, not wait for a community feed.
 check("currentTable() derives standings from recorded results", (() => {
   const rows = D.currentTable();
