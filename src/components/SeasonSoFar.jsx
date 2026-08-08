@@ -27,7 +27,10 @@ const label = { fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform
 
 function Stat({ value, unit, name }) {
   return (
-    <div style={{ ...SURFACE.card, borderRadius: 12, padding: "12px 14px", flex: "1 1 0", minWidth: 92 }}>
+    // minWidth 92 was just wide enough to force a 3 + 1 wrap at 420px, stranding the fourth
+    // tile alone on a full-width row. 84 fits all four across on a phone and still falls back
+    // to two-by-two on anything narrower.
+    <div style={{ ...SURFACE.card, borderRadius: 12, padding: "12px 10px", flex: "1 1 0", minWidth: 84 }}>
       <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 28, color: "#FFB627", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>
         {value}<span style={{ fontSize: 15, color: dim }}>{unit || ""}</span>
       </div>
