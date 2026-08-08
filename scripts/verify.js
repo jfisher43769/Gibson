@@ -366,6 +366,41 @@ check("every CLUB_FIXTURES/EURO fixture has a valid ISO dt matching its display 
 // app, contradicting each other — and the roadmap's was the one with a month on it. A roadmap
 // is a promise to users, so it has to agree with what the rest of the app says and it has to
 // be readable: one "up next", and versions in order. Found on 8 Aug 2026.
+// "Live" costs nothing because the feed behind it is a free, community-edited public source —
+// api/events.js already treats it as unreliable (status often blank, falls back to a clock
+// guess) and it's polled once a minute. The app said none of that to a reader; it just said
+// LIVE. Every place a live score can be the only one on screen needs the caveat somewhere,
+// and exactly one place — not zero, and not stacked twice on the same screen.
+check("every live-score surface carries the feed caveat, exactly once", (() => {
+  let liveNowSrc = "", homeSrc = "", matchesSrc = "";
+  try {
+    liveNowSrc = readFileSync(new URL("../src/components/LiveNow.jsx", import.meta.url), "utf8");
+    homeSrc = readFileSync(new URL("../src/tabs/HomeTab.jsx", import.meta.url), "utf8");
+    matchesSrc = readFileSync(new URL("../src/tabs/MatchesTab.jsx", import.meta.url), "utf8");
+  } catch { return false; }
+  const problems = [];
+
+  // The wording itself has to actually say the honest thing, not just exist.
+  const caveatBody = /export function LiveCaveat\(\)[\s\S]*?<\/div>\s*\);\s*\}/.exec(decomment(liveNowSrc))?.[0] || "";
+  if (!/free public feed/i.test(caveatBody)) problems.push("LiveCaveat doesn't mention the feed is a free public source");
+  if (!/lag|miss|behind|delay/i.test(caveatBody)) problems.push("LiveCaveat doesn't say scores can lag or be missed");
+
+  // LiveNow shows it by default — a caller has to opt out deliberately, not just forget it.
+  if (!/showCaveat\s*=\s*true/.test(liveNowSrc)) problems.push("LiveNow's showCaveat no longer defaults on");
+
+  // Home suppresses LiveNow's copy only where it prints its own instead, for the single-
+  // live-fixture case LiveNow can't cover (its own list would be empty).
+  const homeDecommented = decomment(homeSrc);
+  if (!/showCaveat=\{!liveMatch\}/.test(homeDecommented)) problems.push("HomeTab no longer ties LiveNow's caveat to liveMatch — could show twice or not at all");
+  if (!/liveMatch\s*&&\s*<LiveCaveat/.test(homeDecommented)) problems.push("HomeTab's board no longer prints its own caveat when it's the only live score on screen");
+
+  // MatchesTab has no board of its own, so its LiveNow must never suppress the default.
+  if (/<LiveNow[^>]*showCaveat/.test(decomment(matchesSrc))) problems.push("MatchesTab's LiveNow overrides showCaveat — it has no board to cover for it");
+
+  if (problems.length) console.log("      ↳ " + problems.join("\n      ↳ "));
+  return problems.length === 0;
+})());
+
 check("the roadmap is ordered, has one 'up next', and doesn't promise leaderboards before v2.0", (() => {
   let src = "";
   try { src = readFileSync(new URL("../src/tabs/MoreTab.jsx", import.meta.url), "utf8"); } catch { return false; }
