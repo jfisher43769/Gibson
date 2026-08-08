@@ -13,7 +13,6 @@ import { LiveTick, ScoreRow } from "../components/ScoreRow.jsx";
 import { Skel, SkelRows } from "../components/Skeleton.jsx";
 import { findLive, useLiveEvents } from "../lib/live.js";
 import { OVERLAY, SURFACE, chalk, dim, faint, formColor, rise } from "../lib/theme.js";
-import { LiveTeaser } from "../components/LiveTeaser.jsx";
 
 export function TableView() {
   const noteLabel = { C: "Champions · Gibson Cup", IC: "Irish Cup winners · Europe", E: "Europe (automatic)", EPO: "Europe (via play-off)", PO: "Relegation play-off", R: "Relegated" };
@@ -132,7 +131,6 @@ export function TableView() {
       <div style={{ animation: "riseIn 0.4s ease-out" }}>
         {offline && <OfflineNote />}
         <LiveBlock />
-        <LiveTeaser />
         <div className="gb-desk-2col">
         <div>
         <SeasonStrip status={seasonStatus()} />
@@ -203,7 +201,6 @@ export function TableView() {
     <div style={{ animation: "riseIn 0.4s ease-out" }}>
       {offline && <OfflineNote />}
       <LiveBlock />
-      <LiveTeaser />
       <div className="gb-desk-2col">
       <div>
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>

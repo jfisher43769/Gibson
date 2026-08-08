@@ -289,16 +289,17 @@ export function SupportView() {
         ...SURFACE.hero,
       }}>
         <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 24, textTransform: "uppercase", color: chalk, lineHeight: 1.1 }}>
-          Back GIBSON
+          GIBSON Membership
         </div>
         <div style={{ fontSize: 13, color: dim, marginTop: 8, lineHeight: 1.5 }}>
-          GIBSON is free and built by one Irish League fan in Belfast. Everything stays free —
-          supporters just keep the floodlights on and get a say in what gets built next.
+          Every stat on GIBSON is free, and stays free — membership doesn't unlock the app.
+          What it buys is a say in it: your name in the credits, a vote on what gets built next,
+          and an early look at new stats before they go live. Monthly, cancel whenever you like.
         </div>
       </div>
 
       <div style={{ display: "grid", gap: 12 }}>
-        {SUPPORT_TIERS.map((t, i) => (
+        {SUPPORT_TIERS.filter((t) => t.kind !== "tip").map((t, i) => (
           <div key={t.id} style={{
             position: "relative",
             background: t.featured ? "rgba(255,182,39,0.06)" : "rgba(240,255,245,0.03)",
@@ -337,15 +338,48 @@ export function SupportView() {
               letterSpacing: "0.08em", textTransform: "uppercase",
               borderRadius: 10, padding: "11px", border: `1px solid ${t.featured ? "#FFB627" : faint}`,
             }}>
-              {t.cadence === "one-off" ? "Buy one" : "Join"} →
+              Join →
             </a>
           </div>
         ))}
       </div>
 
+      {/* Tips sit below the memberships, under their own heading and with no tick-list, so it
+          is unmistakable which one is a purchase and which one is a thank-you. */}
+      {SUPPORT_TIERS.filter((t) => t.kind === "tip").map((t) => (
+        <div key={t.id} style={{ marginTop: 24 }}>
+          <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>
+            Or leave a tip
+          </div>
+          <div style={{ background: "rgba(240,255,245,0.03)", border: `1px solid ${faint}`, borderRadius: 14, padding: 16 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+              <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 20, textTransform: "uppercase", color: t.color }}>
+                {t.emoji} {t.name}
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 24, color: chalk, fontVariantNumeric: "tabular-nums" }}>{t.price}</span>
+                <span style={{ fontSize: 12, color: dim }}> {t.cadence}</span>
+              </div>
+            </div>
+            <div style={{ fontSize: 13, color: dim, lineHeight: 1.5, marginBottom: 14 }}>{t.note}</div>
+            <a href={KOFI_URL} target="_blank" rel="noopener noreferrer" onClick={() => track("kofi_tapped", { tier: t.id })} style={{
+              display: "block", textAlign: "center", textDecoration: "none",
+              background: OVERLAY.fill, color: chalk,
+              fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 15,
+              letterSpacing: "0.08em", textTransform: "uppercase",
+              borderRadius: 10, padding: "11px", border: `1px solid ${faint}`,
+            }}>
+              Leave a tip →
+            </a>
+          </div>
+        </div>
+      ))}
+
       <div style={{ fontSize: 12, color: dim, marginTop: 14, lineHeight: 1.5 }}>
-        Payments are handled securely by Ko-fi — GIBSON never sees your card details.
-        Memberships can be cancelled any time from your Ko-fi account.
+        Memberships are a monthly subscription, billed through Ko-fi and cancellable any time
+        from your Ko-fi account. Payments are handled by Ko-fi — GIBSON never sees your card
+        details. GIBSON is a personal project, not a charity, and doesn't fundraise: the app is
+        free to everyone whether anyone pays anything or not.
       </div>
 
       <div style={{ marginTop: 24 }}>
@@ -356,7 +390,7 @@ export function SupportView() {
           { v: "1.07", when: "Jul 2026", title: "Club pages: every club, one tap", desc: "A full page for all twelve clubs — season, squad, transfers, fixtures and honours — reachable from any shield in the app.", status: "done" },
           { v: "1.1", when: "Jul 2026", title: "Every club, one tap from Home", desc: "A club-selector strip on the Home tab, automatic crest text contrast, and name labels on every club picker in the app.", status: "done" },
           { v: "1.11", when: "Aug 2026", title: "Season one kicks off", desc: "Global Predictor leaderboard, live 26/27 table, and GIBSON on the Play Store.", status: "next" },
-          { v: "1.2", when: "When funded", title: "Live scores", desc: "In-play scores every two minutes. Unlocks when Ko-fi support covers the data feed — one Season Ticket flips the switch.", status: "planned" },
+          { v: "1.2", when: "Aug 2026", title: "Live scores", desc: "In-play scores on the front page and the fixtures list, refreshed while matches are on, with the table updating off them — shipped, and free to everyone.", status: "done" },
           { v: "v1.2", when: "Pre-season", title: "Fixtures & Predictor gameweeks", desc: "26/27 fixture list, opening-day countdown, and weekly Predictor rounds all season long.", status: "planned" },
           { v: "v1.3", when: "In season", title: "Weekly GIBSON Index", desc: "Ratings updated every matchweek, plus a Team of the Week in the Stats Lab.", status: "planned" },
           { v: "v2.0", when: "Future", title: "Accounts, Premium & leaderboards", desc: "Sign in, save your club, follow players, and battle the whole league on global Predictor leaderboards.", status: "planned" },

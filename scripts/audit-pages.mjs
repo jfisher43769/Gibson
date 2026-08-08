@@ -42,6 +42,17 @@ const BAD = [/\bNaN\b/, /\bundefined\b/, /\[object Object\]/, /Invalid Date/, /\
 const EXPECTED_NOISE = /Failed to load resource|ERR_CONNECTION_RESET|ERR_FAILED/;
 const BOOKIE = /boyle\s?sports|bet365|paddy\s?power|ladbrokes|william hill|betfair|sky\s?bet|betway|virgin bet|sean graham/i;
 
+// Returns a description when the document itself is wider than the viewport, or "" when it
+// isn't. A few pixels of slack is allowed for sub-pixel rounding on scaled viewports; a
+// genuine overflow is tens of pixels and drags the whole layout off screen.
+async function sidewaysScroll(page) {
+  const m = await page.evaluate(() => ({
+    doc: document.documentElement.scrollWidth,
+    win: window.innerWidth,
+  }));
+  return m.doc > m.win + 2 ? `document ${m.doc}px vs viewport ${m.win}px` : "";
+}
+
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 const problems = [];
 
@@ -81,22 +92,31 @@ async function sweep(tag, feedOk) {
       if (!/boyle\s?sports/i.test(hit)) problems.push(`[${tag}] ${name}: bookmaker reference "${hit}"`);
     }
     if (text.trim().length < 400) problems.push(`[${tag}] ${name}: page looks empty (${text.trim().length} chars)`);
+    const over = await sidewaysScroll(page);
+    if (over) problems.push(`[${tag}] ${name}: page scrolls sideways (${over})`);
     for (const e of errs) if (!EXPECTED_NOISE.test(e)) problems.push(`[${tag}] ${name}: ${e}`);
     await page.screenshot({ path: join(SHOTS, `${tag}-${name}.png`), fullPage: false });
   }
 
   // The More tab lives behind nav buttons rather than a route.
+  //
+  // The sideways-scroll check below is here because renaming one sub-tab broke it. A flex row
+  // of equal-width buttons cannot shrink below its own text, so "Membership" — one word longer
+  // than "Support ♥" — pushed the document 28px wider than the phone and slid the logo off
+  // screen. Wide things must scroll inside their own container; the body never does.
   await page.goto("http://localhost:4707/", { waitUntil: "domcontentloaded" });
   for (const sub of ["More"]) {
     const b = page.getByText(sub, { exact: true }).first();
     if (await b.count()) { await b.click(); await page.waitForTimeout(1500); }
   }
-  for (const sub of ["Clubs", "History", "Transfers", "Support \u2665"]) {
+  for (const sub of ["Clubs", "History", "Transfers", "Membership"]) {
     errs.length = 0;
     const b = page.getByText(sub, { exact: true }).first();
     if (!(await b.count())) { problems.push(`[${tag}] more: no "${sub}" sub-tab`); continue; }
     await b.click(); await page.waitForTimeout(1500);
     const text = await page.locator("body").innerText();
+    const over = await sidewaysScroll(page);
+    if (over) problems.push(`[${tag}] more/${sub}: page scrolls sideways (${over})`);
     for (const re of BAD) if (re.test(text)) problems.push(`[${tag}] more/${sub}: text contains ${re}`);
     for (const e of errs) if (!EXPECTED_NOISE.test(e)) problems.push(`[${tag}] more/${sub}: ${e}`);
     await page.screenshot({ path: join(SHOTS, `${tag}-more-${sub}.png`) });

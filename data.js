@@ -1300,21 +1300,34 @@ export const CLUB_FIXTURES = {
   ],
 };
 
+// Two different things, and they are kept apart on purpose.
+//
+// A membership is a purchase: a monthly subscription with benefits that are listed, dated and
+// delivered. A tip is a one-off thank-you that buys nothing and promises nothing, and says so
+// in as many words. Blurring the two into "back the project and keep us going" is what reads
+// as soliciting donations rather than selling something — which is a regulated category no
+// payment processor will carry for a private individual, and it is what got GIBSON's payments
+// switched off on 8 Aug 2026. `kind` is what the UI splits on, so the distinction can't
+// quietly collapse back into one undifferentiated list of ways to give money.
 export const SUPPORT_TIERS = [
   {
-    id: "bovril", name: "Half-time Bovril", price: "£3", cadence: "one-off",
-    color: "#8FA69B", emoji: "☕",
-    perks: ["Buy the project a warm drink", "A genuine thank-you", "Warm glow of backing local football"],
-  },
-  {
-    id: "season", name: "Season Ticket", price: "£4", cadence: "per month",
+    id: "season", name: "Season Ticket", price: "£4", cadence: "per month", kind: "membership",
     color: "#FFB627", emoji: "🎟️", featured: true,
     perks: ["Name in the GIBSON credits", "Vote in monthly feature polls", "Early look at new stats before they go live"],
   },
   {
-    id: "box", name: "Director's Box", price: "£8", cadence: "per month",
+    id: "box", name: "Director's Box", price: "£8", cadence: "per month", kind: "membership",
     color: "#3DDC84", emoji: "🥃",
     perks: ["Everything in Season Ticket", "Request any player Duel or custom stat breakdown", "Priority say on the roadmap"],
+  },
+  {
+    id: "bovril", name: "Half-time Bovril", price: "£3", cadence: "one-off", kind: "tip",
+    color: "#8FA69B", emoji: "☕",
+    // No perks list, deliberately. The old one read "buy the project a warm drink / a genuine
+    // thank-you / warm glow of backing local football" — three lines promising nothing, which
+    // is the textbook shape of a donation dressed as a product.
+    perks: [],
+    note: "A one-off tip if the app has been useful. No subscription, nothing to cancel, and nothing in GIBSON is locked behind it — every stat on the site is free either way.",
   },
 ];
 

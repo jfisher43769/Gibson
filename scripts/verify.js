@@ -53,6 +53,16 @@ const shippedSources = shippedFiles.map((p) => {
 });
 check("shipped-source scan covers the src/ modules, not just App.jsx", shippedFiles.length > 20);
 
+// Strips comments — JS line and block, and HTML — so checks that are about what a READER of
+// the site sees don't fire on prose explaining why that copy is written the way it is. Checks
+// about what must never appear in the repo at all (bookmaker names) deliberately do NOT use
+// this and scan the raw source. Crude by design: the worst it does is chew a URL inside a
+// string literal, and nothing built on it cares about URLs.
+const decomment = (s) => s
+  .replace(/<!--[\s\S]*?-->/g, " ")
+  .replace(/\/\*[\s\S]*?\*\//g, " ")
+  .replace(/\/\/[^\n]*/g, " ");
+
 // CLAUDE.md is loaded on EVERY task, so a stale architecture section misdirects all future
 // work. It described App.jsx as "all UI" for a while after the split had moved the UI into
 // src/ — the doc update was written on the original refactor branch and lost when that
@@ -72,6 +82,31 @@ check("no bookmaker names anywhere in shipped data or UI (BoyleSports competitio
     if (hit) console.log(`      ↳ found: "${hit[0]}"`);
     return !hit;
   }));
+// Asking for money to keep a project alive is soliciting donations, and no payment processor
+// carries that for a private individual — Stripe disabled GIBSON's payments over it on
+// 8 Aug 2026, through Ko-fi, with no warning that landed. What GIBSON actually sells is a
+// membership (a subscription with listed benefits) and accepts a tip (a one-off that promises
+// nothing); both are fine. The charity register is what is not, so it is banned from shipped
+// copy rather than left to whoever is writing the next hero paragraph at 1am.
+//
+// Deliberately narrow. "Support" on its own is everywhere and legitimate — the gambling-help
+// line in Odds.jsx, "BBC Sport NI", "deep-link support" — so only phrasing that reads as an
+// appeal is listed here. Add to the list rather than loosening it.
+const SOLICITATION = /donat(e|es|ed|ing|ion|ions)|chip in|crowdfund|gofundme|just ?giving|keep the (lights|floodlights) on|back the project|buy the project|warm glow|when funded|help (us|me) keep|covers? the data feed/i;
+check("no donation-soliciting language in shipped copy (memberships and tips are fine)", (() => {
+  const publicHtml = existsSync(new URL("../public/", import.meta.url))
+    ? readdirSync(new URL("../public/", import.meta.url)).filter((f) => /\.html$/i.test(f))
+        .map((f) => readFileSync(new URL(f, new URL("../public/", import.meta.url)), "utf8"))
+    : [];
+  const hits = [];
+  for (const src of [...shippedSources, ...publicHtml]) {
+    const hit = decomment(src).match(SOLICITATION);
+    if (hit) hits.push(hit[0]);
+  }
+  if (hits.length) console.log(`      ↳ found: ${[...new Set(hits)].map((h) => `"${h}"`).join(", ")}`);
+  return hits.length === 0;
+})());
+
 // Match affiliate/tracking LINK PARAMETERS, not the English word — "not affiliated with
 // the NIFL" in the disclaimer is the opposite of an affiliate link and must not trip this.
 check("no affiliate/tracking link parameters in shipped data or UI",
@@ -730,9 +765,7 @@ check("every seasonLabel() call passes a name that SEASON_TAGS knows", (() => {
     : [];
   const tagged = new Set(Object.keys(D.SEASON_TAGS || {}));
   // Comments are prose about the code, not calls — a note reading "not seasonLabel()" is not
-  // a bug. Crude stripping is fine here: the worst it does is chew a URL inside a string,
-  // and nothing in this check cares about URLs.
-  const decomment = (s) => s.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/\/\/[^\n]*/g, " ");
+  // a bug. Uses the shared decomment defined at the top of this file.
   for (const p of [...shippedFiles, ...promo]) {
     let src = "";
     try { src = decomment(readFileSync(p, "utf8")); } catch { continue; }

@@ -189,7 +189,7 @@ function AppShell() {
           {statsSub === "duel" && <DuelView />}
         </>)}
         {tab === "more" && (<>
-          <SubNav items={[["clubs", "Clubs"], ["transfers", "Transfers"], ["history", "History"], ["support", "Support ♥"]]} value={moreSub} onChange={setMoreSub} />
+          <SubNav items={[["clubs", "Clubs"], ["transfers", "Transfers"], ["history", "History"], ["support", "Membership"]]} value={moreSub} onChange={setMoreSub} />
           {moreSub === "clubs" && <ClubsGrid openClub={openClub} />}
           {moreSub === "transfers" && <TransfersView />}
           {moreSub === "history" && <HistoryView />}
