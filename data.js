@@ -642,6 +642,9 @@ export const TRANSFERS = [
   { id: 15, date: "Jul", player: "Allen, Archer, Whiteside, McKee & Walsh", from: "LIN", to: "BAL", status: "done", note: "The window's biggest story nobody's talking about: Ballymena sign FIVE players from Linfield in one summer. A full-scale raid on Windsor Park's fringes." },
   { id: 16, date: "Jul", player: "Kofi Moore", from: "LAR", to: "LIN", status: "done", note: "Linfield double-dip at the champions: Moore follows Ryan Nolan from Inver Park to Windsor." },
   { id: 43, date: "Jul", player: "Jonny Tuffey", from: "CRU", toExternal: "Retired", status: "departure", note: "The veteran goalkeeper hangs up the gloves after a long Irish League career. Josh Owens also retires at Seaview." },
+  { id: 49, date: "Aug", player: "Jacob Carney", fromExternal: "Glenavon", to: "LAR", status: "done", note: "Goalkeeper joins the champions from Glenavon on a free." },
+  { id: 50, date: "Aug", player: "Rob Slevin", fromExternal: "Derry City", to: "COL", status: "done", note: "Centre-back arrives at The Showgrounds on loan from Derry City." },
+  { id: 51, date: "Aug", player: "Jonny James", from: "CRU", toExternal: "H&W Welders", status: "departure", note: "Left-back leaves Seaview for the Welders." },
 ];
 export const STATUS_META = {
   done: { label: "Done deal", color: "#3DDC84" },
