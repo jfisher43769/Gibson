@@ -438,6 +438,31 @@ check("the roadmap is ordered, has one 'up next', and doesn't promise leaderboar
   return problems.length === 0;
 })());
 
+// "Latest transfer talk" on the Home tab is TRANSFERS.slice(0, 3) — pure array position. The
+// `date` field is free text ("Jul", "Reported", "12 May") so it cannot be sorted, which means
+// the order in the file IS the publication order and appending is silently wrong. Three
+// August signings went in at the bottom on 9 Aug 2026, landed behind forty July entries, and
+// never reached the front page even though they were correct everywhere else.
+check("the newest transfers sit at the top, where the Home feed reads from", (() => {
+  const MONTHS = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+  const monthOf = (d) => {
+    const m = /([a-z]{3})/i.exec(String(d || "").toLowerCase());
+    return m ? MONTHS.indexOf(m[1]) : -1;    // -1 for "Reported" and anything undated
+  };
+  const feed = D.TRANSFERS.slice(0, 3).map((t) => monthOf(t.date));
+  const rest = D.TRANSFERS.slice(3).map((t) => monthOf(t.date));
+  const topMonth = Math.max(...feed, -1);
+  // Season runs Aug–Apr, so a raw month index would rank May above the following January.
+  // Nothing in this data crosses a year boundary yet; if it ever does, this check needs a
+  // season-relative index rather than a calendar one.
+  const buried = D.TRANSFERS.slice(3).filter((t) => monthOf(t.date) > topMonth);
+  if (buried.length) {
+    console.log(`      ↳ newer than anything in the top 3: ${buried.map((t) => `${t.player} (${t.date})`).join(", ")}`);
+    console.log("      ↳ add new transfers at the TOP of TRANSFERS, not the bottom");
+  }
+  return buried.length === 0 && rest.length >= 0;
+})());
+
 // An injury list only ever gets added to, so it silently becomes a list of players who have
 // recovered — or left. Ethan Boyle sat in the treatment table at Carrick for weeks after the
 // same file recorded him leaving for CK United. Two facts, one file, flatly contradicting

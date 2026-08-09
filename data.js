@@ -594,7 +594,15 @@ export const AXES = ["Shooting", "Creation", "Passing", "Dribbling", "Defending"
 
 // Summer 2026 window tracker — real, sourced stories. Update as fresh news breaks.
 // from/to use a NIFL club code, OR fromExternal/toExternal for clubs outside the league.
+// NEWEST FIRST. The Home tab's "Latest transfer talk" is TRANSFERS.slice(0, 3) — it trusts
+// array position, not the `date` field, which is free text ("Jul", "Reported", "12 May") and
+// can't be sorted. Add new items at the TOP. Appending them to the bottom puts them behind
+// forty-odd July entries and they never reach the front page, which is exactly what happened
+// to these three on 9 Aug 2026.
 export const TRANSFERS = [
+  { id: 49, date: "Aug", player: "Jacob Carney", fromExternal: "Glenavon", to: "LAR", status: "done", note: "Goalkeeper joins the champions from Glenavon on a free." },
+  { id: 50, date: "Aug", player: "Rob Slevin", fromExternal: "Derry City", to: "COL", status: "done", note: "Centre-back arrives at The Showgrounds on loan from Derry City." },
+  { id: 51, date: "Aug", player: "Jonny James", from: "CRU", toExternal: "H&W Welders", status: "departure", note: "Left-back leaves Seaview for the Welders." },
   { id: 48, date: "Jul", player: "Cormac Austin", from: "LAR", toExternal: "UNC Wilmington Seahawks", status: "departure", note: "Defensive midfielder leaves Larne for US college soccer with UNC Wilmington." },
   { id: 47, date: "Jul", player: "Matthew Beattie", fromExternal: "Crusaders U18", to: "CRU", status: "done", note: "Central midfielder steps up from the Crusaders U18s to the first-team squad." },
   { id: 46, date: "Jul", player: "Jeremi Rodríguez", fromExternal: "UD San Fernando", to: "BAN", status: "done", note: "Jeremi Rodríguez joins Bangor from Spanish side UD San Fernando on a free, following a spell in the US." },
@@ -642,9 +650,6 @@ export const TRANSFERS = [
   { id: 15, date: "Jul", player: "Allen, Archer, Whiteside, McKee & Walsh", from: "LIN", to: "BAL", status: "done", note: "The window's biggest story nobody's talking about: Ballymena sign FIVE players from Linfield in one summer. A full-scale raid on Windsor Park's fringes." },
   { id: 16, date: "Jul", player: "Kofi Moore", from: "LAR", to: "LIN", status: "done", note: "Linfield double-dip at the champions: Moore follows Ryan Nolan from Inver Park to Windsor." },
   { id: 43, date: "Jul", player: "Jonny Tuffey", from: "CRU", toExternal: "Retired", status: "departure", note: "The veteran goalkeeper hangs up the gloves after a long Irish League career. Josh Owens also retires at Seaview." },
-  { id: 49, date: "Aug", player: "Jacob Carney", fromExternal: "Glenavon", to: "LAR", status: "done", note: "Goalkeeper joins the champions from Glenavon on a free." },
-  { id: 50, date: "Aug", player: "Rob Slevin", fromExternal: "Derry City", to: "COL", status: "done", note: "Centre-back arrives at The Showgrounds on loan from Derry City." },
-  { id: 51, date: "Aug", player: "Jonny James", from: "CRU", toExternal: "H&W Welders", status: "departure", note: "Left-back leaves Seaview for the Welders." },
 ];
 export const STATUS_META = {
   done: { label: "Done deal", color: "#3DDC84" },
