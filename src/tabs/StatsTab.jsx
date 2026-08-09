@@ -199,8 +199,13 @@ export function StatsView() {
         <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 20, textTransform: "uppercase", color: chalk, lineHeight: 1.1 }}>
           The Stats Lab ⚡
         </div>
+        {/* No season on the hero. It used to print whatever the switch below was set to,
+            which defaults to last season — so the page announced itself as "2025/26 · last
+            season" directly above a panel headed "2026/27 so far". The page deliberately
+            shows both, and every section under the switch already carries its own season
+            label, so the only honest thing for a page-level line to say is what the Lab is. */}
         <div style={{ fontSize: 12, color: dim, marginTop: 4 }}>
-          {season === SEASON.current.id ? SEASON.current.display : `${SEASON.previous.display} · last season`} · verified team-level numbers
+          Verified team-level numbers · this season and last
         </div>
       </div>
       {/* The new season's own numbers, above the season switch: they exist from the first

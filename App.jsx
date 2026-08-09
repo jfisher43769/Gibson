@@ -101,13 +101,23 @@ function AppShell() {
   const tabRefs = useRef({});
   const [pill, setPill] = useState({ x: 0, y: 0, w: 0, h: 0 });
   useLayoutEffect(() => {
+    let live = true;
     const measure = () => {
+      if (!live) return;
       const b = tabRefs.current[tab];
       if (b) setPill({ x: b.offsetLeft, y: b.offsetTop, w: b.offsetWidth, h: b.offsetHeight });
     };
     measure();
+    // Measure again once the web font has swapped in. The first pass runs with fallback
+    // metrics, which are narrower than Barlow Condensed — so the pill was sized for text
+    // that wasn't there yet and the active tab rendered clipped ("STATS" cut off, its ⚡
+    // stranded outside the yellow) until something else forced a re-measure. Invisible on a
+    // fast local load and obvious on a slow one, which is the worst way for a bug to behave.
+    if (typeof document !== "undefined" && document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(measure).catch(() => {});
+    }
     window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+    return () => { live = false; window.removeEventListener("resize", measure); };
   }, [tab]);
 
   return (

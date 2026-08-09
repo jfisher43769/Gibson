@@ -56,10 +56,13 @@ export function TableView() {
     <div style={{ marginBottom: 22, animation: "riseIn 0.4s ease-out" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
         <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#3DDC84", display: "inline-block" }} />
+        {/* "matches", not "games": this counts fixtures played league-wide, while the season
+            strip counts games played BY A CLUB. Both said "games played" and showed different
+            numbers on the same screen — 5 here against 1 there. */}
         <span style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>
           {useFeed
             ? `Live table · ${live.season} · updated ${live.updated}`
-            : `${SEASON.current.display} table · ${derivedPlayed} game${derivedPlayed === 1 ? "" : "s"} played`}
+            : `${SEASON.current.display} table · ${derivedPlayed} match${derivedPlayed === 1 ? "" : "es"} played`}
         </span>
       </div>
       <div style={{ display: "grid", gap: 6 }}>

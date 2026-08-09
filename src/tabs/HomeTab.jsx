@@ -10,6 +10,7 @@ import { ScoreRow } from "../components/ScoreRow.jsx";
 import { TvBadge } from "../components/TvBadge.jsx";
 import { CountUp } from "../components/CountUp.jsx";
 import { findLive, useLiveEvents } from "../lib/live.js";
+import { oppCode } from "../lib/oppcode.js";
 import { SURFACE, chalk, dim, faint } from "../lib/theme.js";
 
 // One side of the scoreboard. A Premiership club shows its crest, which is what the rest of
@@ -83,12 +84,7 @@ export function HomeView({ goTo }) {
   const restEuro = nextEuro.slice(heroFix ? 1 : 0);
   // The league row in "Next up" — omitted when that same game is already the hero.
   const upcomingLeague = leagueIsSooner ? null : leagueFix;
-  const oppCode = (name) => {
-    const first = name.split(" ")[0];
-    return first === first.toUpperCase() && first.length <= 4
-      ? first
-      : name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 3);
-  };
+  // oppCode lives in src/lib so verify.js can test the real one — see the note in that file.
   // Home colours for the scoreboard's side accent bars. The home club's is always known
   // (CLUBS[...].colors[0]); the away side is only coloured when it's a Premiership club or
   // an external opponent whose colour the owner has confirmed (EURO[...].oppColor) — an

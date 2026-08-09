@@ -5,6 +5,7 @@
 import * as D from "../data.js";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { contrastRatio, contrastText, chalk, DARK_TEXT, relativeLuminance } from "../src/lib/theme.js";
+import { CLUB_TYPE, oppCode } from "../src/lib/oppcode.js";
 let fails = 0;
 const check = (name, ok) => { console.log(ok ? "  ✓" : "  ✗ FAIL", name); if (!ok) fails++; };
 
@@ -436,6 +437,47 @@ check("the roadmap is ordered, has one 'up next', and doesn't promise leaderboar
   }
   if (problems.length) console.log("      ↳ " + problems.join("\n      ↳ "));
   return problems.length === 0;
+})());
+
+// The Home board falls back to an abbreviation when the opponent has no crest, and that
+// abbreviation was the first word of the name — so FC Iberia 1999 appeared on the front page
+// as a side called "F C". Every European opponent in the data has to abbreviate to something
+// that is actually about that club. Found reviewing the UI, 9 Aug 2026.
+check("every European opponent abbreviates to something meaningful on the Home board", (() => {
+  // HomeTab must be using the shared helper, not a private copy that could drift from it.
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/HomeTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  if (!/import \{ oppCode \} from "\.\.\/lib\/oppcode\.js"/.test(src)) {
+    console.log("      ↳ HomeTab no longer imports oppCode from src/lib — this check would be testing a copy");
+    return false;
+  }
+  // Both sources, because they differ and only one of them is what the board actually gets.
+  // EURO.opp is the clean name; the board reads CLUB_FIXTURES, where the venue is baked into
+  // the string ("FC Iberia 1999 (a)"). Checking only the clean one passed while the front
+  // page was showing "I(" — the check has to be fed what the component is fed.
+  const names = new Set();
+  for (const tie of D.EURO || []) names.add(tie.opp);
+  for (const rows of Object.values(D.CLUB_FIXTURES || {})) {
+    for (const f of rows) if (f && f.opp && /UCL|UEL|UECL/i.test(String(f.comp || ""))) names.add(f.opp);
+  }
+  const bad = [];
+  for (const opp of names) {
+    const tie = { opp };
+    const code = oppCode(tie.opp);
+    if (code.length < 2) { bad.push(`${tie.opp} -> "${code}" (too short to mean anything)`); continue; }
+    // Letters only. "I(" is two characters long and passes a length test while being the
+    // exact thing that shipped — the I of Iberia and a bracket from the venue tag.
+    if (!/^[A-ZÀ-Þ]+$/.test(code)) { bad.push(`${tie.opp} -> "${code}" (not letters — punctuation or a digit leaked in)`); continue; }
+    // Not "the code looks like a club type" — Nõmme Kalju correctly abbreviates to NK, which
+    // is also a club-type string. The bug is a code taken FROM the prefix, so compare against
+    // the actual first word: "FC Iberia 1999" -> "FC" is wrong, "Nõmme Kalju" -> "NK" is not.
+    const firstWord = String(tie.opp).trim().split(/\s+/)[0] || "";
+    if (CLUB_TYPE.test(firstWord) && code === firstWord.toUpperCase()) {
+      bad.push(`${tie.opp} -> "${code}" (that's the club-type prefix, not the club)`);
+    }
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
 })());
 
 // "Latest transfer talk" on the Home tab is TRANSFERS.slice(0, 3) — pure array position. The
