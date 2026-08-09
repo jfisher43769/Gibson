@@ -648,7 +648,7 @@ export const TRANSFERS = [
   { id: 13, date: "Jul", player: "Daire O'Connor", from: "BAL", to: "CAR", status: "done", note: "Winger makes the short move from the Braidmen to Taylors Avenue." },
   { id: 14, date: "Jul", player: "Dylan Connolly", from: "GLE", toExternal: "Galway United", status: "departure", note: "Winger heads south of the border to the League of Ireland." },
   { id: 15, date: "Jul", player: "Allen, Archer, Whiteside, McKee & Walsh", from: "LIN", to: "BAL", status: "done", note: "The window's biggest story nobody's talking about: Ballymena sign FIVE players from Linfield in one summer. A full-scale raid on Windsor Park's fringes." },
-  { id: 16, date: "Jul", player: "Kofi Moore", from: "LAR", to: "LIN", status: "done", note: "Linfield double-dip at the champions: Moore follows Ryan Nolan from Inver Park to Windsor." },
+  { id: 16, date: "Jul", player: "Kobei Moore", from: "LAR", to: "LIN", status: "done", note: "Linfield double-dip at the champions: Moore follows Ryan Nolan from Inver Park to Windsor." },
   { id: 43, date: "Jul", player: "Jonny Tuffey", from: "CRU", toExternal: "Retired", status: "departure", note: "The veteran goalkeeper hangs up the gloves after a long Irish League career. Josh Owens also retires at Seaview." },
 ];
 export const STATUS_META = {
@@ -1065,9 +1065,9 @@ export const DISCIPLINE = {
 export const WINDOW = [
   { club: "LAR",
     ins: [["Josh Ukek", "Portadown"], ["Montel Gibson", "Hednesford"], ["Kevin O'Hara", "Hamilton Acad."], ["Sam McClelland", "Return from career break"], ["Jacob Carney", "Glenavon"]],
-    outs: [["Andy Ryan", "Hamilton Acad."], ["Kofi Moore", "Linfield"], ["Ryan Nolan", "Linfield"], ["Jordan Hastings", "Carrick Rangers"], ["Josh Kee", "HW Welders"], ["Owen Mahoney", "Ballymena United"], ["C. Bolger", "Without club"], ["Cormac Austin", "UNC Wilmington Seahawks"], ["Logan Graham", "destination not stated"]] },
+    outs: [["Andy Ryan", "Hamilton Acad."], ["Kobei Moore", "Linfield"], ["Ryan Nolan", "Linfield"], ["Jordan Hastings", "Carrick Rangers"], ["Josh Kee", "HW Welders"], ["Owen Mahoney", "Ballymena United"], ["C. Bolger", "Without club"], ["Cormac Austin", "UNC Wilmington Seahawks"], ["Logan Graham", "destination not stated"]] },
   { club: "LIN",
-    ins: [["Ryan Nolan", "Larne"], ["Kofi Moore", "Larne"], ["Dylan Wells", "source club not stated"], ["Aidan Galvin", "source club not stated"]],
+    ins: [["Ryan Nolan", "Larne"], ["Kobei Moore", "Larne"], ["Dylan Wells", "source club not stated"], ["Aidan Galvin", "source club not stated"]],
     outs: [["C. Allen", "Ballymena United"], ["J. Archer", "Ballymena United"], ["S. Whiteside", "Ballymena United"], ["C. McKee", "Ballymena United"], ["D. Walsh", "Ballymena United"], ["Ryan McKay", "Crusaders (loan)"], ["Matt Yates", "destination not stated"], ["Cameron Ballantyne", "destination not stated"], ["Alejandro Gorrin", "Retired"], ["Robbie McDaid", "destination not stated"], ["Euan East", "destination not stated"]] },
   { club: "GLE",
     ins: [["Greg Sloggett", "Boston United"], ["Zeno Ibsen Rossi", "Free agent (ex-Cliftonville)"], ["Rhys Walsh", "Sunderland"], ["Reece Bell", "Glentoran U18"], ["Jack Faloona", "Glentoran U18"]],
