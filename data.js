@@ -988,19 +988,27 @@ export const LEAGUE_FACTS = {
   mvp: "Rohan Ferguson (Larne) \u00b7 \u20ac300k",
 };
 
-// Treatment table — current injuries (Transfermarkt, July 2026)
+// Treatment table — current injuries (Transfermarkt, 9 Aug 2026). Replaced wholesale from the
+// source rather than added to: an injury list that only ever grows is a list of players who
+// have recovered. Four came off (Joel Cooper, Aaron McCarey, Nedas Maciulaitis, and Ethan
+// Boyle, who has left for CK United — see Carrick's outs in WINDOW).
+//
+// Two club corrections came out of the same source and were checked against this file before
+// being trusted: Patrick Solis Grogan is at Bangor, not Dungannon, and Graham Kelly is at
+// Crusaders, not Larne. The club column on the source truncates to three characters, so
+// "Ban"/"Bal" was read at 4x zoom before either was changed — the third letter has no
+// ascender, which rules out Ballymena. Steven McCullough's Bangor entry is corroborated by
+// the transfer ledger here (Portadown → Bangor, July 2026).
 export const INJURIES = [
-  { player: "Joel Cooper", club: "COL", injury: "Knee surgery" },
-  { player: "James Akintunde", club: "COL", injury: "Broken ankle" },
   { player: "Kyle McClelland", club: "CLI", injury: "Broken toe" },
   { player: "Adebayo Fapetu", club: "CLI", injury: "Surgery" },
-  { player: "Aaron McCarey", club: "POR", injury: "Knee surgery" },
+  { player: "James Akintunde", club: "COL", injury: "Broken ankle" },
+  { player: "Mark Coyle", club: "COL", injury: "Cruciate ligament tear" },
+  { player: "Ryan Schofield", club: "COL", injury: "Facial injury" },
   { player: "Seanan Clucas", club: "CAR", injury: "Knee surgery" },
-  { player: "Ethan Boyle", club: "CAR", injury: "Knee surgery" },
-  { player: "Nedas Maciulaitis", club: "CAR", injury: "Knee injury" },
   { player: "Steven McCullough", club: "BAN", injury: "Foot injury" },
-  { player: "Patrick Solis Grogan", club: "DUN", injury: "Knock" },
-  { player: "Graham Kelly", club: "LAR", injury: "Achilles tendon" },
+  { player: "Patrick Solis Grogan", club: "BAN", injury: "Knock" },
+  { player: "Graham Kelly", club: "CRU", injury: "Achilles tendon" },
 ];
 
 

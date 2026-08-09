@@ -436,6 +436,41 @@ check("the roadmap is ordered, has one 'up next', and doesn't promise leaderboar
   return problems.length === 0;
 })());
 
+// An injury list only ever gets added to, so it silently becomes a list of players who have
+// recovered — or left. Ethan Boyle sat in the treatment table at Carrick for weeks after the
+// same file recorded him leaving for CK United. Two facts, one file, flatly contradicting
+// each other. Found refreshing the list from Transfermarkt, 9 Aug 2026.
+check("nobody in the injury list has already left that club in the transfer window", (() => {
+  const bad = [];
+  // Surnames, because the two lists don't agree on first names: the treatment table has
+  // "Steven McCullough" where a window entry might read "S. McCullough".
+  const surname = (n) => String(n).replace(/\(.*?\)/g, "").trim().split(/\s+/).pop().toLowerCase();
+  for (const inj of D.INJURIES || []) {
+    const w = (D.WINDOW || []).find((x) => x.club === inj.club);
+    if (!w) continue;
+    const gone = (w.outs || []).some(([name]) => surname(name) === surname(inj.player));
+    if (gone) bad.push(`${inj.player} is listed injured at ${inj.club} but is in ${inj.club}'s outs`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// A treatment table entry has to name a real club, or it renders nowhere and is silently lost:
+// ClubPage filters INJURIES by club code, so a typo means the player simply never appears.
+check("every injury names a current club and an actual injury", (() => {
+  const bad = [];
+  for (const inj of D.INJURIES || []) {
+    if (!D.CLUBS[inj.club]) bad.push(`${inj.player}: unknown club "${inj.club}"`);
+    if (!String(inj.player || "").trim()) bad.push(`entry with no player name`);
+    if (!String(inj.injury || "").trim()) bad.push(`${inj.player}: no injury given`);
+  }
+  const names = (D.INJURIES || []).map((i) => i.player);
+  const dupe = names.find((n, i) => names.indexOf(n) !== i);
+  if (dupe) bad.push(`${dupe} listed twice`);
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
 // The European tie card states the aggregate — "level at 0–0 after the first leg". That is
 // the one claim on it nobody watching can check at a glance and everybody will believe, so it
 // has to come from the recorded result of the previous leg, never from a scoreline typed on
