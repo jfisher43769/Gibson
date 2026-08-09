@@ -184,7 +184,14 @@ if (feedMismatches.length) console.log("      ↳ " + feedMismatches.join("\n   
 // Bumped 82 -> 112 on 5 Aug 2026: BBC Sport's window roundup added 30 more ins/outs
 // (mostly fringe departures with no destination given) that Transfermarkt's screenshots
 // hadn't covered — none of them headline moves, so none got a TRANSFERS item either.
-const WINDOW_ONLY_BASELINE = 112;
+// Bumped 112 -> 115 on 9 Aug 2026: Transfermarkt's latest-transfers page added Jacob Carney
+// (Glenavon → Larne), Rob Slevin (Derry City → Coleraine, loan) and Jonny James (Crusaders →
+// HW Welders). Only James is genuinely fringe. The other two are the champions signing a
+// goalkeeper and Coleraine taking a centre-back on loan, and both deserve a TRANSFERS item —
+// but the feed is the owner's to write (CLAUDE.md rule 4), so the ledger is recorded here and
+// the gap is left open rather than filled with invented copy. Drop this back to 113 the day
+// those two get written up.
+const WINDOW_ONLY_BASELINE = 115;
 let windowOnly = 0;
 for (const w of D.WINDOW) {
   for (const [name] of w.ins) if (!D.TRANSFERS.some((t) => t.to === w.club && splitPlayers(t.player).some((p) => namesMatch(p, name)))) windowOnly++;
