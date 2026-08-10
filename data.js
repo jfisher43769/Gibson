@@ -371,7 +371,10 @@ export const POST_SPLIT_DATES = ["Sat 3 Apr", "Sat 10 Apr", "Tue 13 Apr", "Sat 1
 // caught by the build rather than by a fan.
 const MONTHS_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const WEEKDAYS_ABBR = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const DEFAULT_KICKOFF = "3pm"; // NIFL default, per the FIXTURES_2627 header comment
+// Exported so scripts/next-gameweek.js applies the same fallback this file does when it
+// writes a gameweek's kick-off labels. A second copy of "3pm" in a script is a second place
+// to forget when a league changes its default.
+export const DEFAULT_KICKOFF = "3pm"; // NIFL default, per the FIXTURES_2627 header comment
 
 // Kick-off times are Northern Irish local (BST in August, GMT from late October), so the
 // same "3pm" is a different instant either side of the clock change. Resolve the wall time
@@ -942,15 +945,16 @@ export function goalMinutes() {
 }
 
 export const PREDICTOR_GW = {
-  id: "prem-round-1",
-  name: "Round 1 · BoyleSports Premiership",
-  deadline: "Cliftonville v Crusaders Fri 7.45pm · rest Sat 3pm",
+  id: "prem-round-2",
+  name: "Round 2 · BoyleSports Premiership",
+  deadline: "Sat 15 Aug 3pm",
   fixtures: [
-    { id: "f1", home: { club: "CLI" }, away: { club: "CRU" }, comp: "Round 1 · Solitude · Fri 7 Aug, 7.45pm", result: [2, 1], odds: { home: 1.7, draw: 3.6, away: 5.0 } },
-    { id: "f2", home: { club: "LIN" }, away: { club: "BAL" }, comp: "Round 1 · Windsor Park · Sat 8 Aug, 3pm", result: [0, 3], odds: { home: 1.5, draw: 4.0, away: 6.5 } },
-    { id: "f3", home: { club: "CAR" }, away: { club: "POR" }, comp: "Round 1 · Loughview Leisure · Sat 8 Aug, 3pm", result: [1, 0], odds: { home: 2.0, draw: 3.3, away: 3.6 } },
-    { id: "f4", home: { club: "DUN" }, away: { club: "COL" }, comp: "Round 1 · Stangmore Park · Sat 8 Aug, 3pm", result: [1, 3], odds: { home: 4.0, draw: 3.6, away: 1.85 } },
-    { id: "f5", home: { club: "GLE" }, away: { club: "LIM" }, comp: "Round 1 · The Oval · Sat 8 Aug, 3pm", result: [2, 0], odds: { home: 1.4, draw: 4.5, away: 7.5 } },
+    { id: "f1", home: { club: "BAN" }, away: { club: "CLI" }, comp: "Round 2 · Clandeboye Park · Sat 15 Aug, 3pm", result: null, odds: { home: 2.63, draw: 4.09, away: 2.66 } },
+    { id: "f2", home: { club: "COL" }, away: { club: "LAR" }, comp: "Round 2 · The Showgrounds · Sat 15 Aug, 3pm", result: null, odds: { home: 2.39, draw: 4.11, away: 2.96 } },
+    { id: "f3", home: { club: "CRU" }, away: { club: "BAL" }, comp: "Round 2 · Seaview · Sat 15 Aug, 3pm", result: null, odds: { home: 2.46, draw: 4.1, away: 2.86 } },
+    { id: "f4", home: { club: "LIM" }, away: { club: "CAR" }, comp: "Round 2 · Limavady Showgrounds · Sat 15 Aug, 3pm", result: null, odds: { home: 3.95, draw: 4.3, away: 1.95 } },
+    { id: "f5", home: { club: "LIN" }, away: { club: "GLE" }, comp: "Round 2 · Windsor Park · Sat 15 Aug, 3pm", result: null, odds: { home: 2.57, draw: 4.1, away: 2.73 } },
+    { id: "f6", home: { club: "POR" }, away: { club: "DUN" }, comp: "Round 2 · Shamrock Park · Sat 15 Aug, 3pm", result: null, odds: { home: 2.52, draw: 4.1, away: 2.79 } },
   ],
 };
 // Larne v Bangor (originally round 1) was rescheduled to Tue 8 Sep — see FIXTURES_2627 —

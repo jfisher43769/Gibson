@@ -6,6 +6,7 @@ import * as D from "../data.js";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { contrastRatio, contrastText, chalk, DARK_TEXT, relativeLuminance } from "../src/lib/theme.js";
 import { CLUB_TYPE, oppCode } from "../src/lib/oppcode.js";
+import { fairOdds } from "./odds-model.js";
 let fails = 0;
 const check = (name, ok) => { console.log(ok ? "  ✓" : "  ✗ FAIL", name); if (!ok) fails++; };
 
@@ -437,6 +438,44 @@ check("the roadmap is ordered, has one 'up next', and doesn't promise leaderboar
   }
   if (problems.length) console.log("      ↳ " + problems.join("\n      ↳ "));
   return problems.length === 0;
+})());
+
+// The Predictor's odds are GIBSON estimates, and an estimate has to be honest about being
+// one: fair, with no margin. A bookmaker's board sums to about 1.06 and that gap is their
+// cut — GIBSON isn't taking a cut, so anything much over 1.00 would be quietly presenting a
+// bookmaker's shape without a bookmaker's reason for it.
+check("predictor odds are fair — implied probabilities sum to 1", (() => {
+  const bad = [];
+  for (const f of D.PREDICTOR_GW.fixtures) {
+    const o = f.odds || {};
+    const sum = 1 / o.home + 1 / o.draw + 1 / o.away;
+    // 2% either way absorbs rounding to two decimals across three prices.
+    if (!(sum > 0.98 && sum < 1.02)) bad.push(`${f.home.club} v ${f.away.club}: implied ${sum.toFixed(3)}`);
+    for (const [k, v] of Object.entries(o)) {
+      if (!(v > 1.01 && v < 100)) bad.push(`${f.home.club} v ${f.away.club}: ${k} price ${v} is outside 1.01-100`);
+    }
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// The model has to still reproduce the odds sitting in data.js. Odds edited by hand, or a
+// dial nudged without regenerating, would leave the file and the model disagreeing — and the
+// file is what ships, so the model would be documentation for something that isn't true.
+check("the shipped predictor odds match what the odds model produces", (() => {
+  const bad = [];
+  for (const f of D.PREDICTOR_GW.fixtures) {
+    const want = fairOdds(f.home.club, f.away.club, D);
+    if (!want) { bad.push(`${f.home.club} v ${f.away.club}: model has no rating for one of them`); continue; }
+    for (const k of ["home", "draw", "away"]) {
+      if (Math.abs(want[k] - f.odds[k]) > 0.011) bad.push(`${f.home.club} v ${f.away.club} ${k}: file ${f.odds[k]}, model ${want[k]}`);
+    }
+  }
+  if (bad.length) {
+    console.log("      ↳ " + bad.join("\n      ↳ "));
+    console.log("      ↳ re-run: node scripts/next-gameweek.js --round=" + (/(\d+)/.exec(D.PREDICTOR_GW.id)?.[1] || "N"));
+  }
+  return bad.length === 0;
 })());
 
 // The Home board falls back to an abbreviation when the opponent has no crest, and that
