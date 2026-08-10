@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  CLUBS, CLUB_FIXTURES, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, SEASON, currentTable, dayMonth, feedMatchesCurrentSeason, matchDetail, seasonLabel, seasonStartDisplay, seasonStatus,
+  CLUBS, CLUB_FIXTURES, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, SEASON, currentTable, dayMonth, feedMatchesCurrentSeason, matchDetail, seasonLabel, seasonStartDisplay, seasonStatus, tableStageLabel,
 } from "../../data.js";
 import { Crest } from "../components/Crest.jsx";
 import { TvBadge } from "../components/TvBadge.jsx";
@@ -45,6 +45,7 @@ export function TableView() {
   const useFeed = feedIsCurrent && livePlayed >= derivedPlayed;
   const tableRows = useFeed ? live.rows : derived;
   const showTable = useFeed || derivedPlayed > 0;
+  const stageLabel = tableStageLabel();
 
   const LiveBlock = () => {
     if (checking) return (
@@ -60,13 +61,14 @@ export function TableView() {
     <div style={{ marginBottom: 22, animation: "riseIn 0.4s ease-out" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
         <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#3DDC84", display: "inline-block" }} />
-        {/* "matches", not "games": this counts fixtures played league-wide, while the season
-            strip counts games played BY A CLUB. Both said "games played" and showed different
-            numbers on the same screen — 5 here against 1 there. */}
+        {/* Say where the season has got to in rounds, not in cumulative fixtures. "5 matches
+            played" was true and unhelpful: it counted league-wide games while the season strip
+            counted games played BY A CLUB, so the same screen showed 5 here and 1 there, and it
+            read as though five clubs had played and seven hadn't. tableStage() owns the rule. */}
         <span style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>
           {useFeed
             ? `Live table · ${live.season} · updated ${live.updated}`
-            : `${SEASON.current.display} table · ${derivedPlayed} match${derivedPlayed === 1 ? "" : "es"} played`}
+            : `${SEASON.current.display} table${stageLabel ? ` · ${stageLabel}` : ""}`}
         </span>
       </div>
       <div style={{ display: "grid", gap: 6 }}>

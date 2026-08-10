@@ -125,6 +125,47 @@ export function currentSeasonGamesPlayed() {
   return counts.length ? Math.max(...counts) : 0;
 }
 
+// How far into the season the table has got, in the terms football actually uses. The table
+// header used to read "5 matches played", which is a true number and a useless one: nobody
+// follows a league by cumulative fixture count, and it reads as though five clubs had played
+// and seven hadn't.
+//
+// A round is settled when every match in it either has a result or has been moved to a later
+// date — Larne v Bangor went from round 1 to September, and the table is still "after round 1"
+// with that outstanding. A round with matches genuinely still to come is reported as in
+// progress instead, because "after round 2" while three of its games are still to kick off is
+// simply wrong.
+//
+// Returns null before a ball is kicked, and the caller shows nothing rather than "after
+// round 0".
+export function tableStage() {
+  let latest = null;
+  for (const round of FIXTURES_2627) {
+    if (round.matches.some((m) => Array.isArray(m.result))) latest = round;
+  }
+  if (!latest) return null;
+
+  const nominal = fixtureKickoffMs(latest, {});
+  const outstanding = latest.matches.filter((m) => {
+    if (Array.isArray(m.result)) return false;
+    const ms = fixtureKickoffMs(latest, m);
+    // Pushed beyond the round's own date, so it isn't what the round is waiting on.
+    if (ms !== null && nominal !== null && ms > nominal) return false;
+    return true;
+  }).length;
+
+  const played = latest.matches.filter((m) => Array.isArray(m.result)).length;
+  return { round: latest.round, complete: outstanding === 0, played, of: latest.matches.length };
+}
+
+// The label the table header prints. Kept beside the derivation so the wording and the rule
+// can't drift apart.
+export function tableStageLabel() {
+  const s = tableStage();
+  if (!s) return "";
+  return s.complete ? `after round ${s.round}` : `round ${s.round} · ${s.played} of ${s.of} played`;
+}
+
 // The current season's table, computed from results recorded against FIXTURES_2627. Same row
 // shape /api/table returns, so both render through one component.
 //

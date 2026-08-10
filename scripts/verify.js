@@ -501,6 +501,42 @@ check("a feed table from the wrong season is rejected", (() => {
   return bad.length === 0;
 })());
 
+// The table header said "5 matches played", a cumulative league-wide fixture count nobody
+// follows a season by — and it sat on the same screen as a season strip counting games played
+// by a club, so one page showed 5 and 1 for the same moment in time. It now names the round.
+// The trap in naming a round is claiming "after round N" while round N is still being played,
+// so both halves of that rule are pinned here.
+check("the table header names the round rather than counting fixtures", (() => {
+  const bad = [];
+  const stage = D.tableStage();
+  if (!stage) {
+    bad.push("tableStage() returned null with results recorded in FIXTURES_2627");
+  } else {
+    if (stage.round !== 1) bad.push(`latest round with results is ${stage.round}, expected 1`);
+    // Round 1 is complete bar Larne v Bangor, which moved to September. A fixture pushed past
+    // the round's own date must not hold the round open, or the header never advances.
+    if (!stage.complete) bad.push("round 1 reads as in progress though its only outstanding tie was moved to September");
+    if (stage.played !== 5 || stage.of !== 6) bad.push(`round 1 counted ${stage.played} of ${stage.of}, expected 5 of 6`);
+    if (D.tableStageLabel() !== "after round 1") bad.push(`label reads "${D.tableStageLabel()}", expected "after round 1"`);
+  }
+
+  // A round with a match genuinely still to come must NOT read "after round N". Rebuild the
+  // derivation's own inputs rather than trusting the shipped data to contain such a round.
+  const midRound = D.FIXTURES_2627.find((r) => r.matches.some((m) => Array.isArray(m.result)) && r.matches.some((m) => !Array.isArray(m.result) && D.fixtureKickoffMs(r, m) !== null && D.fixtureKickoffMs(r, m) <= D.fixtureKickoffMs(r, {})));
+  if (midRound && D.tableStage()?.complete && D.tableStage()?.round === midRound.round) {
+    bad.push(`round ${midRound.round} reads complete with a match still to kick off inside it`);
+  }
+
+  // And the derivation has to be what the component prints, not merely available to it.
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/MatchesTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const code = decomment(src);
+  if (!/tableStageLabel\(\)/.test(code)) bad.push("MatchesTab no longer calls tableStageLabel()");
+  if (/match\$\{[^}]*\}\s*played|matches\s+played/i.test(code)) bad.push("MatchesTab is back to printing a cumulative match count");
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
 // Predictor picks live in localStorage keyed by gameweek. A gameweek can be rebuilt after
 // someone has played it, and any fixture their saved object didn't know about was undefined —
 // `picks[fid][side]` in Stepper then took the whole tab down on render, for that user only.
