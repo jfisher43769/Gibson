@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   CLUBS, FULL_TABLE, PREDICTOR_GW, store,
 } from "../../data.js";
@@ -13,6 +13,10 @@ import { track } from "../lib/track.js";
 // Vercel preview URL, an old domain still resolving, or a stale cached tab would otherwise
 // bake that wrong host into an image the user posts publicly, where it can't be corrected.
 const SHARE_HOST = SITE_ORIGIN.replace(/^https?:\/\//, "");
+
+// Where a finished gameweek's score is banked, so it survives the roll to the next one.
+// Not keyed by gameweek: this is the season's ledger, and each entry names its own week.
+const HISTORY_KEY = "gibson-predictor-history";
 
 // One-off pre-season prediction of the final 26/27 table. Saved to localStorage like
 // the gameweek picks; submissions lock after 7 August 2026 (season start). No scoring
@@ -158,7 +162,24 @@ export function PredictorView() {
   const saved = (() => {
     try { return JSON.parse(store.get(storageKey)) || null; } catch { return null; }
   })();
-  const [picks, setPicks] = useState(saved?.picks || Object.fromEntries(PREDICTOR_GW.fixtures.map((f) => [f.id, [1, 1]])));
+  // Saved picks are merged over a full default set rather than used as-is. They come from
+  // localStorage keyed by gameweek id, and a gameweek can be regenerated after someone has
+  // already played it — a postponed match restored, a fixture list corrected. Any fixture
+  // the saved object didn't know about was then undefined, and `picks[fid][side]` in Stepper
+  // took the whole tab down on render for that user and nobody else. Invisible to the render
+  // test and the page audit, both of which run with empty storage.
+  const defaults = Object.fromEntries(PREDICTOR_GW.fixtures.map((f) => [f.id, [1, 1]]));
+  const [picks, setPicks] = useState(() => {
+    const from = saved?.picks;
+    if (!from || typeof from !== "object") return defaults;
+    const merged = { ...defaults };
+    for (const f of PREDICTOR_GW.fixtures) {
+      const v = from[f.id];
+      // Only take a saved pick that still looks like a pick.
+      if (Array.isArray(v) && v.length === 2 && v.every((n) => Number.isInteger(n) && n >= 0 && n <= 9)) merged[f.id] = [...v];
+    }
+    return merged;
+  });
   const [locked, setLocked] = useState(!!saved?.locked);
   const [copied, setCopied] = useState(false);
 
@@ -189,9 +210,37 @@ export function PredictorView() {
     if (Math.sign(ph - pa) === Math.sign(rh - ra)) return 1;
     return 0;
   };
+  // A gameweek's score used to disappear the moment the next one was published: picks are
+  // stored per gameweek id, and nothing kept a running total. Play round 1, come back after
+  // the roll, and there was no trace you had ever played. So a finished gameweek's score is
+  // banked here — once, keyed by gameweek — and the season total is shown alongside this
+  // week's. Only banked when the week is genuinely complete and the picks were locked in,
+  // so an unfinished week can't be recorded early and a browsed-but-unplayed one isn't
+  // recorded at all.
+  const allResultsIn = PREDICTOR_GW.fixtures.length > 0 && PREDICTOR_GW.fixtures.every((f) => Array.isArray(f.result));
+  const history = (() => {
+    try {
+      const raw = JSON.parse(store.get(HISTORY_KEY));
+      return Array.isArray(raw) ? raw.filter((h) => h && typeof h.gw === "string" && Number.isFinite(h.pts)) : [];
+    } catch { return []; }
+  })();
+
   const resultsIn = PREDICTOR_GW.fixtures.some((f) => f.result);
   const anyOdds = PREDICTOR_GW.fixtures.some((f) => f.odds);
   const totalPts = PREDICTOR_GW.fixtures.reduce((sum, f) => sum + (scoreFor(f) ?? 0), 0);
+
+  useEffect(() => {
+    if (!allResultsIn || !locked) return;
+    if (history.some((h) => h.gw === PREDICTOR_GW.id)) return;
+    const next = [...history, { gw: PREDICTOR_GW.id, name: PREDICTOR_GW.name, pts: totalPts, of: PREDICTOR_GW.fixtures.length * 3 }];
+    store.set(HISTORY_KEY, JSON.stringify(next));
+  }, [allResultsIn, locked, totalPts]);
+
+  // This week is only added to the running total once it is banked, so it is never counted
+  // twice while the week is still being scored.
+  const bankedPts = history.reduce((n, h) => n + h.pts, 0);
+  const seasonPts = bankedPts + (allResultsIn && locked && !history.some((h) => h.gw === PREDICTOR_GW.id) ? totalPts : 0);
+  const weeksPlayed = history.length + (allResultsIn && locked && !history.some((h) => h.gw === PREDICTOR_GW.id) ? 1 : 0);
 
   const shareText = () => {
     const lines = PREDICTOR_GW.fixtures.map((f) => `${sideName(f.home)} ${picks[f.id][0]}-${picks[f.id][1]} ${sideName(f.away)}`);
@@ -348,6 +397,20 @@ export function PredictorView() {
           </div>
         )}
       </div>
+      {/* The season ledger. Without this a score existed only until the next gameweek was
+          published, and then vanished with no trace you had ever played. */}
+      {weeksPlayed > 0 && (
+        <div style={{
+          display: "flex", alignItems: "baseline", justifyContent: "center", gap: 8,
+          ...SURFACE.card, borderRadius: 12, padding: "10px 14px", marginBottom: 14,
+        }}>
+          <span style={{ fontSize: 12, color: dim, letterSpacing: "0.1em", textTransform: "uppercase" }}>Season total</span>
+          <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 22, color: "#FFB627", fontVariantNumeric: "tabular-nums" }}>{seasonPts}</span>
+          <span style={{ fontSize: 12, color: dim }}>
+            from {weeksPlayed} {weeksPlayed === 1 ? "gameweek" : "gameweeks"}
+          </span>
+        </div>
+      )}
 
       <div style={{ display: "grid", gap: 10, marginBottom: 14 }}>
         {PREDICTOR_GW.fixtures.map((f, i) => {

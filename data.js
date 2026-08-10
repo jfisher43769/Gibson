@@ -14,7 +14,12 @@
 //     History, and restore the previous version. Nothing is ever lost.
 // ============================================================================
 
-/* ================= DATA — NIFL Premiership 2025/26 (demo stats) ================= */
+/* ================= DATA — NIFL Premiership =================
+   The twelve current clubs plus GLV (Glenavon, relegated and kept for the archive): name,
+   ground, and the two kit colours the generated shield is drawn from. All real, all used
+   everywhere a club is named. The header here said "(demo stats)" until 10 Aug 2026, left
+   over from the first scaffold — misleading on a file where the difference between measured
+   and estimated is the whole point. */
 export const CLUBS = {
   LAR: { name: "Larne", ground: "Inver Park", colors: ["#C8102E", "#FFFFFF"], pattern: "plain" },
   COL: { name: "Coleraine", ground: "The Showgrounds", colors: ["#005EB8", "#FFFFFF"], pattern: "stripes" },
@@ -66,6 +71,26 @@ export function seasonLabel(exportName) {
   if (id === SEASON.current.id) return SEASON.current.display;
   const display = id === SEASON.previous.id ? SEASON.previous.display : id;
   return `${display} · final`;
+}
+
+// The starting year of a season label, whatever shape it arrives in: "2026-2027" (how
+// TheSportsDB writes it), "2026-27" (SEASON ids) and "2026/27" (display) all give 2026.
+// Returns null on anything unrecognisable, and callers treat null as "can't tell".
+export function seasonStartYear(label) {
+  const m = /(\d{4})/.exec(String(label || ""));
+  return m ? Number(m[1]) : null;
+}
+
+// Does a feed's season label describe the season GIBSON is currently showing?
+//
+// This exists because of the shape of August. TheSportsDB can still be serving last season's
+// FINAL table for league 4659 while the new one has barely kicked off — and a final table has
+// 38 games played per club, which sails past any "is the feed ahead of us?" test and takes
+// over the page. The standings would be last season's, under a heading saying "Live".
+// A null (unreadable) label is treated as a mismatch: an unlabelled table is not evidence.
+export function feedMatchesCurrentSeason(label) {
+  const y = seasonStartYear(label);
+  return y !== null && y === seasonStartYear(SEASON.current.id);
 }
 
 // The season the LIVE stats exports currently hold. Before a rollover that's the last
@@ -578,7 +603,12 @@ export const MID_TABLE = [
   { club: "POR" },
 ];
 
-// Radar axes: Shooting, Creation, Passing, Dribbling, Defending, Physical (0–100, demo)
+// Player cards. Goals, assists, xG, xA and the per-90s are recorded figures; `rating` (the
+// GIBSON Index) and the six `radar` axes — Shooting, Creation, Passing, Dribbling, Defending,
+// Physical, each 0–100 — are GIBSON's own estimates, and the UI says so wherever they appear
+// ("GIBSON Index", "Radar profiles are GIBSON Index estimates"), which is what golden rule 1
+// requires of a number that isn't measured. The old "(0–100, demo)" note read as though the
+// whole block were placeholder; it isn't, and calling it that hid which half is estimated.
 export const PLAYERS = [
   { id: 1, name: "Pat Hoban", club: "GLE", pos: "ST", num: "", rating: 8.4, goals: 26, assists: 2, xg: 21.8, xa: 2.4, per90: { shots: 3.8, keyPasses: 1.0, dribbles: 0.6, tackles: 0.4 }, radar: [95, 52, 56, 46, 32, 84], form: [8.4, 7.6, 9.1, 8.0, 8.8, 7.5], shots: [{x:88,y:46,xg:.72,g:1},{x:84,y:54,xg:.35,g:1},{x:90,y:50,xg:.65,g:1},{x:79,y:42,xg:.14,g:0},{x:86,y:58,xg:.41,g:1},{x:92,y:48,xg:.78,g:0}] },
   { id: 2, name: "Matthew Fitzpatrick", club: "LIN", pos: "ST", num: "", rating: 7.8, goals: 19, assists: 6, xg: 14.6, xa: 4.9, per90: { shots: 3.1, keyPasses: 1.6, dribbles: 0.9, tackles: 0.6 }, radar: [86, 68, 64, 56, 38, 82], form: [7.8, 8.3, 7.5, 8.6, 7.9, 8.1], shots: [{x:85,y:50,xg:.48,g:1},{x:80,y:44,xg:.22,g:1},{x:88,y:56,xg:.60,g:0},{x:76,y:52,xg:.12,g:0},{x:87,y:47,xg:.52,g:1}] },
@@ -949,12 +979,12 @@ export const PREDICTOR_GW = {
   name: "Round 2 · BoyleSports Premiership",
   deadline: "Sat 15 Aug 3pm",
   fixtures: [
-    { id: "f1", home: { club: "BAN" }, away: { club: "CLI" }, comp: "Round 2 · Clandeboye Park · Sat 15 Aug, 3pm", result: null, odds: { home: 2.63, draw: 4.09, away: 2.66 } },
-    { id: "f2", home: { club: "COL" }, away: { club: "LAR" }, comp: "Round 2 · The Showgrounds · Sat 15 Aug, 3pm", result: null, odds: { home: 2.39, draw: 4.11, away: 2.96 } },
-    { id: "f3", home: { club: "CRU" }, away: { club: "BAL" }, comp: "Round 2 · Seaview · Sat 15 Aug, 3pm", result: null, odds: { home: 2.46, draw: 4.1, away: 2.86 } },
-    { id: "f4", home: { club: "LIM" }, away: { club: "CAR" }, comp: "Round 2 · Limavady Showgrounds · Sat 15 Aug, 3pm", result: null, odds: { home: 3.95, draw: 4.3, away: 1.95 } },
-    { id: "f5", home: { club: "LIN" }, away: { club: "GLE" }, comp: "Round 2 · Windsor Park · Sat 15 Aug, 3pm", result: null, odds: { home: 2.57, draw: 4.1, away: 2.73 } },
-    { id: "f6", home: { club: "POR" }, away: { club: "DUN" }, comp: "Round 2 · Shamrock Park · Sat 15 Aug, 3pm", result: null, odds: { home: 2.52, draw: 4.1, away: 2.79 } },
+    { id: "f-BAN-CLI", home: { club: "BAN" }, away: { club: "CLI" }, comp: "Round 2 · Clandeboye Park · Sat 15 Aug, 3pm", result: null, odds: { home: 2.63, draw: 4.09, away: 2.66 } },
+    { id: "f-COL-LAR", home: { club: "COL" }, away: { club: "LAR" }, comp: "Round 2 · The Showgrounds · Sat 15 Aug, 3pm", result: null, odds: { home: 2.39, draw: 4.11, away: 2.96 } },
+    { id: "f-CRU-BAL", home: { club: "CRU" }, away: { club: "BAL" }, comp: "Round 2 · Seaview · Sat 15 Aug, 3pm", result: null, odds: { home: 2.46, draw: 4.1, away: 2.86 } },
+    { id: "f-LIM-CAR", home: { club: "LIM" }, away: { club: "CAR" }, comp: "Round 2 · Limavady Showgrounds · Sat 15 Aug, 3pm", result: null, odds: { home: 3.95, draw: 4.3, away: 1.95 } },
+    { id: "f-LIN-GLE", home: { club: "LIN" }, away: { club: "GLE" }, comp: "Round 2 · Windsor Park · Sat 15 Aug, 3pm", result: null, odds: { home: 2.57, draw: 4.1, away: 2.73 } },
+    { id: "f-POR-DUN", home: { club: "POR" }, away: { club: "DUN" }, comp: "Round 2 · Shamrock Park · Sat 15 Aug, 3pm", result: null, odds: { home: 2.52, draw: 4.1, away: 2.79 } },
   ],
 };
 // Larne v Bangor (originally round 1) was rescheduled to Tue 8 Sep — see FIXTURES_2627 —
@@ -1351,20 +1381,12 @@ export const SUPPORT_TIERS = [
   },
 ];
 
-// Illustrative Team of the Season (demo)
-export const BEST_XI = [
-  { name: "Johns", club: "COL", pos: [50, 92], r: 7.2 },
-  { name: "Cosgrove", club: "LAR", pos: [82, 76], r: 7.1 },
-  { name: "McEleney", club: "LAR", pos: [62, 80], r: 7.3 },
-  { name: "Addis", club: "CLI", pos: [38, 80], r: 7.2 },
-  { name: "Clarke", club: "BAL", pos: [18, 76], r: 7.0 },
-  { name: "Shields", club: "LIN", pos: [50, 62], r: 7.3 },
-  { name: "R. Hale", club: "CLI", pos: [34, 48], r: 7.4 },
-  { name: "L. Millar", club: "LAR", pos: [66, 48], r: 7.6 },
-  { name: "K. Millar", club: "LIN", pos: [84, 30], r: 7.5 },
-  { name: "Hoban", club: "GLE", pos: [50, 20], r: 8.2 },
-  { name: "Cooper", club: "COL", pos: [16, 30], r: 7.9 },
-];
+// BEST_XI (an "illustrative Team of the Season") was removed on 10 Aug 2026. It was eleven
+// players with invented ratings — 7.2, 8.2, 7.9 — sitting in the file that holds every real
+// number on the site, rendered nowhere. Nothing was wrong while nothing read it, but golden
+// rule 1 has no "unless it's only demo data" clause, and the next person to want a Team of
+// the Season would have found a ready-made array of plausible-looking figures and shipped
+// them. A real one belongs here when there are real ratings behind it.
 
 // === CLUB_META START (auto-generated) ===
 // AUTO-GENERATED by scripts/fetch-wikidata.js — re-run the script to refresh.

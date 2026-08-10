@@ -48,7 +48,10 @@ const currentRound = Number(/(\d+)/.exec(current.id || "")?.[1]) || 0;
 const round = WANT || currentRound + 1;
 const src = D.FIXTURES_2627.find((r) => r.round === round);
 if (!src) fail(`No round ${round} in FIXTURES_2627 (the season has ${D.FIXTURES_2627.length} rounds).`);
-if (round === currentRound) fail(`PREDICTOR_GW is already round ${round}.`);
+// Rolling forward onto the round already loaded is a mistake; asking for it by name is not.
+// Regenerating the current round is the whole point of --round=N — a fixture gets postponed
+// or restored mid-week and the gameweek has to be rebuilt in place.
+if (round === currentRound && !WANT) fail(`PREDICTOR_GW is already round ${round}. Use --round=${round} to rebuild it in place.`);
 
 // ---- 3. Build the fixtures --------------------------------------------------------------
 // The competition name is whatever the current gameweek calls it, minus its round prefix —
@@ -62,7 +65,12 @@ const fixtures = src.matches.map((m, i) => {
   const ground = D.CLUBS[m.h]?.ground || "";
   const when = [m.d || src.date, m.t || src.time || D.DEFAULT_KICKOFF].filter(Boolean).join(", ");
   return {
-    id: `f${i + 1}`,
+    // Keyed by the clubs, not by position. Positional ids (f1, f2, …) are stable only while
+    // the round's fixture list is, and it isn't: Larne v Bangor was postponed out of round 1
+    // after publication. Remove a fixture from the middle and every id below it shifts onto a
+    // different match — so a saved prediction silently ends up attached to a game the user
+    // never picked, and gets scored against it. No error, just wrong.
+    id: `f-${m.h}-${m.a}`,
     home: { club: m.h },
     away: { club: m.a },
     comp: [`Round ${round}`, ground, when].filter(Boolean).join(" · "),

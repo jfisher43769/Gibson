@@ -51,8 +51,14 @@ function useRealCrest(club) {
 export function Crest({ club, size = 34, tappable = true }) {
   const openClub = useContext(ClubNavContext);
   const c = CLUBS[club];
-  const [c1, c2] = c.colors;
   const realCrest = useRealCrest(club);
+  // A club code that isn't in CLUBS renders nothing rather than throwing. Codes reach here
+  // from the live feed, whose club vocabulary lives in api/*.js as a separate copy of this
+  // list — verify.js proves those copies match EACH OTHER, not that what they emit exists
+  // here. The day a relegated club leaves CLUBS but stays in that map, one feed row would
+  // otherwise white-screen the front page.
+  if (!c || !Array.isArray(c.colors)) return null;
+  const [c1, c2] = c.colors;
 
   const shield = (
     <svg width={size} height={size * 1.15} viewBox="0 0 40 46" aria-label={c.name + " crest"}>
