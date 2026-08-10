@@ -1,7 +1,5 @@
 import React, { useState, useMemo } from "react";
-import {
-  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer,
-} from "recharts";
+import { SkillRadar } from "../components/SkillRadar.jsx";
 import {
   AXES, CLUBS, CLUB_META, DISCIPLINE, GOALS_LEAGUE_AVG, GOALS_STATS, INJURIES, PLAYERS, SEASON, TEAM_STATS_2526, TRAVEL, XG_PLAYERS, XG_TEAMS, liveSeasonId, playerDeparture, seasonLabel, seasonStatus,
 } from "../../data.js";
@@ -67,16 +65,8 @@ function PlayerDetail({ player }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 14 }}>
         <div style={{ ...SURFACE.card, borderRadius: 12, padding: 8 }}>
           <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", padding: "6px 8px" }}>Skill Radar · {seasonLabel("PLAYERS")} · beta</div>
-          <div style={{ height: 240 }}>
-            <ResponsiveContainer>
-              <RadarChart data={radarData} outerRadius="75%">
-                <PolarGrid stroke={faint} />
-                <PolarAngleAxis dataKey="axis" tick={{ fill: dim, fontSize: 12, fontFamily: "Barlow" }} />
-                <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
-                <Radar dataKey="v" stroke={accent} fill={accent} fillOpacity={0.35} strokeWidth={2} isAnimationActive />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
+          <SkillRadar height={240} data={radarData} outerRadius="75%"
+            series={[{ key: "v", colour: accent, fillOpacity: 0.35 }]} />
         </div>
         <div>
           <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 }}>Shot Map — attacking third</div>
@@ -148,17 +138,8 @@ export function DuelView() {
 
       <div style={{ ...SURFACE.card, borderRadius: 12, marginBottom: 14 }}>
         <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", padding: "10px 12px 0" }}>Skill Radar · {seasonLabel("PLAYERS")}</div>
-        <div style={{ height: 260 }}>
-          <ResponsiveContainer>
-            <RadarChart data={data} outerRadius="72%">
-              <PolarGrid stroke={faint} />
-              <PolarAngleAxis dataKey="axis" tick={{ fill: dim, fontSize: 12, fontFamily: "Barlow" }} />
-              <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
-              <Radar dataKey="A" stroke={colA} fill={colA} fillOpacity={0.28} strokeWidth={2} isAnimationActive />
-              <Radar dataKey="B" stroke={colB} fill={colB} fillOpacity={0.28} strokeWidth={2} isAnimationActive />
-            </RadarChart>
-          </ResponsiveContainer>
-        </div>
+        <SkillRadar height={260} data={data} outerRadius="72%"
+          series={[{ key: "A", colour: colA, fillOpacity: 0.28 }, { key: "B", colour: colB, fillOpacity: 0.28 }]} />
         <div style={{ display: "flex", justifyContent: "center", gap: 18, paddingBottom: 12, fontSize: 12 }}>
           <span style={{ color: colA }}>● {pA.name}</span>
           <span style={{ color: colB }}>● {pB.name}</span>

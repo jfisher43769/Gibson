@@ -129,9 +129,17 @@ if (rootLen < 1000 || sampleLen < 1000) {
 // bundle are never stored, and losing signal after one visit gives a blank page.
 {
   const swPath = join(dist, "sw.js");
-  const assets = readdirSync(join(dist, "assets"))
-    .filter((f) => /\.(js|css)$/.test(f))
-    .map((f) => `/assets/${f}`);
+  // Only the assets the shell actually references — the entry bundle and its CSS — not every
+  // file in assets/. Lazily-loaded chunks (the recharts radar) are deliberately excluded:
+  // precaching them means every visitor downloads a charting library in the background to
+  // support offline use of one beta chart on a sub-tab, which is a bad trade on mobile data.
+  // The worker's fetch handler already runtime-caches whatever is actually requested, so the
+  // radar still works offline for anyone who has opened it once.
+  const shell = readFileSync(join(dist, "index.html"), "utf8");
+  const assets = [...new Set([...shell.matchAll(/(?:src|href)="(\/assets\/[^"]+\.(?:js|css))"/g)].map((m) => m[1]))];
+  if (!assets.some((a) => a.endsWith(".js"))) {
+    throw new Error("prerender: no JS asset referenced by dist/index.html — the precache would ship without the bundle.");
+  }
   const precache = ["/", ...assets, "/manifest.webmanifest", "/favicon.ico", "/icon-192.png", "/icon-512.png"]
     .filter((u) => u === "/" || existsSync(join(dist, u.replace(/^\//, ""))));
   let sw = readFileSync(swPath, "utf8");

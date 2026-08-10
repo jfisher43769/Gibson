@@ -34,27 +34,43 @@ export default async function handler(req, res) {
     if (!Array.isArray(t) || t.length < 10) throw new Error("bad payload");
     // Critical guard: TheSportsDB has been observed serving cached EXAMPLE data
     // (English Premier League) to some clients. Never trust the wrong league.
-    if (String(t[0].idLeague) !== LEAGUE_ID) throw new Error("wrong league returned");
+    // Checked on EVERY row, not just the first — CLAUDE.md rule 3 is about the rows, and a
+    // payload that is right at the top and wrong further down is exactly what a cache mixing
+    // two leagues looks like.
+    if (t.some((x) => String(x.idLeague) !== LEAGUE_ID)) throw new Error("wrong league returned");
+
+    // A whole number, or null. `+x || 0` quietly turned every unparseable value into a zero,
+    // which reads as a real "played 0" rather than "we don't know".
+    const int = (v) => {
+      const s = String(v === null || v === undefined ? "" : v).trim();
+      return /^-?\d{1,4}$/.test(s) ? Number(s) : null;
+    };
 
     const rows = t
       .map((x) => {
         const name = (x.strTeam || "").toLowerCase();
         const hit = CLUB_MAP.find(([k]) => name.includes(k));
         if (!hit) return null;
+        const p = int(x.intPlayed), w = int(x.intWin), d = int(x.intDraw), l = int(x.intLoss);
+        const gd = int(x.intGoalDifference), pts = int(x.intPoints);
+        if ([p, w, d, l, gd, pts].some((n) => n === null)) return null;
+        if (p < 0 || w < 0 || d < 0 || l < 0 || p > 60) return null;
+        // A league table is arithmetic, so it can check itself. These two identities hold in
+        // every league that awards 3-1-0, and a payload that fails them is corrupt however
+        // numeric it looks.
+        if (w + d + l !== p) return null;
+        if (pts !== w * 3 + d) return null;
         return {
-          club: hit[1],
-          p: +x.intPlayed || 0,
-          w: +x.intWin || 0,
-          d: +x.intDraw || 0,
-          l: +x.intLoss || 0,
-          gd: +x.intGoalDifference || 0,
-          pts: +x.intPoints || 0,
-          form: (x.strForm || "").slice(-5),
+          club: hit[1], p, w, d, l, gd, pts,
+          // Form is rendered as W/D/L badges, so anything else is dropped rather than drawn.
+          form: (String(x.strForm || "").match(/[WDL]/g) || []).slice(-5).join(""),
         };
       })
       .filter(Boolean);
 
-    if (rows.length < 10) throw new Error("club name mapping failed");
+    if (rows.length < 10) throw new Error("club name mapping or row validation failed");
+    // Two rows for one club means the payload is mixing seasons or leagues.
+    if (new Set(rows.map((r) => r.club)).size !== rows.length) throw new Error("duplicate clubs in table");
 
     // 5-minute edge cache: kind to the free API, fresh enough for a league table
     res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");

@@ -84,8 +84,28 @@ function row(e) {
   };
 }
 
+// A scoreline has to be a whole number of goals in a range a football match can produce.
+// `+value` alone accepted whatever the feed sent: "abc" became NaN (which JSON turns into
+// null, rendering as a blank score), "99" and "-3" rendered verbatim on the front page, and
+// — worst of the lot — a single space became 0, inventing a 0-0 the feed never claimed.
+// scripts/weekly-update.js has always checked this before writing to data.js; the live path
+// that every visitor sees was the one taking the feed at its word.
+const MAX_PLAUSIBLE_GOALS = 15; // the NIFL record win is nowhere near this
+export function parseScore(v) {
+  if (typeof v !== "number" && typeof v !== "string") return null;
+  const s = String(v).trim();
+  if (!/^\d{1,2}$/.test(s)) return null;          // digits only: no signs, decimals or spaces
+  const n = Number(s);
+  return n <= MAX_PLAUSIBLE_GOALS ? n : null;
+}
+
+// Returns null when either side is unusable, so the caller drops the row rather than
+// publishing half a scoreline.
 function withScore(r, e) {
-  return { ...r, hs: +e.intHomeScore, as: +e.intAwayScore };
+  const hs = parseScore(e.intHomeScore);
+  const as = parseScore(e.intAwayScore);
+  if (hs === null || as === null) return null;
+  return { ...r, hs, as };
 }
 
 export function bucket(events, now = Date.now()) {
@@ -99,10 +119,18 @@ export function bucket(events, now = Date.now()) {
     // The two upstream feeds overlap around a matchday, so the same tie can arrive twice.
     const key = e.idEvent || `${r.h}-${r.a}-${r.date}`;
     if (seen.has(key)) continue;
+    if (kind === "live" || kind === "result") {
+      const scored = withScore(r, e);
+      // An unusable scoreline demotes the row to "upcoming" rather than dropping the tie
+      // entirely — the fixture is still real, we just won't repeat a number we don't believe.
+      if (!scored) { seen.add(key); upcoming.push(r); continue; }
+      seen.add(key);
+      if (kind === "live") live.push({ ...scored, status: String(e.strStatus || "").trim() || null });
+      else results.push(scored);
+      continue;
+    }
     seen.add(key);
-    if (kind === "live") live.push({ ...withScore(r, e), status: String(e.strStatus || "").trim() || null });
-    else if (kind === "result") results.push(withScore(r, e));
-    else upcoming.push(r);
+    upcoming.push(r);
   }
   return { live, results, upcoming };
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  CLUBS, CLUB_FIXTURES, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, SEASON, currentTable, dayMonth, matchDetail, seasonLabel, seasonStartDisplay, seasonStatus,
+  CLUBS, CLUB_FIXTURES, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, SEASON, currentTable, dayMonth, feedMatchesCurrentSeason, matchDetail, seasonLabel, seasonStartDisplay, seasonStatus,
 } from "../../data.js";
 import { Crest } from "../components/Crest.jsx";
 import { TvBadge } from "../components/TvBadge.jsx";
@@ -38,7 +38,11 @@ export function TableView() {
   const derived = currentTable();
   const derivedPlayed = derived.reduce((n, r) => n + r.p, 0) / 2;
   const livePlayed = live ? live.rows.reduce((n, r) => n + r.p, 0) / 2 : -1;
-  const useFeed = Boolean(live) && livePlayed >= derivedPlayed;
+  // The feed must be describing THIS season before its games-played count means anything.
+  // Without this, last season's final table (38 played per club) beat our 5 and took over the
+  // page — last season's standings, under a heading that says "Live".
+  const feedIsCurrent = Boolean(live) && feedMatchesCurrentSeason(live.season);
+  const useFeed = feedIsCurrent && livePlayed >= derivedPlayed;
   const tableRows = useFeed ? live.rows : derived;
   const showTable = useFeed || derivedPlayed > 0;
 
@@ -380,11 +384,18 @@ export function EuropeView() {
               </div>
               <div style={{ fontSize: 12, color: "#FFB627", fontWeight: 600, marginBottom: 6 }}>→ {e.prize}</div>
               <div style={{ fontSize: 12, color: dim, lineHeight: 1.45 }}>{e.note}</div>
-              <OddsStrip
-                odds={e.odds}
-                homeLabel={e.legs[0].label.includes("home") ? c.name : e.opp}
-                awayLabel={e.legs[0].label.includes("home") ? e.opp : c.name}
-              />
+              {/* A tie can be drawn before its dates are — "winner faces Qarabağ or Vestri"
+                  — so `legs` can legitimately be empty. This used to read legs[0].label
+                  eagerly, as a prop, which threw before OddsStrip could decide it had
+                  nothing to draw. Both leg checks in verify.js iterate legs, and an empty
+                  array iterates to nothing, so it passed everything and took out the tab. */}
+              {e.legs.length > 0 && (
+                <OddsStrip
+                  odds={e.odds}
+                  homeLabel={e.legs[0].label.includes("home") ? c.name : e.opp}
+                  awayLabel={e.legs[0].label.includes("home") ? e.opp : c.name}
+                />
+              )}
             </div>
           );
         })}

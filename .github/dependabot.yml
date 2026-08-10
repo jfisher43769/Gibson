@@ -3,9 +3,19 @@
 # Please see the documentation for all configuration options:
 # https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
+# `package-ecosystem` was left as the template's empty string, which is not a valid value, so
+# Dependabot failed to parse this file and put a red X on every pull request from 2 Aug 2026.
+# A permanently-red check nobody can act on is worse than no check: it teaches you to skim
+# past failures, which is exactly when a real one gets merged.
 version: 2
 updates:
-  - package-ecosystem: "" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  - package-ecosystem: "npm" # package.json / package-lock.json at the repo root
+    directory: "/"
     schedule:
       interval: "weekly"
+    # Security patches matter here; a churn of minor version bumps on a one-person project
+    # does not. Grouping keeps it to one PR a week at most.
+    groups:
+      all-dependencies:
+        patterns: ["*"]
+    open-pull-requests-limit: 3

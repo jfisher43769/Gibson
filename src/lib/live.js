@@ -17,25 +17,49 @@ export function useLiveEvents() {
     let on = true;
     let timer = null;
 
-    const load = () => fetch("/api/events")
-      .then((r) => r.json())
-      .then((j) => {
-        if (!on) return;
-        const ok = Boolean(j && j.ok);
-        setState({ loading: false, data: ok ? j : null, offline: false });
-        const anyLive = ok && Array.isArray(j.live) && j.live.length > 0;
-        timer = setTimeout(load, anyLive ? LIVE_POLL_MS : IDLE_POLL_MS);
-      })
-      .catch(() => {
-        if (!on) return;
-        // Offline is not the same as "the feed said no" — the app falls back to data.js
-        // either way, but only one of them is worth telling the reader about.
-        setState({ loading: false, data: null, offline: true });
-        timer = setTimeout(load, IDLE_POLL_MS);
-      });
+    // Nothing is live to a reader who isn't looking. Polling every 60 seconds in a
+    // backgrounded tab spends a phone's radio and battery to update a screen nobody can see —
+    // and the app's audience is one man with it open on his phone all afternoon. When the tab
+    // comes back the poll fires immediately, so returning to it shows a current score rather
+    // than whatever was on screen when it was hidden.
+    const hidden = () => typeof document !== "undefined" && document.visibilityState === "hidden";
+
+    const schedule = (ms) => { if (on) timer = setTimeout(load, ms); };
+
+    function load() {
+      if (!on) return;
+      if (hidden()) { schedule(IDLE_POLL_MS); return; }   // check back, but don't fetch
+      fetch("/api/events")
+        .then((r) => r.json())
+        .then((j) => {
+          if (!on) return;
+          const ok = Boolean(j && j.ok);
+          setState({ loading: false, data: ok ? j : null, offline: false });
+          const anyLive = ok && Array.isArray(j.live) && j.live.length > 0;
+          schedule(anyLive ? LIVE_POLL_MS : IDLE_POLL_MS);
+        })
+        .catch(() => {
+          if (!on) return;
+          // Offline is not the same as "the feed said no" — the app falls back to data.js
+          // either way, but only one of them is worth telling the reader about.
+          setState({ loading: false, data: null, offline: true });
+          schedule(IDLE_POLL_MS);
+        });
+    }
+
+    const onVisible = () => {
+      if (!on || hidden()) return;
+      if (timer) clearTimeout(timer);
+      load();
+    };
 
     load();
-    return () => { on = false; if (timer) clearTimeout(timer); };
+    if (typeof document !== "undefined") document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      on = false;
+      if (timer) clearTimeout(timer);
+      if (typeof document !== "undefined") document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
 
   return state;

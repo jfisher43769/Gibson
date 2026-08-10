@@ -7,8 +7,23 @@ import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { contrastRatio, contrastText, chalk, DARK_TEXT, relativeLuminance } from "../src/lib/theme.js";
 import { CLUB_TYPE, oppCode } from "../src/lib/oppcode.js";
 import { fairOdds } from "./odds-model.js";
+import { bucket as bucketEvents } from "../api/events.js";
 let fails = 0;
-const check = (name, ok) => { console.log(ok ? "  ✓" : "  ✗ FAIL", name); if (!ok) fails++; };
+// `ok` is a VALUE, not a callback — every check here passes the result of an IIFE. Passing
+// the function itself, or an async one, hands over something truthy and the check prints a
+// tick forever while testing nothing. That happened on 10 Aug 2026: a new check was written
+// `check("...", async () => {...})` and passed happily with the guard it was testing deleted.
+// A check that cannot fail is worse than no check, so this refuses the shape outright.
+const check = (name, ok) => {
+  if (typeof ok === "function" || (ok && typeof ok.then === "function")) {
+    console.log("  ✗ FAIL", name);
+    console.log("      ↳ check() was given a function/Promise, which is always truthy — call it: check(name, (() => { … })())");
+    fails++;
+    return;
+  }
+  console.log(ok ? "  ✓" : "  ✗ FAIL", name);
+  if (!ok) fails++;
+};
 
 console.log("GIBSON verify:");
 // 13 = 12 current Premiership clubs + relegated GLV (kept so the 25/26 archive renders)
@@ -438,6 +453,201 @@ check("the roadmap is ordered, has one 'up next', and doesn't promise leaderboar
   }
   if (problems.length) console.log("      ↳ " + problems.join("\n      ↳ "));
   return problems.length === 0;
+})());
+
+// ---- Findings from the 10 Aug 2026 review. Each one shipped, passed build AND verify, and
+// ---- is now pinned here so it cannot come back quietly.
+
+// The live feed's scores were taken at face value: `+e.intHomeScore`. "abc" became NaN (which
+// JSON turns into null, rendering as a blank score), "99" and "-3" rendered verbatim on the
+// front page, and a single space became 0 — inventing a 0-0 the feed never claimed.
+// weekly-update.js has always checked this before writing to data.js; the path every visitor
+// actually sees did not.
+check("the live feed's scores are validated before they can reach a screen", (() => {
+  const mk = (hs, as) => ({ idLeague: "4659", idEvent: `x${hs}-${as}`, strHomeTeam: "Linfield", strAwayTeam: "Glentoran",
+    dateEvent: "2026-08-15", strTime: "14:00:00", intHomeScore: hs, intAwayScore: as, strStatus: "2H" });
+  const now = Date.parse("2026-08-15T15:30:00Z");
+  const bad = [];
+  // Nothing in this list may ever appear as a scoreline.
+  for (const [hs, as, why] of [["abc", "1", "non-numeric"], ["99", "0", "implausible"], ["-3", "1", "negative"],
+    ["1.5", "2", "fractional"], [" ", "1", "whitespace becomes 0"], ["16", "0", "over the cap"]]) {
+    const b = bucketEvents([mk(hs, as)], now);
+    if (b.live.length || b.results.length) bad.push(`${why}: ${hs}-${as} was published as a score`);
+  }
+  // ...and real scorelines must still get through, or the guard has eaten the feature.
+  for (const [hs, as] of [["2", "1"], ["0", "0"], ["15", "0"]]) {
+    const b = bucketEvents([mk(hs, as)], now);
+    if (!b.live.length) bad.push(`legitimate ${hs}-${as} was rejected`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// The feed table's season was never checked. In August TheSportsDB can still be serving last
+// season's FINAL table for 4659 — 38 games played per club, which sails past any "is the feed
+// ahead of us?" test and takes over the page. Last season's standings, headed "Live".
+check("a feed table from the wrong season is rejected", (() => {
+  const bad = [];
+  if (D.feedMatchesCurrentSeason("2025-2026")) bad.push("last season's table would be accepted");
+  if (D.feedMatchesCurrentSeason("")) bad.push("an unlabelled table would be accepted");
+  if (D.feedMatchesCurrentSeason(null)) bad.push("a null season would be accepted");
+  if (!D.feedMatchesCurrentSeason("2026-2027")) bad.push("this season's table would be rejected");
+  if (!D.feedMatchesCurrentSeason(D.SEASON.current.id)) bad.push(`our own season id (${D.SEASON.current.id}) would be rejected`);
+  // And the guard has to be wired into the component, not merely available.
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/MatchesTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  if (!/feedMatchesCurrentSeason\(live\.season\)/.test(decomment(src))) bad.push("MatchesTab no longer checks the feed's season before using it");
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// Predictor picks live in localStorage keyed by gameweek. A gameweek can be rebuilt after
+// someone has played it, and any fixture their saved object didn't know about was undefined —
+// `picks[fid][side]` in Stepper then took the whole tab down on render, for that user only.
+// Invisible to the render test and the page audit, which both run with empty storage.
+check("Predictor picks survive a gameweek being rebuilt underneath them", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/PredictorTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const clean = decomment(src);
+  const bad = [];
+  // Saved picks must be merged over a complete default set, never used raw.
+  if (!/const defaults = Object\.fromEntries\(PREDICTOR_GW\.fixtures\.map/.test(clean)) bad.push("no full default pick set is built");
+  if (/useState\(saved\?\.picks \|\|/.test(clean)) bad.push("saved picks are used directly again — a rebuilt gameweek would crash Stepper");
+  if (!/const merged = \{ \.\.\.defaults \}/.test(clean)) bad.push("saved picks are no longer merged over the defaults");
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// Positional fixture ids (f1, f2, …) are stable only while a round's fixture list is, and it
+// isn't — Larne v Bangor was postponed out of round 1 after publication. Remove a fixture from
+// the middle and every id below it shifts onto a different match, so a saved prediction ends
+// up attached to a game the user never picked and is scored against it. Silently.
+check("Predictor fixture ids identify the match, not its position", (() => {
+  const bad = [];
+  for (const f of D.PREDICTOR_GW.fixtures) {
+    if (/^f\d+$/.test(f.id)) bad.push(`${f.id} is positional — it moves when the round changes`);
+    if (!f.id.includes(f.home.club) || !f.id.includes(f.away.club)) bad.push(`${f.id} doesn't name ${f.home.club} v ${f.away.club}`);
+  }
+  const ids = D.PREDICTOR_GW.fixtures.map((f) => f.id);
+  if (new Set(ids).size !== ids.length) bad.push("duplicate fixture ids");
+  let gen = "";
+  try { gen = readFileSync(new URL("./next-gameweek.js", import.meta.url), "utf8"); } catch { return false; }
+  if (/id: `f\$\{i \+ 1\}`/.test(gen)) bad.push("next-gameweek.js still generates positional ids");
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// A European tie can be drawn before its dates are, so `legs` can legitimately be empty. The
+// Europe tab read legs[0].label eagerly as a prop — it threw before OddsStrip could decide it
+// had nothing to draw. Both leg checks above iterate legs, and an empty array iterates to
+// nothing, so it passed everything and took out the tab.
+check("the Europe tab survives a tie whose legs aren't scheduled yet", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/MatchesTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const clean = decomment(src);
+  if (!/e\.legs\.length > 0 && \(/.test(clean)) {
+    console.log("      ↳ MatchesTab renders OddsStrip without checking legs is non-empty first");
+    return false;
+  }
+  return true;
+})());
+
+// Club codes reach Crest and ScoreRow from the live feed, whose vocabulary lives in api/*.js
+// as a separate copy of CLUBS. The CLUB_MAP check proves those copies match EACH OTHER — not
+// that what they emit exists here. Today all thirteen do; the day a relegated club leaves
+// CLUBS but stays in that map, one feed row would white-screen the front page.
+check("every club the live feed can name exists in CLUBS", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../api/events.js", import.meta.url), "utf8"); } catch { return false; }
+  const m = src.match(/const CLUB_MAP = \[([\s\S]*?)\];/);
+  if (!m) { console.log("      ↳ couldn't read CLUB_MAP from api/events.js"); return false; }
+  const codes = [...m[1].matchAll(/"([A-Z]{3})"/g)].map((x) => x[1]);
+  const missing = codes.filter((c) => !D.CLUBS[c]);
+  if (missing.length) console.log(`      ↳ the feed can return ${missing.join(", ")}, which CLUBS has no entry for`);
+  // And the components must degrade rather than throw even so.
+  for (const [f, needle] of [["../src/components/Crest.jsx", /if \(!c \|\| !Array\.isArray\(c\.colors\)\) return null;/],
+    ["../src/components/ScoreRow.jsx", /if \(!CLUBS\[m\.h\] \|\| !CLUBS\[m\.a\]\) return null;/]]) {
+    let s = "";
+    try { s = readFileSync(new URL(f, import.meta.url), "utf8"); } catch { return false; }
+    if (!needle.test(s)) { console.log(`      ↳ ${f} no longer guards an unknown club code`); return false; }
+  }
+  return missing.length === 0;
+})());
+
+// recharts plus its d3 dependencies were the bulk of a single 685KB bundle every visitor
+// downloaded before the app became interactive — to draw two charts on one sub-tab. It must
+// stay in its own chunk, and it must not be precached, or the service worker simply moves the
+// download rather than removing it.
+check("recharts stays out of the entry bundle and out of the precache", (() => {
+  const bad = [];
+  let stats = "";
+  try { stats = readFileSync(new URL("../src/tabs/StatsTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  if (/from "recharts"/.test(stats)) bad.push("StatsTab imports recharts directly again — it would land back in the entry bundle");
+
+  const dir = new URL("../dist/assets/", import.meta.url);
+  if (existsSync(dir)) {
+    const js = readdirSync(dir).filter((f) => f.endsWith(".js"));
+    const entry = js.find((f) => /^index-/.test(f));
+    if (!entry) bad.push("no entry bundle found in dist/assets");
+    else {
+      const src = readFileSync(new URL(entry, dir), "utf8");
+      // A recharts-specific string that survives minification.
+      if (/recharts/.test(src)) bad.push(`recharts is inside the entry bundle (${entry})`);
+    }
+    let sw = "";
+    try { sw = readFileSync(new URL("../dist/sw.js", import.meta.url), "utf8"); } catch { sw = ""; }
+    const pre = /const PRECACHE = (\[[^\]]*\]);/.exec(sw);
+    if (pre && /Radar|recharts/i.test(pre[1])) bad.push("the lazy chart chunk is precached — every visitor downloads it anyway");
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// Polling a hidden tab spends a phone's battery updating a screen nobody is looking at.
+check("live polling stops while the tab is hidden", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/lib/live.js", import.meta.url), "utf8"); } catch { return false; }
+  const clean = decomment(src);
+  const bad = [];
+  if (!/document\.visibilityState === "hidden"/.test(clean)) bad.push("no visibility check before fetching");
+  if (!/addEventListener\("visibilitychange"/.test(clean)) bad.push("nothing refreshes when the tab comes back");
+  if (!/removeEventListener\("visibilitychange"/.test(clean)) bad.push("the visibilitychange listener is never removed");
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// Invented numbers must not sit in the content file waiting to be wired up. BEST_XI was
+// eleven players with made-up ratings, rendered nowhere — harmless until someone found a
+// ready-made array of plausible figures and shipped them.
+check("no placeholder or demo statistics are left in data.js", (() => {
+  const src = readFileSync(new URL("../data.js", import.meta.url), "utf8");
+  const bad = [];
+  if (/export const BEST_XI/.test(src)) bad.push("BEST_XI is back — it was illustrative, not measured");
+  // Catch the next one by its label rather than its name. Specifically a terse parenthesised
+  // marker — "(demo)", "(placeholder)" — which is how BEST_XI announced itself and how anyone
+  // dropping scaffold data in will announce theirs.
+  //
+  // Quoted text is stripped first. Explaining in a comment that a block is NOT demo data
+  // necessarily quotes the old label, and a check that fires on its own documentation is one
+  // people delete rather than fix. Prose about placeholders is fine; a label saying this
+  // export IS one is not.
+  // The whole preceding comment block, not a byte window — a window can slice a quoted label
+  // in half, leaving one bare quote the stripper can't pair, which is exactly how this check
+  // first fired on its own explanation.
+  const lines = src.split("\n");
+  const isComment = (s) => /^\s*(\/\/|\/\*|\*)/.test(s) || /^\s*$/.test(s);
+  lines.forEach((line, i) => {
+    const m = /^export const ([A-Z_0-9]+)\s*=/.exec(line);
+    if (!m) return;
+    const block = [];
+    for (let j = i - 1; j >= 0 && isComment(lines[j]); j--) block.unshift(lines[j]);
+    const text = block.join("\n").replace(/"[^"]*"/g, " ");
+    if (/\([^)]*\b(?:demo|illustrative|placeholder|dummy)\b[^)]*\)/i.test(text)) {
+      bad.push(`${m[1]} is labelled as demo/illustrative data`);
+    }
+  });
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
 })());
 
 // The Predictor's odds are GIBSON estimates, and an estimate has to be honest about being
@@ -1274,7 +1484,7 @@ check("the Home board leads each side with a crest, not a club code", (() => {
 
   check("the same tie arriving from both upstream feeds is only listed once", (() => {
     const e = mk({ idEvent: "123", strStatus: "FT" });
-    const b = ev.bucket([e, { ...e }], KO + 60 * 60 * 1000);
+    const b = bucketEvents([e, { ...e }], KO + 60 * 60 * 1000);
     return b.results.length === 1 && b.live.length === 0;
   })());
 }

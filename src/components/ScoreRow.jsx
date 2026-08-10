@@ -20,6 +20,9 @@ export function LiveTick({ status }) {
 // two can never drift into looking like different things — the only difference between a live
 // score and a final one should be what the row is labelled, not how it is drawn.
 export function ScoreRow({ m, last, lead, leadColor, trailing }) {
+  // Same reasoning as Crest: these codes come from the live feed via a club map that lives in
+  // a different file. An unknown code drops the row instead of throwing on CLUBS[m.h].name.
+  if (!CLUBS[m.h] || !CLUBS[m.a]) return null;
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 8, padding: "9px 13px",
