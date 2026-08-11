@@ -907,6 +907,30 @@ export function matchStatsFor(round, h, a) {
 // Everything recorded about one match, or null if nothing was. Callers use the null to decide
 // whether a fixture row is worth making tappable — offering to open a match and then showing
 // an empty panel is worse than not offering.
+// Reads a CLUB_FIXTURES `res` string ("2–1 L") and says how many goals belong to the club
+// whose list it is in, and how many to the opponent.
+//
+// It does NOT go by position, because the European scorelines in this file are not
+// consistently ordered: Larne's away leg at Tre Fiori is written home-first ("0–1 W") and
+// their away leg in Belgrade is written club-first ("0–5 L"). Assuming home-first made the
+// European card generator announce "LINFIELD WIN 3–2 ON AGGREGATE" for a tie Linfield went out
+// of 2–3, and "COLERAINE WIN 5–3" for an 0–8 defeat.
+//
+// The W/D/L letter is club's-point-of-view in every row, so it is the letter that says which
+// number is ours: a win means we scored the greater of the two, a defeat the lesser, and a
+// draw makes them equal so the order cannot matter. Returns null for anything unparseable —
+// callers show nothing rather than guessing.
+export function resGoals(res) {
+  const m = /^(\d+)\s*[-–]\s*(\d+)\s*([WDL])$/.exec(String(res || "").trim());
+  if (!m) return null;
+  const a = Number(m[1]), b = Number(m[2]), outcome = m[3];
+  return {
+    outcome,
+    club: outcome === "W" ? Math.max(a, b) : outcome === "L" ? Math.min(a, b) : a,
+    opp: outcome === "W" ? Math.min(a, b) : outcome === "L" ? Math.max(a, b) : b,
+  };
+}
+
 export function matchDetail(round, h, a) {
   const stats = matchStatsFor(round, h, a);
   const ev = MATCH_EVENTS.find((m) => m.round === round && m.h === h && m.a === a);
@@ -1308,7 +1332,7 @@ const EURO = [
       { label: "2nd leg · away", date: "Tue 11 Aug · 17:00", dt: "2026-08-11T16:00:00Z", venue: "Mikheil Meskhi Stadium" },
     ],
     prize: "Winner advances to the UEL play-off round; the loser drops into the UECL play-off round",
-    note: "GOALLESS AT INVER PARK: Larne 0-0 FC Iberia 1999 in the Europa League Q3 first leg. Nothing between them going to Georgia — the tie is level with the second leg to come. Larne dropped into the Europa League after Red Star Belgrade won Champions League Q2 9-0 on aggregate.",
+    note: "BEATEN IN EXTRA TIME: Larne lose 2-1 in Tbilisi, 1-2 on aggregate, after 120 minutes. Bedoshvili put Iberia ahead on 74, Simpson levelled two minutes later, and Sikharulashvili settled it on 102. Not the end of the European run — beaten Europa League Q3 sides drop into the Conference League play-off round.",
   },
   {
     club: "GLE", comp: "Conference League", round: "First qualifying round",
@@ -1373,9 +1397,10 @@ export const CLUB_FIXTURES = {
     { date: "21 Jul", dt: "2026-07-21T18:45:00Z", res: "0–4 L", opp: "Red Star Belgrade", comp: "UCL Q2 · 1st leg · Inver Park" },
     { date: "29 Jul", dt: "2026-07-29T18:00:00Z", res: "0–5 L", opp: "Red Star Belgrade (a) — Katai 3', Arnautović 45' & 60', Loizou 49', Bukari 79'", comp: "UCL Q2 · 2nd leg · Belgrade · 0–9 agg · eliminated" },
     { date: "4 Aug", dt: "2026-08-04T19:00:00Z", res: "0–0 D", opp: "FC Iberia 1999 (h)", comp: "UEL Q3 · 1st leg · Inver Park" },
-    // No `res` yet — the row renders without a scoreline until there is one. The 5pm is worth
-    // printing because it is nowhere near a normal kick-off: it is an evening game in Georgia.
-    { date: "11 Aug", dt: "2026-08-11T16:00:00Z", opp: "FC Iberia 1999 (a)", comp: "UEL Q3 · 2nd leg · Mikheil Meskhi Stadium · 5pm" },
+    // Extra time, so the 90-minute score was 1-1 and the aggregate is Larne 1 Iberia 2. NOT
+    // eliminated from Europe — a UEL Q3 loser drops into the Conference League play-off round,
+    // which is what this tie's `prize` line has said since the draw.
+    { date: "11 Aug", dt: "2026-08-11T16:00:00Z", res: "2–1 L", opp: "FC Iberia 1999 (a) — Bedoshvili 74', Simpson 76', Sikharulashvili 102'", comp: "UEL Q3 · 2nd leg · Mikheil Meskhi Stadium · aet · 1–2 agg · into UECL play-off" },
   ],
   GLE: [
     { date: "9 Jul", dt: "2026-07-09T19:30:00Z", res: "1–2 L", opp: "RFS (h) — Ibsen Rossi 38'", comp: "UECL Q1 · 1st leg" },

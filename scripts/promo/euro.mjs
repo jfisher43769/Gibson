@@ -56,22 +56,39 @@ for (const l of legs) {
 
 // State of the tie, from the recorded result of the leg before this one. CLUB_FIXTURES is
 // where results live; the two are matched on kick-off, which verify.js already guarantees
-// lines up. `res` is written home-first with a W/D/L from this club's point of view, so the
-// letter — not the scoreline — is what says who is ahead.
+// lines up.
 const fixtures = D.CLUB_FIXTURES[club] || [];
+
+// Which number in a `res` string belongs to this club — see resGoals() in data.js for why it
+// cannot be read by position. Imported rather than reimplemented here so verify.js is testing
+// the function this script actually runs.
+const readRes = (l) => {
+  const row = fixtures.find((f) => f.dt === l.dt);
+  const g = row && D.resGoals(row.res);
+  if (!g) return null;
+  const atHome = /home/i.test(l.label);
+  return {
+    row, outcome: g.outcome, club: g.club, opp: g.opp,
+    // Put them back in the order the card draws the two names in.
+    homeGoals: atHome ? g.club : g.opp,
+    awayGoals: atHome ? g.opp : g.club,
+  };
+};
+
 const earlier = legs.filter((l) => Date.parse(l.dt) < Date.parse(leg.dt));
 let standing = null;
 if (earlier.length) {
   const prev = earlier[earlier.length - 1];
-  const row = fixtures.find((f) => f.dt === prev.dt);
-  const m = row && /^(\d+)\s*[-–]\s*(\d+)\s*([WDL])$/.exec(String(row.res || "").trim());
-  if (m) {
-    const score = `${m[1]}–${m[2]}`;
+  const r = readRes(prev);
+  if (r) {
     const where = String(prev.venue || "").trim();
-    standing = m[3] === "D"
+    // Leader's goals first, so "LARNE LEAD" is never followed by the smaller number.
+    const score = r.outcome === "D" ? `${r.club}–${r.opp}`
+      : `${Math.max(r.club, r.opp)}–${Math.min(r.club, r.opp)}`;
+    standing = r.outcome === "D"
       ? { line: `LEVEL AT ${score}`, sub: where ? `after the first leg at ${where}` : "after the first leg" }
       : {
-          line: `${(m[3] === "W" ? D.CLUBS[club].name : tie.opp).toUpperCase()} LEAD ${score}`,
+          line: `${(r.outcome === "W" ? D.CLUBS[club].name : tie.opp).toUpperCase()} LEAD ${score}`,
           sub: where ? `from the first leg at ${where}` : "from the first leg",
         };
   }
@@ -79,6 +96,54 @@ if (earlier.length) {
 if (!standing && earlier.length) {
   // A leg was played and we cannot read its result. Say nothing rather than imply it is level.
   console.warn(`  ! previous leg on ${earlier[earlier.length - 1].dt} has no readable result — omitting the tie state`);
+}
+
+// ---- Has THIS leg been played? -------------------------------------------------------------
+// If it has, the card stops being a preview. Kick-off time and "what the winner gets" are the
+// wrong things to put on a match that finished two hours ago, so the same script draws a
+// result instead: the score, the aggregate, who scored, and where the club goes next.
+//
+// Every number below is read or summed from what is recorded. Nothing about the result is
+// accepted from the command line — the whole reason euro.mjs exists is that a card with the
+// wrong aggregate on it is worse than no card.
+
+const played = readRes(leg);
+let result = null;
+if (played) {
+  // Aggregate over every leg that has a result. Summed rather than typed, so it cannot
+  // disagree with the fixture rows the app renders from.
+  let aggClub = 0, aggOpp = 0, legsCounted = 0;
+  for (const l of legs) {
+    const r = readRes(l);
+    if (!r) continue;
+    aggClub += r.club; aggOpp += r.opp; legsCounted += 1;
+  }
+  const clubName = D.CLUBS[club].name;
+  const won = aggClub > aggOpp;
+  const level = aggClub === aggOpp;
+  // Scorers ride in the fixture row's `opp` field after an em dash, the same place the app
+  // reads them from. No scorers recorded simply means the line is omitted.
+  const scorers = String(played.row.opp || "").split("—")[1]?.trim() || "";
+  // "Winner advances to X; the loser drops into Y" — take the half that applies and say it in
+  // the club's name, falling back to the clause verbatim if it isn't phrased that way.
+  const clause = String(tie.prize || "").split(/;\s*/)
+    .find((p) => (won ? /winner/i.test(p) : /loser/i.test(p))) || "";
+  const nextStep = clause.replace(
+    /^\s*(?:the\s+)?(?:winner|loser)\s+(advances|drops)/i,
+    (_, verb) => `${clubName} ${verb.toLowerCase() === "advances" ? "advance" : "drop"}`,
+  );
+  result = {
+    // The scoreline in the order it was played, matching the two names above it.
+    score: `${played.homeGoals}–${played.awayGoals}`,
+    aet: /\baet\b/i.test(String(played.row.comp || "")),
+    agg: legsCounted > 1
+      ? (level
+          ? `LEVEL ${aggClub}–${aggOpp} ON AGGREGATE`
+          : `${(won ? clubName : tie.opp).toUpperCase()} WIN ${Math.max(aggClub, aggOpp)}–${Math.min(aggClub, aggOpp)} ON AGGREGATE`)
+      : "",
+    scorers,
+    nextStep,
+  };
 }
 
 // Kick-off in Belfast wall time, from the same helper the app prints with, so the card and
@@ -96,6 +161,7 @@ const legName = /2nd/i.test(leg.label) ? "SECOND LEG" : /1st/i.test(leg.label) ?
 
 const facts = {
   comp: `${tie.comp} · ${tie.round}`.toUpperCase(),
+  compShort: String(tie.comp || "").toUpperCase(),
   legName,
   home: { code: club, ...D.CLUBS[club] },
   opp: { name: tie.opp, country: tie.oppCountry || "", color: tie.oppColor || "#8FA69B" },
@@ -107,13 +173,21 @@ const facts = {
   kickoff: String(kickoff || "").toUpperCase(),
   venue: String(leg.venue || "").toUpperCase(),
   prize: String(tie.prize || ""),
+  result,
   hasPhoto: Boolean(photoData),
 };
 
 console.log(`${facts.comp} — ${facts.legName}`);
 console.log(`  ${D.CLUBS[club].name} v ${tie.opp} (${tie.oppCountry})`);
 console.log(`  ${facts.date} ${facts.kickoff} · ${facts.venue || "venue TBC"}`);
-console.log(`  ${standing ? standing.line + " " + standing.sub : "no tie state (first leg)"}`);
+if (result) {
+  console.log(`  FULL TIME ${result.score}${result.aet ? " (aet)" : ""}`);
+  console.log(`  ${result.agg || "single leg"}`);
+  if (result.scorers) console.log(`  ${result.scorers}`);
+  if (result.nextStep) console.log(`  ${result.nextStep}`);
+} else {
+  console.log(`  ${standing ? standing.line + " " + standing.sub : "no tie state (first leg)"}`);
+}
 
 const kit = readFileSync(join(HERE, "kit.js"), "utf8");
 const font = (w) => readFileSync(join(FONT_DIR, `barlow-condensed-latin-${w}-normal.woff2`)).toString("base64");
@@ -183,8 +257,13 @@ function ground(){
     ctx.fillStyle=glow; ctx.fillRect(0,0,W,H);
     // The competition, set enormous and nearly invisible, so the empty half is textured
     // rather than blank — and it is the one thing on the card that can't be wrong.
-    const gs=fit(F.legName,800,W*1.25,300*S,0);
-    T(F.legName,W/2,Y(430),{size:gs,weight:800,align:'center',color:'rgba(237,245,239,0.05)'});
+    //
+    // Fitted INSIDE the card, not bled past it. Oversizing to W*1.25 was fine for a short
+    // word but turned "SECOND LEG" into "ECOND LE" with both ends sliced off, which reads as
+    // a broken render rather than a deliberate crop.
+    const ghost=F.compShort||F.legName;
+    const gs=fit(ghost,800,W*0.92,300*S,0);
+    T(ghost,W/2,Y(F.result?300:430),{size:gs,weight:800,align:'center',color:'rgba(237,245,239,0.05)'});
     vignette();
     return;
   }
@@ -234,19 +313,26 @@ function draw(){
   ground();
 
   T('GIBSON',M,Y(84),{size:26*S,weight:800,color:GOLD,track:8*S,shadow:true});
-  T(F.awayLabel,W-M,Y(84),{size:23*S,weight:600,align:'right',color:'rgba(237,245,239,0.75)',track:6*S,shadow:true});
+  T(F.result?(F.result.aet?'FULL TIME · AET':'FULL TIME'):F.awayLabel,W-M,Y(84),
+    {size:23*S,weight:600,align:'right',color:F.result?GOLD:'rgba(237,245,239,0.75)',track:6*S,shadow:true});
 
   // One left axis for everything. Centring eight elements down a column gave them all equal
   // weight and no reading order; a hard left edge with a big scale jump between levels gives
   // the eye somewhere to start and somewhere to go.
   const AX=M;
 
+  // Where the type block starts. A preview sits low because the photograph owns the top of
+  // the card; a result has four more lines under the scoreline and — with no photo — nothing
+  // above it, so it starts higher and the score becomes the hero rather than a caption in the
+  // bottom third.
+  const TOP=F.result?(F.hasPhoto?760:540):742;
+
   // Kicker: a short gold rule, then the competition. Small and tracked, so the names below
   // land about four times its size — that jump is the hierarchy.
-  ctx.fillStyle=GOLD; ctx.fillRect(AX,Y(742),74*S,5*S);
+  ctx.fillStyle=GOLD; ctx.fillRect(AX,Y(TOP),74*S,5*S);
   const kicker=F.comp+' · '+F.legName;
   const ks=fit(kicker,600,W-M*2,23*S,7*S);
-  T(kicker,AX,Y(792),{size:ks,weight:600,color:'rgba(237,245,239,0.88)',track:7*S,shadow:true});
+  T(kicker,AX,Y(TOP+50),{size:ks,weight:600,color:'rgba(237,245,239,0.88)',track:7*S,shadow:true});
 
   // The two clubs, in the order they'd be written in a scoreline — home side first.
   const first=F.clubAtHome ? F.home.name : F.opp.name;
@@ -254,33 +340,72 @@ function draw(){
   // Sized off whichever name is longer so both lines share one scale. Sizing them
   // independently makes the shorter club look like the bigger deal.
   const room=W-M*2;
+  // A result needs a column at the right for the goals, and four more lines underneath than a
+  // preview does, so the names are set a little smaller on that variant.
+  const scoreCol=F.result?150*S:0;
+  const cap=(F.result?150:116)*S;
   const size=Math.min(
-    fit(first.toUpperCase(),800,room,116*S,1*S),
-    fit('V '+second.toUpperCase(),800,room,116*S,1*S),
+    fit(first.toUpperCase(),800,room-scoreCol,cap,1*S),
+    fit('V '+second.toUpperCase(),800,room-scoreCol,cap,1*S),
   );
-  fixtureLine(AX,Y(900),'',first,size);
-  fixtureLine(AX,Y(900)+size*0.94,'V',second,size);
+  const y1=Y(TOP+158), y2=y1+size*0.94;
+  let y=y2;
 
-  // The state of the tie, as a line of type rather than a boxed UI component — the gold panel
-  // read as an app widget dropped onto a poster. Only drawn when a previous leg gave us one.
-  let y=Y(900)+size*0.94;
-  if(F.standing){
-    y+=68*S;
-    const ss=fit(F.standing.line,800,room,40*S,3*S);
-    const lw=T(F.standing.line,AX,y,{size:ss,weight:800,color:GOLD,track:3*S,shadow:true});
-    T(F.standing.sub,AX+lw+14*S,y,{size:24*S,weight:600,color:'rgba(237,245,239,0.62)'});
-  }
+  if(F.result){
+    // No "V" between them once it has been played — the goals do that job. Each side's tally
+    // sits at the right end of its own name, which is how a results table reads and leaves no
+    // doubt which number belongs to which club. A centred "2–1" cannot say that on its own.
+    const g=F.result.score.split('–');
+    fixtureLine(AX,y1,'',first,size);
+    fixtureLine(AX,y2,'',second,size);
+    T(g[0],W-M,y1,{size,weight:800,align:'right',color:GOLD,shadow:true});
+    T(g[1],W-M,y2,{size,weight:800,align:'right',color:GOLD,shadow:true});
 
-  // When and where, on one line. Two lines of small centred type was three separate things
-  // fighting for the same job.
-  const when=[F.date,F.kickoff,F.venue].filter(Boolean).join('  ·  ');
-  const ws=fit(when,800,room,30*S,3*S);
-  T(when,AX,y+62*S,{size:ws,weight:800,color:CHALK,track:3*S,shadow:true});
+    if(F.result.agg){
+      y+=86*S;
+      const as=fit(F.result.agg,800,room,44*S,3*S);
+      T(F.result.agg,AX,y,{size:as,weight:800,color:GOLD,track:3*S,shadow:true});
+    }
+    if(F.result.scorers){
+      // Shrunk until it fits two lines at most, so a five-goal thriller can't run into the
+      // footer rule the way a fixed size would.
+      let sz=30*S, lines=wrap(F.result.scorers,sz,600,room);
+      while(lines.length>2 && sz>16*S){ sz-=1*S; lines=wrap(F.result.scorers,sz,600,room); }
+      for(const ln of lines){ y+=44*S; T(ln,AX,y,{size:sz,weight:600,color:'rgba(237,245,239,0.82)'}); }
+    }
+    // Where and when it happened — past tense now, so no kick-off time.
+    const where=[F.date,F.venue].filter(Boolean).join('  ·  ');
+    const rs=fit(where,800,room,26*S,3*S);
+    y+=64*S; T(where,AX,y,{size:rs,weight:800,color:'rgba(237,245,239,0.72)',track:3*S,shadow:true});
+    // Where the club goes next — read off the tie's own prize line, not written by hand.
+    if(F.result.nextStep){
+      const ns=fit(F.result.nextStep,600,room,24*S,0);
+      y+=48*S; T(F.result.nextStep,AX,y,{size:ns,weight:600,color:'rgba(237,245,239,0.5)'});
+    }
+  } else {
+    fixtureLine(AX,y1,'',first,size);
+    fixtureLine(AX,y2,'V',second,size);
 
-  // What the winner gets. One line, quiet — context, not headline.
-  if(F.prize){
-    const ps=fit(F.prize,600,room,21*S,0);
-    T(F.prize,AX,y+102*S,{size:ps,weight:600,color:'rgba(237,245,239,0.45)'});
+    // The state of the tie, as a line of type rather than a boxed UI component — the gold panel
+    // read as an app widget dropped onto a poster. Only drawn when a previous leg gave us one.
+    if(F.standing){
+      y+=68*S;
+      const ss=fit(F.standing.line,800,room,40*S,3*S);
+      const lw=T(F.standing.line,AX,y,{size:ss,weight:800,color:GOLD,track:3*S,shadow:true});
+      T(F.standing.sub,AX+lw+14*S,y,{size:24*S,weight:600,color:'rgba(237,245,239,0.62)'});
+    }
+
+    // When and where, on one line. Two lines of small centred type was three separate things
+    // fighting for the same job.
+    const when=[F.date,F.kickoff,F.venue].filter(Boolean).join('  ·  ');
+    const ws=fit(when,800,room,30*S,3*S);
+    T(when,AX,y+62*S,{size:ws,weight:800,color:CHALK,track:3*S,shadow:true});
+
+    // What the winner gets. One line, quiet — context, not headline.
+    if(F.prize){
+      const ps=fit(F.prize,600,room,21*S,0);
+      T(F.prize,AX,y+102*S,{size:ps,weight:600,color:'rgba(237,245,239,0.45)'});
+    }
   }
 
   ctx.fillStyle='rgba(237,245,239,0.18)'; ctx.fillRect(M,Y(1222),W-M*2,2*S);

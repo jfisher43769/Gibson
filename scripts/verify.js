@@ -834,7 +834,13 @@ check("the European tie card derives the aggregate from recorded results, not ar
   try { src = readFileSync(new URL("../scripts/promo/euro.mjs", import.meta.url), "utf8"); } catch { return false; }
   const problems = [];
   if (!/D\.CLUB_FIXTURES\[club\]/.test(src)) problems.push("no longer reads CLUB_FIXTURES for the previous leg's result");
-  if (!/f\.dt === prev\.dt/.test(src)) problems.push("no longer matches the previous leg on kick-off");
+  // Matched on kick-off, not on array position. Not pinned to a variable name — the lookup was
+  // generalised from "the previous leg" to "any leg" when the card learned to draw results.
+  if (!/f\.dt === \w+\.dt/.test(src)) problems.push("no longer matches legs on kick-off");
+  // Goals must come from resGoals(), which reads the W/D/L letter. Pulling the two numbers
+  // straight out of the scoreline by position is the bug that put "COLERAINE WIN 5–3" on a
+  // card for an 0–8 aggregate defeat, because half these rows are not written home-first.
+  if (!/D\.resGoals\(/.test(src)) problems.push("no longer uses resGoals() — it is reading the scoreline by position again");
   // The tie state must never be settable by hand — no flag, no positional score.
   if (/flag\(["'](agg|aggregate|score|standing)["']\)/.test(src)) problems.push("accepts the aggregate as a command-line flag");
   if (/\bstanding\s*=\s*\{[^}]*argv/.test(src)) problems.push("builds the tie state out of argv");
@@ -1418,6 +1424,49 @@ check("crest text colour is the higher-contrast option and clears 3:1 for every 
     const chosenRatio = chosen === chalk ? ratioChalk : ratioDark;
     return chosenRatio === best && chosenRatio >= 3.0;
   });
+})());
+
+// A European aggregate is a claim about two other rows in the same file, so it can be checked
+// against them rather than trusted. This exists because the card generator got one wrong: it
+// read the `res` scoreline by position, assuming home-first, and those strings are not
+// consistently ordered — three of the six away legs are written club-first. It announced
+// "LINFIELD WIN 3–2 ON AGGREGATE" for a tie Linfield went out of 2–3, and "COLERAINE WIN 5–3"
+// for an 0–8 defeat. Both would have been posted as fact.
+//
+// resGoals() is imported, not reimplemented, so this tests the function the generator runs —
+// the mistake made once before with oppCode, where the check quietly re-derived the right
+// answer while the shipped code kept the wrong one.
+check("every European aggregate matches the legs it is made of", (() => {
+  const bad = [];
+  for (const [club, rows] of Object.entries(D.CLUB_FIXTURES)) {
+    // Rows are grouped by the competition/round prefix of `comp` ("UEL Q3 · 2nd leg · …"),
+    // because one club can play several ties in a summer — Larne played three.
+    const ties = {};
+    for (const r of rows) {
+      const key = String(r.comp || "").split("·")[0].trim();
+      if (!key) continue;
+      (ties[key] ||= []).push(r);
+    }
+    for (const [key, legRows] of Object.entries(ties)) {
+      const claim = legRows.map((r) => /(\d+)\s*[-–]\s*(\d+)\s*agg/i.exec(String(r.comp || ""))).find(Boolean);
+      if (!claim) continue;   // no aggregate stated, nothing to check
+      let cf = 0, ca = 0, unreadable = null;
+      for (const r of legRows) {
+        const g = D.resGoals(r.res);
+        if (!g) { unreadable = r; break; }
+        cf += g.club; ca += g.opp;
+      }
+      if (unreadable) {
+        bad.push(`${club} ${key}: states an aggregate but "${unreadable.date}" has no readable result`);
+        continue;
+      }
+      if (Number(claim[1]) !== cf || Number(claim[2]) !== ca) {
+        bad.push(`${club} ${key}: comp says ${claim[1]}–${claim[2]} agg, the legs add up to ${cf}–${ca}`);
+      }
+    }
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
 })());
 
 // Every social account in data.js must actually reach the header. The handles/URLs are
