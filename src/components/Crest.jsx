@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import {
   CLUBS,
 } from "../../data.js";
-import { contrastText } from "../lib/theme.js";
+import { contrastText, tapPad } from "../lib/theme.js";
 
 // Club-page navigation: any Crest can open a club page via this context. Provided at
 // the app root; null when unavailable (SSR/render test), so Crest degrades to static.
@@ -123,12 +123,21 @@ export function Crest({ club, size = 34, tappable = true }) {
   // Any crest opens that club's page, unless the caller opts out (e.g. it already sits
   // inside a selector button whose own action should win). Uses a role=button span, not
   // a <button>, to stay valid when nested inside other interactive rows.
+  //
+  // The crest ART is size x size*1.15 — 30px tall in a table row, 18px in a score row, both
+  // well under a thumb. tapPad grows the hit area to 44 and cancels the growth with an equal
+  // negative margin, so the rows keep the exact height they had: the artwork does not move,
+  // only the region that responds to a tap. Height only — widening it would push the hit area
+  // under the club name beside it and start stealing taps meant for the row.
   if (tappable && openClub && hasClubPage(club)) {
     return (
       <span role="button" tabIndex={0} aria-label={`${c.name} — open club page`}
         onClick={(e) => { e.stopPropagation(); openClub(club); }}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); openClub(club); } }}
-        style={{ display: "inline-flex", lineHeight: 0, cursor: "pointer" }}>
+        style={{
+          display: "inline-flex", alignItems: "center", lineHeight: 0, cursor: "pointer",
+          ...tapPad(size * 1.15),
+        }}>
         {art}
       </span>
     );

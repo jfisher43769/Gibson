@@ -27,6 +27,22 @@ export const OVERLAY = { fill: "rgba(240,255,245,0.06)" };
 // Spacing rhythm keeps to even steps (2/4/6/8/10/12/14/16/18/20/22/24); odd
 // orphans (5/7/9) were snapped to the nearest even.
 
+// The smallest comfortable touch target. A thumb on a phone at a football ground is not a
+// mouse pointer, and several of these controls were 14px tall — the height of their own text.
+export const TAP_MIN = 44;
+
+// Grows a short control to a TAP_MIN-tall hit area WITHOUT moving anything around it: the
+// vertical padding that does the growing is cancelled by an equal negative margin, so the
+// element's MARGIN box stays the height it always was while its BORDER box becomes tappable.
+// That is what keeps a page of 14px links from gaining 30px of dead space per link.
+//
+// `contentHeight` is the element's current rendered height. Global `box-sizing: border-box`
+// (GlobalStyle.jsx) means minHeight counts the padding, so the two agree.
+export const tapPad = (contentHeight) => {
+  const pad = Math.max(0, Math.round((TAP_MIN - contentHeight) / 2));
+  return { minHeight: TAP_MIN, paddingTop: pad, paddingBottom: pad, marginTop: -pad, marginBottom: -pad };
+};
+
 // Staggered list entrance: ~30ms per row, capped at row 10. The global
 // prefers-reduced-motion rule disables all animation, so no check needed here.
 export const rise = (i) => ({ animation: `riseIn 0.35s ease-out ${Math.min(i, 10) * 0.03}s backwards` });

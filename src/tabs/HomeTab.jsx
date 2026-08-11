@@ -11,7 +11,7 @@ import { TvBadge } from "../components/TvBadge.jsx";
 import { CountUp } from "../components/CountUp.jsx";
 import { findLive, useLiveEvents } from "../lib/live.js";
 import { oppCode } from "../lib/oppcode.js";
-import { SURFACE, chalk, dim, faint } from "../lib/theme.js";
+import { SURFACE, chalk, dim, faint, tapPad } from "../lib/theme.js";
 
 // One side of the scoreboard. A Premiership club shows its crest, which is what the rest of
 // the app leads with; a European opponent isn't in CLUBS so Crest can't draw it, and that
@@ -72,6 +72,14 @@ export function HomeView({ goTo }) {
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
   const lore = LEAGUE_LORE[dayOfYear % LEAGUE_LORE.length];
   const label = { fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 };
+  // "See all →" appears three times on this tab and was three copies of the same 14px-tall
+  // button. One object now, so the 44px hit area can't end up on two of the three. The 6px of
+  // horizontal padding preserves the width it already had; tapPad handles the height without
+  // making the section headers 30px taller.
+  const seeAll = {
+    fontSize: 12, fontWeight: 700, color: "#FFB627", background: "transparent", border: "none",
+    cursor: "pointer", flexShrink: 0, paddingLeft: 6, paddingRight: 6, ...tapPad(14),
+  };
   // Stadium scoreboard hero for the very next fixture, European or league, whichever
   // kicks off first — so the board always names a match that is actually still to come.
   // External opponents get a derived code (RSB, HJK, TF).
@@ -256,9 +264,7 @@ export function HomeView({ goTo }) {
       {(restEuro.length > 0 || heroFix) && (<>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
           <div style={{ ...label, marginBottom: 0 }}>Next up</div>
-          <button onClick={() => goTo("matches", "fixtures")} style={{
-            fontSize: 12, fontWeight: 700, color: "#FFB627", background: "transparent", border: "none", cursor: "pointer", flexShrink: 0,
-          }}>See all →</button>
+          <button onClick={() => goTo("matches", "fixtures")} style={seeAll}>See all →</button>
         </div>
         <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden", marginBottom: 18 }}>
           {restEuro.map((f) => (
@@ -323,9 +329,7 @@ export function HomeView({ goTo }) {
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
         <div style={{ ...label, marginBottom: 0 }}>Latest transfer talk</div>
-        <button onClick={() => goTo("more", "transfers")} style={{
-          fontSize: 12, fontWeight: 700, color: "#FFB627", background: "transparent", border: "none", cursor: "pointer",
-        }}>See all →</button>
+        <button onClick={() => goTo("more", "transfers")} style={seeAll}>See all →</button>
       </div>
       <div style={{ display: "grid", gap: 8 }}>
         {feed.map((t) => {
@@ -348,7 +352,7 @@ export function HomeView({ goTo }) {
       <div style={{ ...SURFACE.card, borderRadius: 14, padding: "14px", marginTop: 18 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 8 }}>
           <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>Did you know? · Only in the Irish League</div>
-          <button onClick={() => goTo("more", "history")} style={{ fontSize: 12, fontWeight: 700, color: "#FFB627", background: "transparent", border: "none", cursor: "pointer", flexShrink: 0 }}>See all →</button>
+          <button onClick={() => goTo("more", "history")} style={seeAll}>See all →</button>
         </div>
         <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 16, textTransform: "uppercase", color: "#FFB627", lineHeight: 1.15 }}>{lore.title}</div>
         <div style={{ fontSize: 13, color: chalk, marginTop: 6, lineHeight: 1.55 }}>{lore.fact}</div>
