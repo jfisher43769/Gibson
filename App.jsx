@@ -211,8 +211,8 @@ function AppShell() {
         <div style={{ textAlign: "center", padding: "0 0 14px" }}>
           <ReportLink />
         </div>
-        <div style={{ textAlign: "center", padding: "0 0 24px", fontSize: 12, color: "rgba(143,166,155,0.55)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
-          Unofficial fan project — not affiliated with the NIFL or any club · <a href="/privacy.html" style={{ color: "rgba(143,166,155,0.55)", textDecoration: "underline" }}>Privacy</a> · <a href="/rss.xml" style={{ color: "rgba(143,166,155,0.55)", textDecoration: "underline" }}>RSS</a>
+        <div style={{ textAlign: "center", padding: "0 0 24px", fontSize: 12, color: "rgba(143,166,155,0.85)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
+          Unofficial fan project — not affiliated with the NIFL or any club · <a href="/privacy.html" style={{ color: "rgba(143,166,155,0.85)", textDecoration: "underline" }}>Privacy</a> · <a href="/rss.xml" style={{ color: "rgba(143,166,155,0.85)", textDecoration: "underline" }}>RSS</a>
         </div>
       </main>
     </div>

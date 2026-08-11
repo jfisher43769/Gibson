@@ -119,7 +119,7 @@ export function ClubPage({ club, onBack }) {
             <a href={meta.website} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#FFB627" }}>Official website ↗</a>
           </div>
         )}
-        {meta && <div style={{ fontSize: 11, color: "rgba(143,166,155,0.5)", marginTop: 10 }}>Source: {meta.source}</div>}
+        {meta && <div style={{ fontSize: 11, color: "rgba(143,166,155,0.85)", marginTop: 10 }}>Source: {meta.source}</div>}
       </ClubSection>
 
       {/* Season */}
@@ -196,7 +196,7 @@ export function ClubPage({ club, onBack }) {
               <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 22, color: "#3DDC84", fontVariantNumeric: "tabular-nums" }}>{topScorer.goals}</div>
             </div>
           )}
-          <div style={{ fontSize: 11, color: "rgba(143,166,155,0.5)", marginTop: 6 }}>
+          <div style={{ fontSize: 11, color: "rgba(143,166,155,0.85)", marginTop: 6 }}>
             All competitions{topScorer.comp ? ` · ${topScorer.comp}` : ""} · Transfermarkt
           </div>
         </>)}

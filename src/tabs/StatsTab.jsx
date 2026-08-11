@@ -398,7 +398,7 @@ function TravelCard() {
         {TRAVEL.leagueAverageMiles && (
           <div style={{ fontSize: 12, color: dim, marginTop: 10 }}>League average season away miles: {TRAVEL.leagueAverageMiles.toLocaleString()}</div>
         )}
-        <div style={{ fontSize: 11, color: "rgba(143,166,155,0.5)", marginTop: 6 }}>Straight-line distance from ground coordinates (Wikidata, CC0), not road/travel miles.</div>
+        <div style={{ fontSize: 11, color: "rgba(143,166,155,0.85)", marginTop: 6 }}>Straight-line distance from ground coordinates (Wikidata, CC0), not road/travel miles.</div>
       </div>
   );
 }
