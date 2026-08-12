@@ -123,7 +123,56 @@ scores-and-fixtures endpoint by construction, not by accident of coverage.
 
 ---
 
+## 4a. API-Football coverage — added after the key was supplied
+
+The `APIFOOTBALL_KEY` secret was added and the probe re-run. The first attempt failed on a bug
+in the probe itself, not on the key: it requested `country=Northern%20Ireland` and API-Football
+rejected the space (`"may only contain alpha-numeric characters, underscores, and dashes"`).
+Fixed in `402df66` — the probe now looks the country up rather than typing it.
+
+Run 5 · `31649769331` · commit `402df66` · 2026-08-12T23:08:33Z:
+
+```
+=== API-Football (api-sports.io) ===
+  country as API-Football spells it: "Northern-Ireland" (code GB-NIR)
+  competitions listed for Northern Ireland: 7
+  matched: Premiership (id 408, type League)
+  season 2026 (current): 2026-08-07 → 2027-03-27
+    no  fixtures.statistics_fixtures  <- THE ONE THAT MATTERS (team match stats)
+    no  fixtures.statistics_players   (per-player stats)
+    yes fixtures.events               (goals, cards, subs)
+    yes fixtures.lineups
+    yes standings
+    no  top_scorers
+    yes odds   <- GIBSON must not use this: golden rule 2
+```
+
+**This changes the verdict below.** Section 5 was written when TheSportsDB was the only
+evidence, and on that evidence the answer to all four questions was no. API-Football covers
+the NIFL Premiership (league id 408, current season 2026) and flags **events — goals, cards
+and subs — and lineups as covered.** That is precisely the data the first three questions
+needed.
+
+Two things it does **not** cover, and they are consistent with TheSportsDB:
+
+- `statistics_fixtures` — **no.** Possession, shots and corners are not available for this
+  league from either source. Both independent probes now agree. Hand transcription remains the
+  only route for the match-stats cards.
+- `top_scorers` — **no.** The ready-made scoring table is not served, though it could be
+  *derived* by aggregating goal events across fixtures.
+
+**Caveat that matters:** these are coverage flags, and the probe's own principle is that a flag
+is a promise and a payload is evidence. It only fetches a confirming payload when
+`statistics_fixtures` is yes, which it isn't — so `events` and `lineups` are **flagged but not
+yet confirmed against a real Irish League fixture.** Confirming them is one request each and
+should happen before anything is built.
+
+---
+
 ## 5. Verdict — what could be built from this data as it stands
+
+> Superseded in part by §4a. The table below describes **the existing `/api/events` endpoint**,
+> which is what "as it stands" meant. What becomes possible with API-Football is in §5a.
 
 | Feature | Verdict | Why |
 |---|---|---|
@@ -145,18 +194,43 @@ is "empty".
 
 ---
 
+## 5a. Revised verdict, with API-Football on the table
+
+| Feature | From `/api/events` today | With API-Football (league 408) |
+|---|---|---|
+| **Live scorer charts** | No | **Yes, likely** — `events` carries goals with scorer and minute |
+| **Player appearances** | No | **Yes, likely** — `lineups` covered |
+| **Discipline records** | No | **Yes, likely** — cards are `events` |
+| **Attendance tracking** | No | **Unknown** — not a coverage flag; needs a payload to answer |
+| **Possession / shots / corners** | No | **No** — `statistics_fixtures` false. Both sources agree. Hand entry stays. |
+| League top-scorer table | No | **Not served**, but derivable by aggregating goal events |
+
+"Likely" is doing real work in that table: it means the provider says covered, and nobody has
+seen a payload yet. Treat all three as unconfirmed until a real fixture is fetched.
+
+The shape of any build would also be new. `/api/events` is a scores endpoint fed by
+TheSportsDB; none of this arrives through it. Goals, cards and lineups would mean a second
+provider, a key in the deployment, per-fixture requests rather than per-league ones, and
+player identities that have to reconcile with the names already in `data.js`. That is a
+feature, not a data update — CLAUDE.md's merge policy puts it on a branch behind a PR.
+
+And the free tier is 100 requests a day against six fixtures a week, which is comfortable for
+events and lineups but is a budget to design against, not ignore.
+
+---
+
 ## 6. What would actually settle it
 
 1. **A raw-record dump.** A read-only probe that fetches `eventspastleague.php?id=4659`, reports
    the count *before* the `idLeague` filter, and prints two complete records verbatim plus a
    populated/empty map for every key. Run in Actions, output to the job summary. That answers
    §2's open questions in one go. Not written here — this task was diagnostic only.
-2. **The API-Football coverage flags.** `probe-stats-sources.js` already checks
-   `statistics_fixtures`, `statistics_players`, `events` (goals/cards/subs) and `lineups` for
-   this league, but skips without a key. Add `APIFOOTBALL_KEY` as a repository secret (free tier,
-   100 requests/day) and re-run — that is the honest test of whether *anyone* carries this data
-   for the Irish League.
-3. **Nothing scraped.** Reading a live-score site by hand is fine; automating against one
+2. ~~The API-Football coverage flags.~~ **Done — see §4a.** Covered for league 408: events and
+   lineups yes, match statistics no.
+3. **Confirm the two flags against a real payload.** `events` and `lineups` are promises until a
+   fixture is fetched. One request each, and it is the difference between "the provider says so"
+   and "we have seen the goals".
+4. **Nothing scraped.** Reading a live-score site by hand is fine; automating against one
    breaches their terms, and most are bookmaker-funded, which golden rule 2 rules out.
 
 ---
@@ -167,5 +241,8 @@ is "empty".
 - Feed observations: GitHub Actions run
   [`31648808082`](https://github.com/jfisher43769/Gibson/actions/runs/31648808082),
   job `94288412764`, step "Probe", 2026-08-12T22:53:56Z.
-- Code claims: `api/events.js` and `scripts/probe-stats-sources.js` at commit `3f39486`.
+- API-Football observations: run
+  [`31649769331`](https://github.com/jfisher43769/Gibson/actions/runs/31649769331),
+  job `94291303563`, 2026-08-12T23:08:33Z, at commit `402df66`.
+- Code claims: `api/events.js` and `scripts/probe-stats-sources.js`.
 - No application code or data was modified. This file is the only artefact.
