@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  CLUBS, CLUB_FIXTURES, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, SEASON, currentTable, dayMonth, feedMatchesCurrentSeason, matchDetail, seasonLabel, seasonStartDisplay, seasonStatus, tableStageLabel,
+  CLUBS, CLUB_FIXTURES, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, SEASON, currentTable, dayMonth, feedMatchesCurrentSeason, fixturePostponed, matchDetail, seasonLabel, seasonStartDisplay, seasonStatus, tableStageLabel,
 } from "../../data.js";
 import { Crest } from "../components/Crest.jsx";
 import { TvBadge } from "../components/TvBadge.jsx";
@@ -436,6 +436,10 @@ export function FixturesView({ fixedClub } = {}) {
           tv: m.tv || null,
           h: m.h, a: m.a,
           result: Array.isArray(m.result) ? m.result : null,
+          // This list builds its own rows rather than sharing the by-round ones, so it needs
+          // telling separately — otherwise a postponed game keeps the `m.d || r.date` above
+          // and shows a date and a 3pm kick-off for a match that is not being played.
+          pp: m.pp || null,
         });
       }
     }
@@ -486,6 +490,10 @@ export function FixturesView({ fixedClub } = {}) {
                 // fixture looked like it kicked off with the rest.
                 const moved = Boolean(m.d || m.t);
                 const meta = [m.d, m.t].filter(Boolean).join(" · ");
+                // Postponed with no new date. Without saying so the row inherits the round
+                // header's "all matches Sat 22 Aug, 3pm" and tells people to turn up to a
+                // game that isn't on.
+                const off = fixturePostponed(m);
                 // A played fixture shows its score in place of the "v". The live feed wins
                 // over the recorded result while a match is on, because data.js can't be
                 // updated mid-match and a stale 0-0 next to a game in progress is worse than
@@ -519,16 +527,23 @@ export function FixturesView({ fixedClub } = {}) {
                       <span style={{
                         fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: played ? 17 : 13,
                         color: "#FFB627", padding: "0 12px", fontVariantNumeric: "tabular-nums",
+                        opacity: off ? 0.45 : 1,
                       }}>{played ? `${played[0]}–${played[1]}` : "V"}</span>
                       <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
                         <Crest club={m.a} size={19} />
                         <span style={{ fontSize: 13, fontWeight: 600, color: chalk }}>{CLUBS[m.a].name}</span>
                       </div>
                     </div>
-                    {(moved || m.tv || inPlay || detail) && (
+                    {(moved || off || m.tv || inPlay || detail) && (
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
                         {inPlay && <LiveTick status={inPlay.status} />}
-                        {moved && !inPlay && <span style={{ fontSize: 12, color: dim }}>{meta}</span>}
+                        {off && (
+                          <span style={{
+                            fontSize: 12, fontWeight: 700, color: "#E8663C", letterSpacing: "0.08em",
+                            textTransform: "uppercase",
+                          }}>Postponed{m.pp ? ` · ${m.pp}` : ""}</span>
+                        )}
+                        {moved && !inPlay && !off && <span style={{ fontSize: 12, color: dim }}>{meta}</span>}
                         <TvBadge tv={m.tv} />
                         {detail && (
                           <StatsAffordance open={open} />
@@ -542,6 +557,13 @@ export function FixturesView({ fixedClub } = {}) {
             </div>
             <div style={{ fontSize: 12, color: dim, lineHeight: 1.5, marginBottom: 6 }}>
               {r.matches.some((m) => m.d) ? "Highlighted dates: " + r.matches.filter((m) => m.d).map((m) => `${CLUBS[m.h].name} v ${CLUBS[m.a].name} (${m.d}${m.t ? " · " + m.t : ""})`).join(" · ") + ". Others " + r.date + ", 3pm." : `All matches ${r.date}, 3pm unless rearranged.`}
+              {/* The round summary said "all matches Sat 22 Aug, 3pm" over a round with a
+                  postponed game in it. Name the ones that are off, so the sentence above
+                  can't be read as covering them. */}
+              {r.matches.some(fixturePostponed) && (
+                <> {r.matches.filter(fixturePostponed).map((m) => `${CLUBS[m.h].name} v ${CLUBS[m.a].name}`).join(" and ")}
+                  {r.matches.filter(fixturePostponed).length > 1 ? " are" : " is"} postponed — new date to be confirmed.</>
+              )}
             </div>
             <div style={{ fontSize: 12, color: dim, lineHeight: 1.5 }}>
               After round 33 the league splits — top six and bottom six play five more rounds against each other. Split fixtures released in March.
@@ -659,9 +681,9 @@ export function FixturesView({ fixedClub } = {}) {
               aria-label={detail ? `${CLUBS[f.h].name} v ${CLUBS[f.a].name} — match stats` : undefined}
               onKeyDown={detail ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpenMatch(open ? null : key); } } : undefined}
             >
-              <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#FFB627", width: 74, flexShrink: 0, lineHeight: 1.2 }}>
-                {f.date}
-                <div style={{ fontSize: 12, color: dim, fontWeight: 600 }}>{f.time}</div>
+              <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: f.pp ? "#E8663C" : "#FFB627", width: 74, flexShrink: 0, lineHeight: 1.2 }}>
+                {f.pp ? "TBC" : f.date}
+                <div style={{ fontSize: 12, color: dim, fontWeight: 600 }}>{f.pp ? "Postponed" : f.time}</div>
               </div>
               <Crest club={f.opp} size={22} />
               <div style={{ minWidth: 0, flex: 1 }}>
@@ -669,7 +691,7 @@ export function FixturesView({ fixedClub } = {}) {
                   {CLUBS[f.opp].name} <span style={{ color: f.home ? "#3DDC84" : dim, fontSize: 12, fontWeight: 700 }}>{f.home ? "(H)" : "(A)"}</span>
                 </div>
                 <div style={{ fontSize: 12, color: dim, marginTop: 2, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                  <span>Round {f.round} · {f.venue}</span>
+                  <span>Round {f.round} · {f.venue}{f.pp ? ` · ${f.pp}` : ""}</span>
                   {inPlay && <LiveTick status={inPlay.status} />}
                   <TvBadge tv={f.tv} />
                   {detail && (

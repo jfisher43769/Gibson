@@ -59,7 +59,18 @@ if (round === currentRound && !WANT) fail(`PREDICTOR_GW is already round ${round
 const compName = String(current.name || "").replace(/^Round\s+\d+\s*·\s*/i, "").trim();
 if (!compName) fail(`Can't read a competition name out of "${current.name}".`);
 
-const fixtures = src.matches.map((m, i) => {
+// A postponed fixture has no date, so there is nothing to predict and no deadline it belongs
+// to. Offering it would put a game on the Predictor that isn't being played, and score it
+// against a result that won't arrive for months. Dropped, and said out loud — a gameweek that
+// quietly comes back with five fixtures instead of six should not be a surprise.
+const playable = src.matches.filter((m) => !D.fixturePostponed(m));
+const dropped = src.matches.filter((m) => D.fixturePostponed(m));
+for (const m of dropped) {
+  console.log(`  - ${D.CLUBS[m.h]?.name} v ${D.CLUBS[m.a]?.name} left out: postponed${m.pp ? ` (${m.pp})` : ""}`);
+}
+if (!playable.length) fail(`Every fixture in round ${round} is postponed — nothing to build a gameweek from.`);
+
+const fixtures = playable.map((m, i) => {
   const odds = fairOdds(m.h, m.a, D);
   if (!odds) fail(`No rating for ${m.h} or ${m.a} — add them to MARKET_VALUES before rolling.`);
   const ground = D.CLUBS[m.h]?.ground || "";
@@ -82,10 +93,10 @@ const fixtures = src.matches.map((m, i) => {
 // The deadline is the earliest kick-off in the round, described the way the round describes
 // itself. When one match is out on its own — a Friday night opener — it gets named, because
 // that is the one people miss.
-const times = [...new Set(src.matches.map((m) => [m.d || src.date, m.t || src.time || D.DEFAULT_KICKOFF].filter(Boolean).join(" ")))];
+const times = [...new Set(playable.map((m) => [m.d || src.date, m.t || src.time || D.DEFAULT_KICKOFF].filter(Boolean).join(" ")))];
 const deadline = times.length === 1
   ? times[0]
-  : `${D.CLUBS[src.matches[0].h]?.name} v ${D.CLUBS[src.matches[0].a]?.name} ${times[0]} · rest ${times[times.length - 1]}`;
+  : `${D.CLUBS[playable[0].h]?.name} v ${D.CLUBS[playable[0].a]?.name} ${times[0]} · rest ${times[times.length - 1]}`;
 
 const block = `export const PREDICTOR_GW = {
   id: "prem-round-${round}",

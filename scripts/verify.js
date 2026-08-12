@@ -315,21 +315,66 @@ check("every televised fixture states its own kick-off", (() => {
   return bad.length === 0;
 })());
 
-check("every FIXTURES_2627 match resolves to a real kick-off time", (() => {
+// Postponed fixtures are exempt from both date checks below and ONLY these two: they have no
+// date left to resolve, which is the entire point of the flag. Everything else still applies.
+check("every FIXTURES_2627 match resolves to a real kick-off time, or is marked postponed", (() => {
+  const bad = [];
   for (const r of D.FIXTURES_2627) for (const m of r.matches) {
-    if (typeof D.fixtureKickoffMs(r, m) !== "number") return false;
+    if (D.fixturePostponed(m)) continue;
+    if (typeof D.fixtureKickoffMs(r, m) !== "number") bad.push(`r${r.round} ${m.h}v${m.a}`);
   }
-  return true;
+  if (bad.length) console.log("      ↳ " + bad.slice(0, 5).join("\n      ↳ "));
+  return bad.length === 0;
 })());
 // Catches a wrong year or month: "Sat 2 Jan" resolving to a Friday means the season-year
 // rollover is off, and no amount of reading the fixture list would show it.
 check("every fixture's resolved weekday matches the weekday printed on it", (() => {
   const bad = [];
   for (const r of D.FIXTURES_2627) for (const m of r.matches) {
+    if (D.fixturePostponed(m)) continue;
     const label = String(m.d || r.date).split(" ")[0];
     if (D.fixtureWeekdayAbbr(r, m) !== label) bad.push(`r${r.round} ${m.h}v${m.a} says ${label}`);
   }
   if (bad.length) console.log("      ↳ " + bad.slice(0, 5).join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// A postponed fixture is the one kind of row that carries no date, so every surface that reads
+// a kick-off has to be told about it. Left unhandled it does not error — it silently inherits
+// the round's default 3pm and the app tells people to turn up to a game that is not on.
+check("a postponed fixture has no kick-off, is not offered, and says so on the page", (() => {
+  const bad = [];
+  const off = [];
+  for (const r of D.FIXTURES_2627) for (const m of r.matches) if (D.fixturePostponed(m)) off.push({ r, m });
+
+  for (const { r, m } of off) {
+    const tie = `r${r.round} ${m.h}v${m.a}`;
+    // No date to resolve, and therefore never the "next match" on the Home board.
+    if (D.fixtureKickoffMs(r, m) !== null) bad.push(`${tie}: still resolves a kick-off`);
+    if (Array.isArray(m.result)) bad.push(`${tie}: postponed but carries a result`);
+    // `pp` and `d` are mutually exclusive: one says "no new date", the other states one.
+    if (m.d) bad.push(`${tie}: marked postponed AND given a date (${m.d}) — use one or the other`);
+    // A postponed game must not be in the live Predictor gameweek.
+    if (D.PREDICTOR_GW.fixtures.some((f) => f.home?.club === m.h && f.away?.club === m.a)) {
+      bad.push(`${tie}: postponed but still in the Predictor gameweek`);
+    }
+  }
+  const next = D.nextLeagueFixture(Date.parse("2026-08-16T00:00:00Z"));
+  if (next && off.some(({ m }) => m.h === next.h && m.a === next.a)) {
+    bad.push(`the Home board would advertise postponed ${next.h}v${next.a} as the next match`);
+  }
+
+  // And the surfaces have to handle it, not merely be able to.
+  const read = (rel) => { try { return decomment(readFileSync(new URL(`../${rel}`, import.meta.url), "utf8")); } catch { return ""; } };
+  const mt = read("src/tabs/MatchesTab.jsx");
+  if (!/fixturePostponed/.test(mt)) bad.push("the by-round fixtures list no longer marks postponed games");
+  // The Fixtures tab has TWO lists and they build their rows separately. The by-club one
+  // derives its own date from `m.d || r.date`, so it printed "Sat 22 Aug · 3pm" against a
+  // postponed game while the by-round list beside it said Postponed. Both must carry it.
+  if (!/pp:\s*m\.pp/.test(mt)) bad.push("the by-club fixtures list drops the postponed flag when building its rows");
+  if (!/f\.pp\s*\?/.test(mt)) bad.push("the by-club fixtures list no longer renders the postponed state");
+  if (!/fixturePostponed/.test(read("scripts/next-gameweek.js"))) bad.push("the gameweek generator no longer skips postponed games");
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
   return bad.length === 0;
 })());
 // The bug itself lived in the COMPONENT, not the data: HomeTab indexed FIXTURES_2627[0]
@@ -906,13 +951,19 @@ check("every current club has a public/calendar/<CODE>.ics", routeClubs.every((c
 // a fixtures calendar is for. It looked fine from the outside: the files existed, the code
 // path worked, every club had one. So the check has to count what is IN them.
 const ROUTE_CLUBS_V = Object.keys(D.CLUBS).filter((k) => k !== "GLV");
-check("every club's calendar carries all 33 of its league fixtures", (() => {
+// Counts are DERIVED, not typed. They were 33 per club and 198 overall, which was right until
+// a fixture was postponed and then wrong in a way that looked like a calendar bug rather than
+// correct behaviour. A postponed game has no date, so it cannot be a calendar event at all.
+const datableFor = (club) => D.FIXTURES_2627.reduce((n, r) =>
+  n + r.matches.filter((m) => (m.h === club || m.a === club) && !D.fixturePostponed(m)).length, 0);
+check("every club's calendar carries each of its datable league fixtures", (() => {
   const bad = [];
   for (const club of ROUTE_CLUBS_V) {
     let ics = "";
     try { ics = readFileSync(new URL(`../public/calendar/${club}.ics`, import.meta.url), "utf8"); } catch { bad.push(`${club} unreadable`); continue; }
     const league = (ics.match(/UID:gibson-match-/g) || []).length;
-    if (league !== 33) bad.push(`${club} has ${league} league events, expected 33`);
+    const want = datableFor(club);
+    if (league !== want) bad.push(`${club} has ${league} league events, expected ${want}`);
   }
   if (bad.length) console.log("      ↳ " + bad.slice(0, 4).join("\n      ↳ "));
   return bad.length === 0;
@@ -924,8 +975,10 @@ check("all-fixtures.ics lists each league match exactly once", (() => {
   try { ics = readFileSync(new URL("../public/calendar/all-fixtures.ics", import.meta.url), "utf8"); } catch { return false; }
   const uids = ics.match(/UID:gibson-match-[^@]+/g) || [];
   const unique = new Set(uids);
+  const want = D.FIXTURES_2627.reduce((n, r) => n + r.matches.filter((m) => !D.fixturePostponed(m)).length, 0);
   if (uids.length !== unique.size) console.log(`      ↳ ${uids.length - unique.size} duplicate league events`);
-  return uids.length === unique.size && uids.length === 198;
+  if (uids.length !== want) console.log(`      ↳ ${uids.length} league events, expected ${want}`);
+  return uids.length === unique.size && uids.length === want;
 })());
 // A calendar entry is only useful if it points at the right moment. Spot-check against the
 // resolver rather than trusting the generator to have used it.
@@ -934,6 +987,21 @@ check("calendar kick-off times match the fixture resolver", (() => {
   try { ics = readFileSync(new URL("../public/calendar/all-fixtures.ics", import.meta.url), "utf8"); } catch { return false; }
   for (const r of D.FIXTURES_2627) {
     for (const m of r.matches) {
+      // A postponed game is deliberately absent from the calendar — nothing to time-check.
+      // Matched on the SLOT it would have occupied, not on the clubs: the same two clubs meet
+      // twice a season, so `gibson-match-LAR-LIM-` also matches their round 30 meeting and a
+      // bare club-pair test reports a fixture that is correctly present as wrongly present.
+      if (D.fixturePostponed(m)) {
+        const wouldBe = D.fixtureKickoffMs(r, { ...m, pp: undefined });
+        if (wouldBe !== null) {
+          const stamp = new Date(wouldBe).toISOString().replace(/[^0-9]/g, "");
+          if (ics.includes(`UID:gibson-match-${m.h}-${m.a}-${stamp}@`)) {
+            console.log(`      ↳ postponed ${m.h} v ${m.a} is still in the calendar at its old slot`);
+            return false;
+          }
+        }
+        continue;
+      }
       const ms = D.fixtureKickoffMs(r, m);
       if (ms === null) return false;
       const stamp = new Date(ms).toISOString().replace(/[^0-9]/g, "");
@@ -1519,7 +1587,11 @@ check("every SOCIALS account has a handle, an https URL and a header icon", (() 
 // the board object simply stopped carrying one, and nothing failed — a fixture with no time
 // looks exactly like a fixture whose time nobody set. Owner spotted it live, 7 Aug 2026.
 check("every league fixture resolves to a kick-off time", (() => D.FIXTURES_2627.every((round) => {
-  const first = D.fixtureKickoffMs(round, round.matches[0]);
+  // First PLAYABLE match, not matches[0] — round 4 leads with a postponed fixture, which by
+  // design has no kick-off, and reading position 0 blindly made this fail on correct data.
+  const lead = round.matches.find((m) => !D.fixturePostponed(m));
+  if (!lead) return true;   // a wholly postponed round has no kick-off to check
+  const first = D.fixtureKickoffMs(round, lead);
   if (first === null) return false;
   const next = D.nextLeagueFixture(first - 1000);
   return typeof next?.time === "string" && next.time.length > 0;

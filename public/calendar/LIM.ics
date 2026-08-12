@@ -23,15 +23,6 @@ LOCATION:The Showgrounds\, Limavady
 URL:https://gibsonstats.com/club/limavady-united
 END:VEVENT
 BEGIN:VEVENT
-UID:gibson-match-LAR-LIM-20260822140000000@gibsonstats.com
-DTSTAMP:20270327T150000Z
-DTSTART:20260822T140000Z
-DTEND:20260822T160000Z
-SUMMARY:Larne v Limavady United — Premiership · Round 3
-LOCATION:Inver Park\, Larne
-URL:https://gibsonstats.com/club/limavady-united
-END:VEVENT
-BEGIN:VEVENT
 UID:gibson-match-LIM-LIN-20260829140000000@gibsonstats.com
 DTSTAMP:20270327T150000Z
 DTSTART:20260829T140000Z

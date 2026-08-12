@@ -226,15 +226,6 @@ LOCATION:Windsor Park\, Belfast
 URL:https://gibsonstats.com/club/linfield
 END:VEVENT
 BEGIN:VEVENT
-UID:gibson-match-LAR-LIM-20260822140000000@gibsonstats.com
-DTSTAMP:20270327T150000Z
-DTSTART:20260822T140000Z
-DTEND:20260822T160000Z
-SUMMARY:Larne v Limavady United — Premiership · Round 3
-LOCATION:Inver Park\, Larne
-URL:https://gibsonstats.com/club/larne
-END:VEVENT
-BEGIN:VEVENT
 UID:gibson-match-CAR-COL-20260822140000000@gibsonstats.com
 DTSTAMP:20270327T150000Z
 DTSTART:20260822T140000Z
@@ -260,15 +251,6 @@ DTEND:20260822T160000Z
 SUMMARY:Crusaders v Portadown — Premiership · Round 3
 LOCATION:Seaview\, Belfast
 URL:https://gibsonstats.com/club/portadown
-END:VEVENT
-BEGIN:VEVENT
-UID:gibson-match-BAL-LAR-20260829140000000@gibsonstats.com
-DTSTAMP:20270327T150000Z
-DTSTART:20260829T140000Z
-DTEND:20260829T160000Z
-SUMMARY:Ballymena United v Larne — Premiership · Round 4
-LOCATION:The Showgrounds\, Ballymena
-URL:https://gibsonstats.com/club/larne
 END:VEVENT
 BEGIN:VEVENT
 UID:gibson-match-POR-COL-20260829140000000@gibsonstats.com

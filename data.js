@@ -148,6 +148,10 @@ export function tableStage() {
   const nominal = fixtureKickoffMs(latest, {});
   const outstanding = latest.matches.filter((m) => {
     if (Array.isArray(m.result)) return false;
+    // Postponed with no new date: the round is not waiting on it either, and it never will
+    // be — without this the header would say "round 3 · 5 of 6 played" until the rearranged
+    // game is finally played, which could be March.
+    if (fixturePostponed(m)) return false;
     const ms = fixtureKickoffMs(latest, m);
     // Pushed beyond the round's own date, so it isn't what the round is waiting on.
     if (ms !== null && nominal !== null && ms > nominal) return false;
@@ -325,10 +329,15 @@ export const FIXTURES_2627 = [
   { round: 3, date: "Sat 22 Aug", matches: [
     { h: "LIN", a: "CLI", d: "Fri 21 Aug", t: "7.45pm" },
     { h: "BAL", a: "GLE", d: "Fri 21 Aug", t: "7.45pm", tv: "BBC Sport NI" },
-    { h: "CAR", a: "COL" }, { h: "CRU", a: "POR" }, { h: "DUN", a: "BAN" }, { h: "LAR", a: "LIM" },
+    { h: "CAR", a: "COL" }, { h: "CRU", a: "POR" }, { h: "DUN", a: "BAN" },
+    // Postponed 12 Aug 2026 (NIFL) — Larne are in the Conference League play-off round.
+    // `pp` means postponed with NO new date, which is a different thing from `d` (moved to a
+    // stated date). Revised dates to be confirmed.
+    { h: "LAR", a: "LIM", pp: "Larne in the Conference League" },
   ]},
   { round: 4, date: "Sat 29 Aug", matches: [
-    { h: "BAL", a: "LAR" }, { h: "BAN", a: "CAR" }, { h: "CLI", a: "DUN" }, { h: "GLE", a: "CRU" }, { h: "LIM", a: "LIN" }, { h: "POR", a: "COL" },
+    { h: "BAL", a: "LAR", pp: "Larne in the Conference League" },   // postponed 12 Aug 2026 (NIFL), date TBC
+    { h: "BAN", a: "CAR" }, { h: "CLI", a: "DUN" }, { h: "GLE", a: "CRU" }, { h: "LIM", a: "LIN" }, { h: "POR", a: "COL" },
   ]},
   { round: 5, date: "Sat 5 Sep", matches: [
     { h: "BAN", a: "BAL" }, { h: "CLI", a: "POR" }, { h: "COL", a: "CRU" },
@@ -481,7 +490,17 @@ function seasonYearFor(monthIndex1) {
 
 // Epoch ms for a fixture, or null if its date can't be read. `match` may override the
 // round's date (`d`) and time (`t`) — a Friday night game inside a Saturday round.
+// A fixture marked `pp` has been postponed with no replacement date, so it has no kick-off to
+// resolve — null, the same answer an unreadable date gives. That matters in three places that
+// all read this function: the Home board must not advertise it as the next match, the fixtures
+// list must not print the round's default 3pm against it, and the Predictor must not offer it
+// as something to predict. Returning the round's date here would quietly do all three.
+export function fixturePostponed(match = {}) {
+  return Boolean(match.pp);
+}
+
 export function fixtureKickoffMs(round, match = {}) {
+  if (fixturePostponed(match)) return null;
   const label = match.d || round.date;
   const dm = /^(\w{3})\s+(\d{1,2})\s+(\w{3})$/.exec(String(label || "").trim());
   if (!dm) return null;
