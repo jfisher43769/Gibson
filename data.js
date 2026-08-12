@@ -693,6 +693,10 @@ export const AXES = ["Shooting", "Creation", "Passing", "Dribbling", "Defending"
 // forty-odd July entries and they never reach the front page, which is exactly what happened
 // to these three on 9 Aug 2026.
 export const TRANSFERS = [
+  { id: 55, date: "Aug", player: "Aidan Kelly", from: "CLI", toExternal: "Newington", status: "departure", note: "Centre-back leaves Solitude for Newington." },
+  { id: 54, date: "Aug", player: "Oisin Murray", from: "CLI", toExternal: "Newry City", status: "departure", note: "Goalkeeper leaves Solitude for Newry City on a free." },
+  { id: 53, date: "Aug", player: "Dylan Graham", from: "LAR", toExternal: "Annagh United (loan)", status: "departure", note: "Goalkeeper heads to Annagh United on loan for first-team minutes." },
+  { id: 52, date: "Aug", player: "Ryan Donnelly", from: "CRU", toExternal: "St James Swifts (loan)", status: "departure", note: "Right winger leaves Seaview on loan to St James Swifts." },
   { id: 49, date: "Aug", player: "Jacob Carney", fromExternal: "Glenavon", to: "LAR", status: "done", note: "Goalkeeper joins the champions from Glenavon on a free." },
   { id: 50, date: "Aug", player: "Rob Slevin", fromExternal: "Derry City", to: "COL", status: "done", note: "Centre-back arrives at The Showgrounds on loan from Derry City." },
   { id: 51, date: "Aug", player: "Jonny James", from: "CRU", toExternal: "H&W Welders", status: "departure", note: "Left-back leaves Seaview for the Welders." },
@@ -1183,7 +1187,7 @@ export const DISCIPLINE = {
 export const WINDOW = [
   { club: "LAR",
     ins: [["Josh Ukek", "Portadown"], ["Montel Gibson", "Hednesford"], ["Kevin O'Hara", "Hamilton Acad."], ["Sam McClelland", "Return from career break"], ["Jacob Carney", "Glenavon"]],
-    outs: [["Andy Ryan", "Hamilton Acad."], ["Kobei Moore", "Linfield"], ["Ryan Nolan", "Linfield"], ["Jack Hastings", "Carrick Rangers"], ["Josh Kee", "HW Welders"], ["Owen Mahoney", "Ballymena United"], ["C. Bolger", "Without club"], ["Cormac Austin", "UNC Wilmington Seahawks"], ["Logan Graham", "destination not stated"]] },
+    outs: [["Dylan Graham", "Annagh United (loan)"], ["Andy Ryan", "Hamilton Acad."], ["Kobei Moore", "Linfield"], ["Ryan Nolan", "Linfield"], ["Jack Hastings", "Carrick Rangers"], ["Josh Kee", "HW Welders"], ["Owen Mahoney", "Ballymena United"], ["C. Bolger", "Without club"], ["Cormac Austin", "UNC Wilmington Seahawks"], ["Logan Graham", "destination not stated"]] },
   { club: "LIN",
     ins: [["Ryan Nolan", "Larne"], ["Kobei Moore", "Larne"], ["Dylan Wells", "source club not stated"], ["Aidan Galvin", "source club not stated"]],
     outs: [["C. Allen", "Ballymena United"], ["J. Archer", "Ballymena United"], ["S. Whiteside", "Ballymena United"], ["C. McKee", "Ballymena United"], ["D. Walsh", "Ballymena United"], ["Ryan McKay", "Crusaders (loan)"], ["Matt Yates", "destination not stated"], ["Cameron Ballantyne", "destination not stated"], ["Alejandro Gorrin", "Retired"], ["Robbie McDaid", "destination not stated"], ["Euan East", "destination not stated"]] },
@@ -1195,10 +1199,10 @@ export const WINDOW = [
     outs: [["J. Glackin", "Dungannon"], ["Stephen Fallon", "Ballymena United"], ["G. Kelly", "Crusaders"], ["A. Tejada", "Moyola Park"], ["Jamie McGonigle", "Sligo Rovers (loan)"], ["Alfie Gaston", "Limavady United (loan)"], ["Mark Connolly", "Retired"]] },
   { club: "CRU",
     ins: [["A. Reid", "Airdrieonians"], ["G. Kelly", "Coleraine"], ["T. Maguire", "Dungannon"], ["O. Wardell", "FK Be1"], ["Shea Callister", "Derry City (loan)"], ["Ryan McKay", "Linfield (loan)"], ["Matthew Beattie", "Crusaders U18"]],
-    outs: [["J. Forsythe", "Carrick Rangers"], ["Odhr\u00e1n McCart", "Moyola Park"], ["B. Hamilton", "Moyola Park"], ["Jordan Owens", "Retired"], ["Jonny Tuffey", "Retired"], ["Musa Dibaga", "Dunfermline (fee undisclosed)"], ["Fraser Bryden", "Chesterfield"], ["Jonny James", "HW Welders"]] },
+    outs: [["Ryan Donnelly", "St James Swifts (loan)"], ["J. Forsythe", "Carrick Rangers"], ["Odhr\u00e1n McCart", "Moyola Park"], ["B. Hamilton", "Moyola Park"], ["Jordan Owens", "Retired"], ["Jonny Tuffey", "Retired"], ["Musa Dibaga", "Dunfermline (fee undisclosed)"], ["Fraser Bryden", "Chesterfield"], ["Jonny James", "HW Welders"]] },
   { club: "CLI",
     ins: [["Ben Quinn", "Portadown"], ["A. Wightman", "Glentoran"], ["K. McClelland", "Glenavon"], ["Dan O'Connor", "AFC Totton"], ["J. Thompson", "Ballymena United"], ["Ollie Samuels", "Middlesbrough (loan)"], ["Dean McMaster", "Airdrieonians"], ["Alex Bannon", "Burton Albion"]],
-    outs: [["M. Glynn", "Ballymena United"], ["J. Addis", "Ballymena United"], ["R. Jordan", "Loughgall"], ["S. Robertson", "Torquay"], ["A. Carroll", "Warrenpoint"], ["C. Pepper", "Retired"], ["Conor Falls", "Portadown"], ["Callum McCay", "Moyola Park"], ["Oisin Murray", "destination not stated"], ["Shea McGarry", "destination not stated"]] },
+    outs: [["Aidan Kelly", "Newington"], ["Oisin Murray", "Newry City"], ["M. Glynn", "Ballymena United"], ["J. Addis", "Ballymena United"], ["R. Jordan", "Loughgall"], ["S. Robertson", "Torquay"], ["A. Carroll", "Warrenpoint"], ["C. Pepper", "Retired"], ["Conor Falls", "Portadown"], ["Callum McCay", "Moyola Park"], ["Oisin Murray", "destination not stated"], ["Shea McGarry", "destination not stated"]] },
   { club: "DUN",
     ins: [["M. McElhatton", "Dergview"], ["J. Glackin", "Coleraine"], ["B. McKeown", "Glenavon"], ["Kris Lowe", "Glenavon"], ["R. Devlin", "Dungannon U18"], ["T. Connolly", "Loan return (Ballinamallard)"]],
     outs: [["K. Ximenes", "Oxford SFC"], ["T. Taggert", "Oxford SFC"], ["O. Crowe", "Annagh United"], ["Leon Boyd", "Limavady United"], ["C. Marron", "Newry City"], ["T. Maguire", "Crusaders"], ["J. Knowles", "Without club"], ["Daniel McCarron", "destination not stated"], ["Mal Smith", "destination not stated"]] },
