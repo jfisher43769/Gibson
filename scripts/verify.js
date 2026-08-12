@@ -1426,6 +1426,32 @@ check("crest text colour is the higher-contrast option and clears 3:1 for every 
   });
 })());
 
+// The Predictor card invites people to play, so every fixture and the deadline on it must be
+// the gameweek the app is actually offering — a card naming a tie the Predictor doesn't have
+// sends people to an app that contradicts the post they arrived from. It reads PREDICTOR_GW
+// and nothing else, and it must not print the competition's sponsor: that is a bookmaker's
+// name, and rule 2 draws the line at bookmaker branding on GIBSON's own advertising, which is
+// what a promo card is — the more so with --odds passed.
+check("the Predictor card reads the live gameweek and carries no bookmaker name", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../scripts/promo/predictor.mjs", import.meta.url), "utf8"); } catch { return false; }
+  const problems = [];
+  const code = decomment(src);
+  if (!/D\.PREDICTOR_GW/.test(code)) problems.push("no longer reads PREDICTOR_GW");
+  if (!/gw\.deadline/.test(code)) problems.push("no longer reads the gameweek's own deadline");
+  // Fixtures must come from the gameweek, never from argv — the same rule the European card has.
+  if (/\bfixtures\s*=\s*\[[^\]]*argv/.test(code)) problems.push("builds fixtures out of argv");
+  if (/D\.FIXTURES_2627/.test(code)) problems.push("reads FIXTURES_2627 — the card must show the gameweek the Predictor is offering, not the round");
+  // The sponsor name is allowed in the app by an owner decision (see BOOKMAKERS above); it is
+  // not allowed on a promotional graphic. Checked on the code, comments stripped, so this
+  // file's own explanation of the rule doesn't trip it.
+  if (/boyle\s?sports/i.test(code)) problems.push("prints the competition sponsor, which is a bookmaker's name");
+  // Prices, when shown, must carry the estimate label rule 2 requires.
+  if (/withOdds/.test(code) && !/GIBSON ESTIMATE/.test(code)) problems.push("shows odds without the GIBSON ESTIMATE label");
+  if (problems.length) console.log("      ↳ " + problems.join("\n      ↳ "));
+  return problems.length === 0;
+})());
+
 // A European aggregate is a claim about two other rows in the same file, so it can be checked
 // against them rather than trusted. This exists because the card generator got one wrong: it
 // read the `res` scoreline by position, assuming home-first, and those strings are not

@@ -16,7 +16,8 @@ Video generators rendering **1080x1920 (9:16) MP4s** for X and TikTok, plus two 
 | `motm.mjs` | `gibson-motm-<club>-<player>.jpg` | Man of the match — portrait, name, the line, the result |
 | `announce.mjs` | `gibson-announce-<head>.jpg` | Feature announcement — what the app can now do, shown with a real match's real numbers |
 | `release.mjs` | `gibson-release-<version>.jpg` | Release notes — what shipped and what got fixed, version read from package.json |
-| `euro.mjs` | `gibson-euro-<club>-<opp>-<leg>.jpg` | European tie — the leg, the aggregate so far, when and where, over the ground |
+| `euro.mjs` | `gibson-euro-<club>-<opp>-<leg>.jpg` | European tie — the leg, the aggregate so far, when and where, over the ground; draws the result instead once the leg has one |
+| `predictor.mjs` | `gibson-predictor-<gw>.jpg` | This week's Predictor gameweek — the ties, the scoring, the deadline. `--odds` adds the model's call per tie |
 | `poster.mjs` | `gibson-poster-<w>x<h>.png` / `.jpg` | Portrait season poster — headline type block, the season in four numbers, the twelve as a ranked list |
 
 All share `kit.js`, the drawing kit (shields, the Gibson Cup mark, impact type, sweeps, grain).
