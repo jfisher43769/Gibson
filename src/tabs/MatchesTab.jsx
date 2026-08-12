@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  CLUBS, CLUB_FIXTURES, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, SEASON, currentTable, dayMonth, feedMatchesCurrentSeason, fixturePostponed, matchDetail, seasonLabel, seasonStartDisplay, seasonStatus, tableStageLabel,
+  CLUBS, CLUB_FIXTURES, CLUB_META, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, SEASON, currentTable, dayMonth, feedMatchesCurrentSeason, fixturePostponed, matchDetail, seasonLabel, seasonStartDisplay, seasonStatus, tableStageLabel,
 } from "../../data.js";
 import { Crest } from "../components/Crest.jsx";
 import { TvBadge } from "../components/TvBadge.jsx";
@@ -628,7 +628,12 @@ export function FixturesView({ fixedClub } = {}) {
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
         <Crest club={club} size={24} tappable={false} />
         <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 20, textTransform: "uppercase", color: chalk }}>{c.name}</span>
+        {/* Ground and manager both hang off the club name. `manager` is nullable like every
+            other CLUB_META field, so it drops out rather than printing an empty separator. */}
         <span style={{ fontSize: 12, color: dim }}>· {c.ground}</span>
+        {CLUB_META[club]?.manager && (
+          <span style={{ fontSize: 12, color: dim }}>· {CLUB_META[club].manager}</span>
+        )}
       </div>
       </>)}
       {euro && (

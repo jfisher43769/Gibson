@@ -100,8 +100,9 @@ export function ClubPage({ club, onBack }) {
           from those coordinates + the 26/27 fixture list. Null fields render as
           "not yet available" rather than a guess. */}
       <ClubSection title="Club info">
-        {(meta?.founded || meta?.ground || meta?.capacity || travel) ? (
+        {(meta?.founded || meta?.ground || meta?.capacity || meta?.manager || travel) ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: 8 }}>
+            {meta?.manager && tile("Manager", meta.manager)}
             {meta?.founded && tile("Founded", meta.founded)}
             {meta?.ground && tile("Ground", meta.ground)}
             {meta?.capacity && tile("Capacity", meta.capacity.toLocaleString())}

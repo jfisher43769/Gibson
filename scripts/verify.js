@@ -1087,12 +1087,41 @@ check("OG cards are not cached immutable for a year", (() => {
 // script's shape drifted; a coordinate outside Northern Ireland would mean a club got
 // mismatched to the wrong Wikidata entity; a zero travel total would mean the haversine
 // math (or the fixture lookup feeding it) is broken, since no NIFL away trip is 0 miles.
-const CLUB_META_FIELDS = ["ground", "capacity", "lat", "lon", "founded", "website", "source"];
+const CLUB_META_FIELDS = ["ground", "capacity", "lat", "lon", "founded", "website", "manager", "source"];
 check("every current club has CLUB_META with all fields present (value or explicit null)",
   routeClubs.every((code) => {
     const m = D.CLUB_META?.[code];
     return m && CLUB_META_FIELDS.every((f) => f in m);
   }));
+// Managers are editorial — owner-supplied, never scraped (CLAUDE.md rule 4), and they change
+// mid-season, which is exactly when a stale one is most embarrassing. Each is a real person
+// named on a public page, so the bar is: a plausible full name, no duplicates (one man cannot
+// manage two Premiership clubs), and reachable in the UI rather than sitting in data unused.
+check("every club's manager is a named person, unique, and shown on the page", (() => {
+  const bad = [];
+  const seen = new Map();
+  for (const code of routeClubs) {
+    const m = D.CLUB_META?.[code];
+    const name = m?.manager;
+    if (name === null) continue;   // between managers — the UI drops the field
+    if (typeof name !== "string" || !name.trim()) { bad.push(`${code}: manager is not a name`); continue; }
+    // Two words minimum, letters only (plus the fadas, hyphens and apostrophes Irish names
+    // carry) — catches a club code, a placeholder or a half-typed entry.
+    if (!/^[\p{L}][\p{L}'’-]*(?:\s+[\p{L}][\p{L}'’.-]*)+$/u.test(name.trim())) {
+      bad.push(`${code}: "${name}" doesn't look like a full name`);
+    }
+    if (seen.has(name)) bad.push(`${name} is listed at both ${seen.get(name)} and ${code}`);
+    seen.set(name, code);
+    // Provenance, same rule as every other CLUB_META field.
+    if (!/manager/i.test(String(m.source || ""))) bad.push(`${code}: source doesn't say where the manager came from`);
+  }
+  const read = (rel) => { try { return decomment(readFileSync(new URL(`../${rel}`, import.meta.url), "utf8")); } catch { return ""; } };
+  if (!/tile\("Manager"/.test(read("src/club/ClubPage.jsx"))) bad.push("the club page no longer shows the manager");
+  if (!/CLUB_META\[club\]\?\.manager/.test(read("src/tabs/MatchesTab.jsx"))) bad.push("the by-club fixtures header no longer shows the manager");
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
 const NI_BOUNDS = { latMin: 53.9, latMax: 55.5, lonMin: -8.3, lonMax: -5.3 }; // keep in sync with scripts/fetch-wikidata.js
 check("every non-null CLUB_META coordinate falls within Northern Ireland's bounds",
   routeClubs.every((code) => {
