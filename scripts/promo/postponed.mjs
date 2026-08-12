@@ -63,15 +63,62 @@ if (!rows.length) {
 const reasons = [...new Set(rows.map((r) => r.why).filter(Boolean))];
 const oneReason = reasons.length === 1 ? reasons[0] : "";
 
+// The club common to every postponement — Larne here, since both games are off because of
+// them. Only meaningful when there is exactly one.
+const commonClub = (() => {
+  // Asked for one club explicitly? That is the club, even when a single postponement leaves
+  // two candidates and the intersection below cannot choose between them.
+  if (only && D.CLUBS[only]) return only;
+  let set = null;
+  for (const r of rows) {
+    const pair = new Set([r.home.code, r.away.code]);
+    set = set === null ? pair : new Set([...set].filter((c) => pair.has(c)));
+  }
+  return set && set.size === 1 ? [...set][0] : null;
+})();
+
+// The question the card provokes and could not answer: "so when ARE they playing?" The new
+// dates are genuinely unknown, but that club's next league game is not — it is sitting in
+// FIXTURES_2627, and it is the most useful thing that can honestly go on this card. Derived
+// the same way the Home board picks its next match: earliest kick-off still to come, skipping
+// anything postponed.
+const NOW = Number(process.env.NOW_MS) || Date.now();
+const nextUp = (() => {
+  if (!commonClub) return null;
+  let best = null;
+  for (const r of D.FIXTURES_2627) {
+    for (const m of r.matches) {
+      if (m.h !== commonClub && m.a !== commonClub) continue;
+      if (D.fixturePostponed(m) || Array.isArray(m.result)) continue;
+      const ms = D.fixtureKickoffMs(r, m);
+      if (ms === null || ms < NOW) continue;
+      if (!best || ms < best.ms) {
+        const opp = m.h === commonClub ? m.a : m.h;
+        best = {
+          ms,
+          label: `${D.CLUBS[opp]?.name || opp} (${m.h === commonClub ? "H" : "A"})`,
+          when: `${m.d || r.date}${m.t || r.time ? ` · ${m.t || r.time}` : ""}`,
+        };
+      }
+    }
+  }
+  return best;
+})();
+
 const facts = {
   headline: rows.length === 1 ? "POSTPONED" : "FIXTURES POSTPONED",
   oneReason,
   // Stated, not implied: nobody should have to guess whether a new date exists yet.
   note: "NEW DATES TO BE CONFIRMED",
+  nextUp: nextUp
+    ? { label: `NEXT UP FOR ${D.CLUBS[commonClub]?.name || commonClub}`.toUpperCase(),
+        value: `${nextUp.label} · ${nextUp.when}`.toUpperCase() }
+    : null,
   rows: rows.map((r) => ({ ...r, why: oneReason ? "" : r.why })),
 };
 
 console.log(facts.headline + (oneReason ? ` — ${oneReason}` : ""));
+if (facts.nextUp) console.log(`  ${facts.nextUp.label}: ${facts.nextUp.value}`);
 for (const r of rows) console.log(`  R${r.round}  ${r.home.name} v ${r.away.name}  (was ${r.was}, ${r.venue})`);
 
 const kit = readFileSync(join(HERE, "kit.js"), "utf8");
@@ -115,37 +162,62 @@ function fit(s,weight,maxW,start,track){
 }
 
 function backdrop(){
+  // The app's own ground, not a brown wash. The previous version graded to #160C0A and laid
+  // 3.5%-alpha stripes over it, which did not read as hazard banding — it read as a dirty
+  // JPEG, and put orange type on brown at about 3:1.
   const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'#160C0A'); g.addColorStop(0.5,'#0F0F0C'); g.addColorStop(1,'#060C0A');
+  g.addColorStop(0,'#0E1A15'); g.addColorStop(0.5,'#0B1512'); g.addColorStop(1,'#070D0B');
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-  // Warning colour, not the usual gold — this card is telling people NOT to do something, and
-  // it should not look like the fixture announcement it is contradicting.
-  const glow=ctx.createRadialGradient(W*0.5,Y(300),10,W*0.5,Y(300),W*0.9);
-  glow.addColorStop(0,'rgba(232,102,60,0.16)'); glow.addColorStop(1,'rgba(232,102,60,0)');
+  const glow=ctx.createRadialGradient(W*0.5,Y(210),10,W*0.5,Y(210),W*0.85);
+  glow.addColorStop(0,'rgba(232,102,60,0.20)'); glow.addColorStop(1,'rgba(232,102,60,0)');
   ctx.fillStyle=glow; ctx.fillRect(0,0,W,H);
-  // Diagonal hazard banding, very faint, top-left to bottom-right.
-  ctx.save(); ctx.globalAlpha=0.035; ctx.fillStyle=OFF;
-  for(let x=-H;x<W+H;x+=88*S){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x+30*S,0); ctx.lineTo(x+30*S+H,H); ctx.lineTo(x+H,H); ctx.closePath(); ctx.fill(); }
-  ctx.restore();
   vignette();
 }
 
-function tieRow(r,y,nameSize){
-  const CR=64*S;
-  shield(r.home,M+CR/2,y,CR);
-  shield(r.away,W-M-CR/2,y,CR);
-  const mid=W/2, gap=26*S;
-  T(r.home.name.toUpperCase(),mid-gap,y+nameSize*0.34,{size:nameSize,weight:800,align:'right',track:1*S});
-  T('V',mid,y+nameSize*0.30,{size:nameSize*0.5,weight:800,align:'center',color:OFF});
-  T(r.away.name.toUpperCase(),mid+gap,y+nameSize*0.34,{size:nameSize,weight:800,align:'left',track:1*S});
-  // What it WAS, struck through — the date people have in their heads.
-  const was=['ROUND '+r.round,r.was,r.venue].filter(Boolean).join('   ·   ');
-  const ws=Math.min(22*S,fit(was,600,W-M*2-CR*2-40*S,22*S,3*S));
-  const wy=y+nameSize*0.34+32*S;
-  const ww=T(was,mid,wy,{size:ws,weight:600,align:'center',color:MUTE,track:3*S});
-  ctx.fillStyle='rgba(237,245,239,0.42)';
-  ctx.fillRect(mid-ww/2,wy-ws*0.30,ww,1.5*S);
-  if(r.why) T(r.why,mid,wy+26*S,{size:20*S,weight:600,align:'center',color:OFF,track:3*S});
+// One postponed match, as a PANEL rather than a floating row. The panel is what groups a
+// crest to the name beside it and the old date underneath — before, the crests sat 320px out
+// at the card edges and read as decoration rather than as identification.
+function matchPanel(r,y,h,nameSize){
+  const x=M, w=W-M*2, CR=Math.min(74*S,h*0.42);
+  panel(x,y,w,h,18*S,'rgba(240,255,245,0.045)');
+  // A red edge down the left of every panel: the one visual that says "this one is off",
+  // repeated per match so it survives being cropped or seen at thumbnail size.
+  ctx.save(); ctx.beginPath(); ctx.roundRect(x,y,w,h,18*S); ctx.clip();
+  ctx.fillStyle=OFF; ctx.fillRect(x,y,7*S,h);
+  ctx.restore();
+
+  const padL=x+34*S, padR=x+w-34*S;
+  const nameY=y+h*0.44;
+
+  // Laid out as ONE assembled line, measured and then centred — crest, name, V, name, crest.
+  //
+  // The previous version pinned each crest to the panel padding and centred the names on the
+  // panel, so the gap between a crest and its own club's name was whatever the name's length
+  // left over: "LARNE" sat 270px clear of the Larne crest while "LIMAVADY UNITED" almost
+  // touched its own. Every crest now sits the same distance from the name it belongs to,
+  // whatever the clubs are called.
+  const hn=r.home.name.toUpperCase(), an=r.away.name.toUpperCase();
+  const CG=20*S, VG=20*S, vSize=nameSize*0.52;
+  const hw=measure(hn,nameSize,800,1*S), aw=measure(an,nameSize,800,1*S);
+  const vw=measure('V',vSize,800,0);
+  let cx=(x+w/2)-(CR+CG+hw+VG+vw+VG+aw+CG+CR)/2;
+  const crestY=nameY-nameSize*0.30;
+  shield(r.home,cx+CR/2,crestY,CR); cx+=CR+CG;
+  T(hn,cx,nameY,{size:nameSize,weight:800,track:1*S}); cx+=hw+VG;
+  T('V',cx,nameY-nameSize*0.04,{size:vSize,weight:800,color:OFF}); cx+=vw+VG;
+  T(an,cx,nameY,{size:nameSize,weight:800,track:1*S}); cx+=aw+CG;
+  shield(r.away,cx+CR/2,crestY,CR);
+
+  // The old slot, LABELLED rather than struck through. A 1.5px rule at 42% read as an
+  // underline artifact, and striking the date says the date was wrong — it wasn't, the match
+  // is off. "WAS" says the thing that is actually true.
+  const was=[r.was,r.venue].filter(Boolean).join('  ·  ');
+  const ls=20*S;
+  const lw=T('WAS',padL,y+h*0.78,{size:ls,weight:800,color:OFF,track:4*S});
+  const ws=Math.min(23*S,fit(was,600,w-68*S-lw-16*S,23*S,3*S));
+  T(was,padL+lw+16*S,y+h*0.78,{size:ws,weight:600,color:'rgba(237,245,239,0.78)',track:3*S});
+  T('ROUND '+r.round,padR,y+h*0.78,{size:20*S,weight:800,align:'right',color:'rgba(237,245,239,0.45)',track:4*S});
+  if(r.why) T(r.why,padL,y+h*0.78+30*S,{size:19*S,weight:600,color:OFF,track:3*S});
 }
 
 function draw(){
@@ -154,36 +226,47 @@ function draw(){
   T('GIBSON',M,Y(84),{size:26*S,weight:800,color:GOLD,track:8*S,shadow:true});
   T('FIXTURE NEWS',W-M,Y(84),{size:23*S,weight:600,align:'right',color:'rgba(237,245,239,0.75)',track:6*S,shadow:true});
 
-  const hs=fit(F.headline,800,W-M*2,150*S,4*S);
-  T(F.headline,W/2,Y(300),{size:hs,weight:800,align:'center',color:OFF,track:4*S,shadow:true});
+  // Headline sits tight above the matches instead of floating 300px clear of them.
+  const hs=fit(F.headline,800,W-M*2,132*S,4*S);
+  T(F.headline,W/2,Y(238),{size:hs,weight:800,align:'center',color:OFF,track:4*S,shadow:true});
   if(F.oneReason){
-    const rs=fit(F.oneReason,600,W-M*2,30*S,7*S);
-    T(F.oneReason,W/2,Y(356),{size:rs,weight:600,align:'center',color:'rgba(237,245,239,0.85)',track:7*S});
+    const rs=fit(F.oneReason,600,W-M*2,28*S,7*S);
+    T(F.oneReason,W/2,Y(288),{size:rs,weight:600,align:'center',color:'rgba(237,245,239,0.88)',track:7*S});
   }
 
-  // Rows are spaced at a capped pitch and the block is CENTRED in the space available, rather
-  // than stretched to fill it. Stretching put two postponements 500px apart with a void
-  // between them, reading as two unrelated cards rather than one list.
-  const zoneTop=Y(470), zoneBottom=Y(1060);
-  const n=F.rows.length;
-  const pitch=n>1?Math.min(200*S,(zoneBottom-zoneTop)/(n-1)):0;
-  const top=zoneTop+((zoneBottom-zoneTop)-pitch*(n-1))/2;
-  const room=(W/2)-M-64*S-26*S-16*S;
-  let nameSize=38*S;
-  for(const r of F.rows){
-    nameSize=Math.min(nameSize,
-      fit(r.home.name.toUpperCase(),800,room,38*S,1*S),
-      fit(r.away.name.toUpperCase(),800,room,38*S,1*S));
+  // Panels FILL the space between the headline and the closing line rather than being spaced
+  // out inside it and leaving 500px of nothing. Height comes from how many there are.
+  const zoneTop=Y(360), zoneBottom=Y(F.nextUp?960:1040), n=F.rows.length;
+  const gap=22*S;
+  // A lone postponement gets a taller panel — at the two-up height it floated in the middle
+  // of a zone sized for two.
+  const panelH=Math.max(140*S,Math.min((n===1?320:236)*S,((zoneBottom-zoneTop)-gap*(n-1))/n));
+  const blockH=panelH*n+gap*(n-1);
+  const top=zoneTop+((zoneBottom-zoneTop)-blockH)/2;
+
+  // One scale for every panel, chosen so the WIDEST assembled line still fits. Fitting each
+  // name independently against half a panel ignored the crests and the V sitting on the same
+  // line, which is what let a long pairing run wider than the space it actually had.
+  const CRp=Math.min(74*S,panelH*0.42), avail=(W-M*2)-68*S;
+  const lineW=(r,size)=>CRp+20*S+measure(r.home.name.toUpperCase(),size,800,1*S)
+    +20*S+measure('V',size*0.52,800,0)+20*S+measure(r.away.name.toUpperCase(),size,800,1*S)+20*S+CRp;
+  let nameSize=44*S;
+  while(nameSize>16*S && F.rows.some((r)=>lineW(r,nameSize)>avail)) nameSize-=1*S;
+  F.rows.forEach((r,i)=>matchPanel(r,top+(panelH+gap)*i,panelH,nameSize));
+
+  // What the card would otherwise leave people asking. Set apart from the postponed panels
+  // by colour and a rule, so it cannot be mistaken for another game that is off.
+  if(F.nextUp){
+    const sy=top+blockH+62*S;
+    ctx.fillStyle='rgba(237,245,239,0.14)'; ctx.fillRect(M,sy-40*S,W-M*2,1.5*S);
+    T(F.nextUp.label,W/2,sy,{size:22*S,weight:800,align:'center',color:'rgba(237,245,239,0.5)',track:6*S});
+    const vs=fit(F.nextUp.value,800,W-M*2,42*S,3*S);
+    T(F.nextUp.value,W/2,sy+48*S,{size:vs,weight:800,align:'center',color:GREEN,track:3*S,shadow:true});
   }
-  F.rows.forEach((r,i)=>{
-    const y=n>1?top+pitch*i:top+60*S;
-    if(i){ ctx.fillStyle='rgba(237,245,239,0.07)'; ctx.fillRect(M,y-pitch/2,W-M*2,1.5*S); }
-    tieRow(r,y,nameSize);
-  });
 
   const ns=fit(F.note,800,W-M*2,40*S,4*S);
-  T(F.note,W/2,Y(1130),{size:ns,weight:800,align:'center',color:GOLD,track:4*S,shadow:true});
-  T('FULL FIXTURE LIST ON GIBSON',W/2,Y(1176),{size:22*S,weight:600,align:'center',color:MUTE,track:5*S});
+  T(F.note,W/2,Y(1140),{size:ns,weight:800,align:'center',color:GOLD,track:4*S,shadow:true});
+  T('FULL FIXTURE LIST ON GIBSON',W/2,Y(1184),{size:22*S,weight:600,align:'center',color:MUTE,track:5*S});
 
   ctx.fillStyle='rgba(237,245,239,0.18)'; ctx.fillRect(M,Y(1240),W-M*2,2*S);
   cup(M+26*S,Y(1292),58*S);
