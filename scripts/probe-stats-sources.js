@@ -113,7 +113,32 @@ async function probeApiFootball(key) {
     return;
   }
   const H = { "x-apisports-key": key };
-  const leagues = await getJson("https://v3.football.api-sports.io/leagues?country=Northern%20Ireland", H);
+
+  // The country name has to be discovered, not typed. `country=Northern%20Ireland` was
+  // rejected outright — "The Country field may only contain alpha-numeric characters,
+  // underscores, and dashes" — because the space survives decoding, and the probe never got
+  // as far as asking about coverage. Whether their spelling is "Northern-Ireland",
+  // "Northern_Ireland" or something else is exactly the kind of thing to ask rather than
+  // guess, so: search /countries, then use the name it hands back verbatim.
+  const countries = await getJson("https://v3.football.api-sports.io/countries?search=ireland", H);
+  if (countries.status !== 200 || !countries.body) {
+    console.log(no(`  /countries failed (status ${countries.status}) — ${countries.raw}`));
+    return;
+  }
+  if (countries.body.errors && Object.keys(countries.body.errors).length) {
+    console.log(no(`  /countries returned errors: ${JSON.stringify(countries.body.errors)}`));
+    return;
+  }
+  const found = Array.isArray(countries.body.response) ? countries.body.response : [];
+  const ni = found.find((c) => /^northern[\s_-]?ireland$/i.test(String(c.name || "")));
+  if (!ni) {
+    console.log(no("  no Northern Ireland entry in /countries"));
+    console.log(dim(`  searching "ireland" returned: ${found.map((c) => c.name).join(", ") || "(nothing)"}`));
+    return;
+  }
+  console.log(dim(`  country as API-Football spells it: "${ni.name}"${ni.code ? ` (code ${ni.code})` : ""}`));
+
+  const leagues = await getJson(`https://v3.football.api-sports.io/leagues?country=${encodeURIComponent(ni.name)}`, H);
   if (leagues.status !== 200 || !leagues.body) {
     console.log(no(`  /leagues failed (status ${leagues.status}) — ${leagues.raw}`));
     return;
