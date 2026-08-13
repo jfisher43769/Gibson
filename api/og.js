@@ -5,6 +5,7 @@
 import React from "react";
 import { ImageResponse } from "@vercel/og";
 import { CLUBS, FULL_TABLE, MARKET_VALUES } from "../data.js";
+import { cupSvg } from "../src/lib/cup.js";
 
 export const config = { runtime: "edge" };
 
@@ -25,23 +26,10 @@ const SECTIONS = {
 const ordinal = (n) =>
   n + (n % 10 === 1 && n !== 11 ? "st" : n % 10 === 2 && n !== 12 ? "nd" : n % 10 === 3 && n !== 13 ? "rd" : "th");
 
-// The Gibson Cup on terrace steps — same geometry as LogoMark in App.jsx, as a data URI
-// so satori renders it as an image (its SVG subset is limited; an <img> is reliable).
+// The Gibson Cup, as a data URI so satori renders it as an image (its SVG subset is
+// limited; an <img> is reliable). Geometry is shared with LogoMark — see src/lib/cup.js.
 function logoDataUri(size) {
-  const svg =
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 200 200">` +
-    `<defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1">` +
-    `<stop offset="0" stop-color="#FFD873"/><stop offset="1" stop-color="#FFA51F"/>` +
-    `</linearGradient></defs><g fill="url(#a)">` +
-    `<path d="M54 38 L146 38 L138 76 C133 101 118 114 100 114 C82 114 67 101 62 76 Z"/>` +
-    `<path d="M56 46 C30 46 26 78 49 88 L54 78 C40 71 44 55 56 55 Z"/>` +
-    `<path d="M144 46 C170 46 174 78 151 88 L146 78 C160 71 156 55 144 55 Z"/>` +
-    `<rect x="92" y="114" width="16" height="15" rx="3"/>` +
-    `<rect x="70" y="132" width="60" height="10" rx="2"/>` +
-    `<rect x="57" y="145" width="86" height="10" rx="2"/>` +
-    `<rect x="43" y="158" width="114" height="10" rx="2"/>` +
-    `</g></svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(cupSvg(size))}`;
 }
 
 // Barlow Condensed to match the house type. Non-fatal: if the fetch fails, the card still

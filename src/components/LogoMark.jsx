@@ -1,22 +1,20 @@
 import React from "react";
+import { CUP_GOLD_FROM, CUP_GOLD_TO, CUP_PATHS, CUP_VIEWBOX } from "../lib/cup.js";
 
 export function LogoMark({ size = 42 }) {
-  // The Gibson Cup on terrace steps — same geometry as the app icons and og-card
+  // The Gibson Cup. Geometry lives in src/lib/cup.js and is shared with the OG card
+  // and the promo generators, so the mark cannot differ between the app and the images
+  // it posts — see that file for what the shapes are and why they are all fills.
   return (
-    <svg width={size} height={size} viewBox="0 0 200 200" aria-label="GIBSON logo — the Gibson Cup on terrace steps" style={{ flexShrink: 0 }}>
+    <svg width={size} height={size} viewBox={CUP_VIEWBOX}
+      aria-label="GIBSON logo — the Gibson Cup" style={{ flexShrink: 0 }}>
       <defs>
         <linearGradient id="lg-amber" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#FFD873" /><stop offset="1" stopColor="#FFA51F" />
+          <stop offset="0" stopColor={CUP_GOLD_FROM} /><stop offset="1" stopColor={CUP_GOLD_TO} />
         </linearGradient>
       </defs>
       <g fill="url(#lg-amber)">
-        <path d="M54 38 L146 38 L138 76 C133 101 118 114 100 114 C82 114 67 101 62 76 Z" />
-        <path d="M56 46 C30 46 26 78 49 88 L54 78 C40 71 44 55 56 55 Z" />
-        <path d="M144 46 C170 46 174 78 151 88 L146 78 C160 71 156 55 144 55 Z" />
-        <rect x="92" y="114" width="16" height="15" rx="3" />
-        <rect x="70" y="132" width="60" height="10" rx="2" />
-        <rect x="57" y="145" width="86" height="10" rx="2" />
-        <rect x="43" y="158" width="114" height="10" rx="2" />
+        {CUP_PATHS.map((d) => <path key={d} d={d} />)}
       </g>
     </svg>
   );

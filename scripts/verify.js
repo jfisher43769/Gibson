@@ -3,7 +3,9 @@
 // scripts/generate.js writes as the npm "prebuild" step (see .github/workflows/ci.yml,
 // which now builds before verifying for exactly this reason).
 import * as D from "../data.js";
+import * as D_CUP from "../src/lib/cup.js";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { TAP_MIN, contrastRatio, contrastText, chalk, DARK_TEXT, relativeLuminance, tapPad } from "../src/lib/theme.js";
 import { CLUB_TYPE, oppCode } from "../src/lib/oppcode.js";
 import { fairOdds } from "./odds-model.js";
@@ -2298,6 +2300,118 @@ check("EURO_COEFFICIENT clubsRemaining matches CLUB_FIXTURES", (() => {
   const alive = Object.values(D.CLUB_FIXTURES)
     .filter((fixtures) => !/eliminated/i.test(fixtures[fixtures.length - 1].comp || "")).length;
   return c.clubsRemaining === alive;
+})());
+
+// ---- The Gibson Cup mark ---------------------------------------------------------
+// The mark used to exist as four hand-maintained copies of the same path list: LogoMark,
+// the OG card, and the two promo drawing kits. Redrawing it meant editing four files and
+// hoping, and a missed one would have shipped a different trophy on the share cards than
+// the one in the app. Two of the four can import the source; the other two are read as
+// text and spliced into a page as a plain <script>, so they carry a generated copy —
+// the same arrangement as the three TheSportsDB club maps, and checked the same way.
+check("the promo kits' copy of the cup geometry matches src/lib/cup.js", (() => {
+  const literal = D_CUP.cupPathsLiteral();
+  return ["../scripts/promo/kit.js", "../scripts/promo/render.mjs"].every((rel) => {
+    try { return readFileSync(new URL(rel, import.meta.url), "utf8").includes(literal); }
+    catch { return false; }
+  });
+})());
+
+check("nothing keeps a private copy of the cup paths outside cup.js and the two kits", (() => {
+  // A path from the middle of the bowl: distinctive enough that finding it anywhere else
+  // means a fifth copy has appeared and the mark is free to fork again.
+  const needle = D_CUP.CUP_PARTS.bowlBody;
+  if (!needle) return false;
+  const allowed = ["src/lib/cup.js", "scripts/promo/kit.js", "scripts/promo/render.mjs"];
+  const scan = [...shippedFiles, new URL("../api/og.js", import.meta.url),
+    new URL("../scripts/promo/kit.js", import.meta.url), new URL("../scripts/promo/render.mjs", import.meta.url)];
+  const offenders = scan.filter((u) => {
+    let body = ""; try { body = readFileSync(u, "utf8"); } catch { return false; }
+    if (!body.includes(needle)) return false;
+    return !allowed.some((a) => u.pathname.endsWith(a));
+  });
+  return offenders.length === 0;
+})());
+
+// Rule 2 in cup.js: every part is a filled path. A stroke would render in the app and
+// silently vanish from every promo card, because those fill an array of Path2D.
+check("the cup mark is fills only — no strokes, which the canvas kits cannot draw", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/components/LogoMark.jsx", import.meta.url), "utf8"); } catch { return false; }
+  if (/stroke[-W]/i.test(src)) return false;
+  return !D_CUP.CUP_PATHS.some((d) => /[^MLQCAZmlqcaz0-9.,\s-]/.test(d));
+})());
+
+// The handles are the feature the owner sent the reference photos for. They must stay
+// exact mirrors: eyeballing a hand-tuned bezier against its twin does not work, and a
+// lopsided trophy is the kind of thing that looks "off" without anyone placing why.
+check("the cup's two handles are exact mirrors about the centreline", (() => {
+  const l = D_CUP.pathPoints(D_CUP.CUP_PARTS.handleLeft);
+  const r = D_CUP.pathPoints(D_CUP.CUP_PARTS.handleRight);
+  if (l.length === 0 || l.length !== r.length) return false;
+  return l.every(([lx, ly], i) => Math.abs((200 - lx) - r[i][0]) < 0.01 && Math.abs(ly - r[i][1]) < 0.01);
+})());
+
+// Both handles have to actually touch the bowl at both ends. Floating free they stop
+// being handles and become gold parentheses — and because each is traced as an open
+// ribbon rather than a closed ring, it is the bowl that completes the loop.
+check("each cup handle meets the bowl at both ends", (() => {
+  const bowlLeftEdge = 69.2, bowlSpan = [72, 131];
+  const l = D_CUP.pathPoints(D_CUP.CUP_PARTS.handleLeft);
+  const touching = l.filter(([x, y]) => x >= bowlLeftEdge - 1 && y >= bowlSpan[0] && y <= bowlSpan[1]);
+  // At least one contact point up at the shoulder and one lower down the body.
+  return touching.some(([, y]) => y < 90) && touching.some(([, y]) => y > 105);
+})());
+
+// The figure stands with a ball under his right boot — owner's correction, 13 Aug 2026,
+// after a draft that had him standing on nothing and another that buried the ball in the
+// plinth. Both facts are geometric, so both are checkable.
+check("the finial footballer's raised leg is the shorter one", (() => {
+  const bottom = (d) => Math.max(...D_CUP.pathPoints(d).map(([, y]) => y));
+  return bottom(D_CUP.CUP_PARTS.legRaised) < bottom(D_CUP.CUP_PARTS.legStanding);
+})());
+
+check("the football sits under the raised boot, resting on the plinth", (() => {
+  const { cx, cy, r } = D_CUP.BALL;
+  const boot = D_CUP.pathPoints(D_CUP.CUP_PARTS.bootRaised);
+  const bootBottom = Math.max(...boot.map(([, y]) => y));
+  const bootX = [Math.min(...boot.map(([x]) => x)), Math.max(...boot.map(([x]) => x))];
+  const plinthTop = Math.min(...D_CUP.pathPoints(D_CUP.CUP_PARTS.finialPlinth).map(([, y]) => y));
+  const plinthLeft = Math.min(...D_CUP.pathPoints(D_CUP.CUP_PARTS.finialPlinth).map(([x]) => x));
+  if (!(cx > bootX[0] && cx < bootX[1])) return false;      // ball is under the boot
+  if (!(cy - r <= bootBottom)) return false;                // boot rests on it, no gap
+  if (!(cy + r >= plinthTop)) return false;                 // ball rests on the plinth
+  return cx - r < plinthLeft;                               // and breaks its edge, so it reads round
+})());
+
+// The plaque courses step outward going down. Reversed, the base tapers to a point and
+// the trophy looks like a spinning top — which is exactly what the first draft did.
+check("the cup's plaque courses widen towards the base", (() => {
+  const widthOf = (d) => { const xs = D_CUP.pathPoints(d).map(([x]) => x); return Math.max(...xs) - Math.min(...xs); };
+  const bands = D_CUP.CUP_DRUM.filter((d) => widthOf(d) > 40);   // the two solid drum bands
+  if (bands.length !== 2) return false;
+  return widthOf(bands[1]) > widthOf(bands[0]);
+})());
+
+// The icons, favicon and static share card are committed PNGs rendered from this same
+// geometry. Redrawing the mark without re-rendering them ships an app whose home-screen
+// icon is a different trophy from the one in its own header — which is precisely what
+// the old share card did, sitting there with the clip-art cup long after it was replaced.
+check("the committed icons were rendered from the current cup geometry", (() => {
+  let stamped = "";
+  try { stamped = readFileSync(new URL("../public/mark.hash", import.meta.url), "utf8").trim(); }
+  catch { return false; }
+  const live = createHash("sha256").update(D_CUP.cupPathsLiteral()).digest("hex");
+  return stamped === live;
+})());
+
+check("every icon the manifest promises actually exists", (() => {
+  let manifest;
+  try { manifest = JSON.parse(readFileSync(new URL("../public/manifest.webmanifest", import.meta.url), "utf8")); }
+  catch { return false; }
+  if (!manifest.icons?.length) return false;
+  return manifest.icons.every((i) => existsSync(new URL(`../public${i.src}`, import.meta.url)))
+    && ["favicon.ico", "og-card.png", "gibson-mark.png"].every((f) => existsSync(new URL(`../public/${f}`, import.meta.url)));
 })());
 
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
