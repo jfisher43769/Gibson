@@ -174,21 +174,75 @@ async function probeApiFootball(key) {
 
   if (!fx.statistics_fixtures) {
     console.log(no("\n  Verdict: team match stats are NOT covered for this league/season."));
-    return;
   }
 
-  // The flag says yes; confirm real numbers come back, because a flag is a promise and a
-  // payload is evidence.
+  // Confirm the flags against a real payload, because a flag is a promise and a payload is
+  // evidence. This used to `return` the moment statistics_fixtures was false — which is exactly
+  // the case for this league, so the flags that ARE set (events, lineups) went unconfirmed and
+  // the two questions they answer, scorers and appearances, stayed open. Now every covered
+  // endpoint gets checked, and match stats are simply one of them.
   const fixtures = await getJson(`https://v3.football.api-sports.io/fixtures?league=${id}&season=${current.year}&last=1`, H);
   const f = fixtures.body?.response?.[0];
-  if (!f) { console.log(dim("  coverage says yes, but no finished fixture yet to confirm against")); return; }
-  console.log(dim(`  confirming against ${f.teams.home.name} v ${f.teams.away.name}, ${String(f.fixture.date).slice(0, 10)}`));
-  const st = await getJson(`https://v3.football.api-sports.io/fixtures/statistics?fixture=${f.fixture.id}`, H);
-  const teams = Array.isArray(st.body?.response) ? st.body.response : [];
-  if (!teams.length) { console.log(no("  ...but /fixtures/statistics came back empty for it")); return; }
-  const names = (teams[0].statistics || []).map((s) => s.type);
-  console.log(ok(`  real payload: ${names.length} stat types`), dim(names.join(", ")));
-  summariseFields(names).forEach((l) => console.log(`    ${l}`));
+  if (!f) { console.log(dim("\n  no finished fixture yet to confirm anything against")); return; }
+  const fid = f.fixture.id;
+  console.log(`\n  confirming against ${ok(`${f.teams.home.name} v ${f.teams.away.name}`)}` +
+    dim(` ${String(f.fixture.date).slice(0, 10)} · fixture ${fid} · ${f.goals.home}-${f.goals.away} (${f.fixture.status?.short})`));
+
+  // Referee and attendance were asked about directly. Report what the fixture object itself
+  // carries rather than assuming a field exists — attendance is not a coverage flag, so the
+  // only way to know is to look for it.
+  console.log(`    referee: ${f.fixture.referee ? ok(`"${f.fixture.referee}"`) : no("(empty)")}`);
+  console.log(`    venue:   ${f.fixture.venue?.name ? ok(`"${f.fixture.venue.name}"`) : no("(empty)")}`);
+  const attendKeys = [];
+  const hunt = (obj, path) => {
+    if (!obj || typeof obj !== "object" || path.length > 3) return;
+    for (const [k, v] of Object.entries(obj)) {
+      if (/attend|spectator|crowd/i.test(k)) attendKeys.push(`${[...path, k].join(".")} = ${JSON.stringify(v)}`);
+      if (v && typeof v === "object") hunt(v, [...path, k]);
+    }
+  };
+  hunt(f, []);
+  console.log(`    attendance: ${attendKeys.length ? ok(attendKeys.join(", ")) : no("no attendance-like key anywhere in the fixture object")}`);
+
+  if (fx.events) {
+    const ev = await getJson(`https://v3.football.api-sports.io/fixtures/events?fixture=${fid}`, H);
+    const rows = Array.isArray(ev.body?.response) ? ev.body.response : [];
+    if (!rows.length) {
+      console.log(no("    events:  flag says yes, but /fixtures/events came back EMPTY"));
+    } else {
+      const goals = rows.filter((r) => /goal/i.test(r.type || ""));
+      const cards = rows.filter((r) => /card/i.test(r.type || ""));
+      const subs = rows.filter((r) => /subst/i.test(r.type || ""));
+      console.log(ok(`    events:  ${rows.length} rows`) + dim(` — ${goals.length} goal, ${cards.length} card, ${subs.length} subst`));
+      // Print them: the whole question is whether a named player and a minute come back.
+      for (const g of goals) console.log(dim(`       GOAL  ${String(g.time?.elapsed ?? "?")}'  ${g.player?.name || "(no player)"}  [${g.team?.name}] ${g.detail || ""}`));
+      for (const c of cards) console.log(dim(`       CARD  ${String(c.time?.elapsed ?? "?")}'  ${c.player?.name || "(no player)"}  [${c.team?.name}] ${c.detail || ""}`));
+    }
+  }
+
+  if (fx.lineups) {
+    const lu = await getJson(`https://v3.football.api-sports.io/fixtures/lineups?fixture=${fid}`, H);
+    const rows = Array.isArray(lu.body?.response) ? lu.body.response : [];
+    if (!rows.length) {
+      console.log(no("    lineups: flag says yes, but /fixtures/lineups came back EMPTY"));
+    } else {
+      console.log(ok(`    lineups: ${rows.length} team blocks`));
+      for (const t of rows) {
+        const xi = (t.startXI || []).length, subs = (t.substitutes || []).length;
+        const sample = (t.startXI || []).slice(0, 3).map((p) => p.player?.name).filter(Boolean).join(", ");
+        console.log(dim(`       ${t.team?.name}: formation ${t.formation || "?"}, XI ${xi}, subs ${subs}${sample ? ` — e.g. ${sample}` : ""}`));
+      }
+    }
+  }
+
+  if (fx.statistics_fixtures) {
+    const st = await getJson(`https://v3.football.api-sports.io/fixtures/statistics?fixture=${fid}`, H);
+    const teams = Array.isArray(st.body?.response) ? st.body.response : [];
+    if (!teams.length) { console.log(no("    stats:   /fixtures/statistics came back empty for it")); return; }
+    const names = (teams[0].statistics || []).map((s) => s.type);
+    console.log(ok(`    stats:   ${names.length} stat types`), dim(names.join(", ")));
+    summariseFields(names).forEach((l) => console.log(`      ${l}`));
+  }
 }
 
 console.log("GIBSON — probing per-match stat sources for the NIFL Premiership");
