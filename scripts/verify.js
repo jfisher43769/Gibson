@@ -2142,5 +2142,109 @@ check("every live match reaches the front page, not just the board's own", (() =
   return /<LiveNow /.test(matches) && !/function LiveNow/.test(matches);
 })());
 
+// The all-time titles list is not limited to clubs in CLUBS: Belfast Celtic's 14 predate the
+// app's club vocabulary entirely. Both surfaces that render it (MoreTab's bar chart and the
+// club page's Honours block) used to reach straight into CLUBS[t.club] for a name and a bar
+// colour, which throws — and white-screens the tab — the moment a row names a club that isn't
+// there. A row must therefore carry its own name whenever CLUBS can't supply one.
+check("every ALL_TIME_TITLES row resolves to a name (CLUBS entry or its own `name`)",
+  D.ALL_TIME_TITLES.every((t) => (D.CLUBS[t.club] && D.CLUBS[t.club].colors?.length === 2) || typeof t.name === "string" && t.name.length > 0));
+
+check("ALL_TIME_TITLES rows have a positive integer title count", (() => {
+  return D.ALL_TIME_TITLES.every((t) => Number.isInteger(t.titles) && t.titles > 0);
+})());
+
+check("ALL_TIME_TITLES club codes are unique", (() => {
+  const s = new Set(D.ALL_TIME_TITLES.map((t) => t.club));
+  return s.size === D.ALL_TIME_TITLES.length;
+})());
+
+// MoreTab scales every bar against ALL_TIME_TITLES[0].titles. Out of order, a later row
+// would exceed 100% and overflow its track.
+check("ALL_TIME_TITLES is sorted by title count, most first", (() => {
+  return D.ALL_TIME_TITLES.every((t, i) => i === 0 || D.ALL_TIME_TITLES[i - 1].titles >= t.titles);
+})());
+
+// A club with no supplied figure must read as absent, not as "0 titles" — which would be a
+// false claim about Ballymena, Carrick, Dungannon, Bangor and Limavady.
+check("allTimeTitles() returns null, never 0, for a club with no recorded figure", (() => {
+  const missing = Object.keys(D.CLUBS).filter((k) => !D.ALL_TIME_TITLES.some((t) => t.club === k));
+  if (missing.length === 0) return false;                 // the check would be vacuous
+  if (!missing.every((k) => D.allTimeTitles(k) === null)) return false;
+  return D.ALL_TIME_TITLES.every((t) => D.allTimeTitles(t.club) === t.titles);
+})());
+
+// MoreTab and the club page must not reintroduce the unguarded lookup this section exists for.
+check("titles surfaces guard the CLUBS lookup instead of assuming it resolves", (() => {
+  let more = "", club = "";
+  try {
+    more = readFileSync(new URL("../src/tabs/MoreTab.jsx", import.meta.url), "utf8");
+    club = readFileSync(new URL("../src/club/ClubPage.jsx", import.meta.url), "utf8");
+  } catch { return false; }
+  // The bar chart falls back to the row's own name and a neutral bar colour.
+  if (!/const name = c \? c\.name : t\.name \|\| t\.club;/.test(more)) return false;
+  if (!/const barColor = c \? c\.colors\[0\] : /.test(more)) return false;
+  if (!/\{c \? <Crest club=\{t\.club\}/.test(more)) return false;
+  // The club page hides the all-time block entirely rather than printing a zero.
+  return /allTime !== null &&/.test(club);
+})());
+
+// The Big Two record line is arithmetic over this list, not a separate hand-typed number.
+check("RECORDS' Big Two total matches Linfield + Glentoran in ALL_TIME_TITLES", (() => {
+  const rec = D.RECORDS.find((r) => /Big Two/i.test(r.label));
+  if (!rec) return false;
+  const lin = D.allTimeTitles("LIN"), gle = D.allTimeTitles("GLE");
+  return Number(rec.big) === lin + gle && rec.sub.includes(String(lin + gle));
+})());
+
+// The coefficient block quotes its own numbers back inside the prose. When the owner sends a
+// fresh @NICoefficient graphic it is the rank and points that get edited, and the sentence
+// underneath is what gets forgotten.
+check("EURO_COEFFICIENT prose agrees with its own rank and points", (() => {
+  const c = D.EURO_COEFFICIENT;
+  if (!c) return true;
+  const ordinal = (n) => n + (n % 10 === 1 && n !== 11 ? "st" : n % 10 === 2 && n !== 12 ? "nd" : n % 10 === 3 && n !== 13 ? "rd" : "th");
+  if (!c.note.includes(ordinal(c.rank))) return false;
+  if (!c.note.includes(c.points.toFixed(3))) return false;
+  const self = c.neighbours.find((n) => n.country === "Northern Ireland");
+  return !!self && self.rank === c.rank && self.points === c.points;
+})());
+
+// Larne lost in the Europa League third qualifying round and dropped into the Conference
+// League play-off; the coefficient note called them "the last side standing" for two days
+// afterwards. Any claim about who is left in Europe has to agree with CLUB_FIXTURES.
+check("EURO_COEFFICIENT names as eliminated exactly the clubs CLUB_FIXTURES records as out", (() => {
+  const c = D.EURO_COEFFICIENT;
+  if (!c) return true;
+  const out = [], alive = [];
+  for (const [code, fixtures] of Object.entries(D.CLUB_FIXTURES)) {
+    const last = fixtures[fixtures.length - 1];
+    (/eliminated/i.test(last.comp || "") ? out : alive).push(code);
+  }
+  if (alive.length === 0 || out.length === 0) return false;   // nothing to assert against
+  const named = (code) => c.note.includes(D.CLUBS[code].name);
+  return out.every(named) && alive.every(named);
+})());
+
+// What actually went stale on 11 Aug was subtler than a club changing category: the note still
+// read "Larne are the last side standing", which was *true* — they had simply been beaten in the
+// Europa League third round and dropped into the Conference League play-off, and the sentence
+// said nothing about it. So the check above (who is in, who is out) passed the whole time.
+// This is the one that catches it: the prose carries the date it was last reviewed, and that
+// date cannot predate the most recent European result on the site.
+check("EURO_COEFFICIENT prose has been reviewed since the last European result", (() => {
+  const c = D.EURO_COEFFICIENT;
+  if (!c) return true;
+  const asOf = Date.parse(`${c.notesAsOf}T23:59:59Z`);
+  if (!Number.isFinite(asOf)) return false;               // the field is required, not optional
+  const latest = Object.values(D.CLUB_FIXTURES)
+    .flat()
+    .filter((f) => f.res)
+    .map((f) => Date.parse(f.dt))
+    .filter(Number.isFinite)
+    .reduce((a, b) => Math.max(a, b), 0);
+  return latest > 0 && asOf >= latest;
+})());
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);

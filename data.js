@@ -819,16 +819,37 @@ export const ROLL_OF_HONOUR = [
   { season: "2014/15", club: "CRU" },
 ];
 
+// All-time Gibson Cup wins. `mostRecent` is the last one — the number alone doesn't say
+// whether a club is a current force or hasn't won since the Heath government.
+//
+// `name` and `defunct` exist for clubs that are NOT in CLUBS. Belfast Celtic left the league in
+// 1949 and have no crest, no colours and no club page, but 14 titles is third on the all-time
+// list and a list that omitted them would be wrong rather than merely short. Anything carrying
+// `name` renders without a crest and is skipped by everything that maps a code to a club.
+//
+// Portadown (4) and Glenavon (3) are NOT in the owner's 12 Aug list, which covered the clubs
+// with titles that are in this season's Premiership plus Belfast Celtic. They are kept: the
+// list was an addition, not a replacement, and dropping them would delete two clubs' honours.
 export const ALL_TIME_TITLES = [
-  { club: "LIN", titles: 57 },
+  { club: "LIN", titles: 57, mostRecent: "2024/25" },
   { club: "GLE", titles: 23 },
+  { club: "BEL", titles: 14, name: "Belfast Celtic", defunct: true },
   { club: "CRU", titles: 7 },
   { club: "CLI", titles: 5 },
   { club: "POR", titles: 4 },
   { club: "GLV", titles: 3 },
-  { club: "LAR", titles: 3 },
-  { club: "COL", titles: 1 },
+  { club: "LAR", titles: 3, mostRecent: "2025/26" },
+  { club: "COL", titles: 1, mostRecent: "1973/74" },
 ];
+
+// The number of league titles a club has won, or null when we don't hold a figure for them —
+// which is not the same as zero and must not render as one. Ballymena, Carrick, Dungannon,
+// Bangor and Limavady are absent from ALL_TIME_TITLES because no count has been supplied,
+// not because they have never won.
+export function allTimeTitles(club) {
+  const row = ALL_TIME_TITLES.find((t) => t.club === club);
+  return row ? row.titles : null;
+}
 
 export const RECORDS = [
   { big: "1890", label: "League founded", sub: "One of the oldest national leagues in world football — the Gibson Cup its prize" },
@@ -1417,10 +1438,16 @@ export const EURO_COEFFICIENT = {
   ],
   lastSeason: { rank: 42, points: 8.33 },
   source: "@NICoefficient, 6 Aug 2026 (owner-supplied graphic)",
-  note: "Every qualifying win earns coefficient points — the country's rank decides how many European places the league gets and how its clubs are seeded. Live 5-year rolling ranking (22/23–26/27): up to 50th on 6.375, the 0.125 coming from Larne's goalless draw with FC Iberia 1999 (a qualifying draw, shared across four clubs). Larne are the last side standing — Glentoran, Linfield and Coleraine are all out. Gibraltar (6.872) hold 49th; Georgia and Luxembourg sit level on 6.250 just below.",
+  note: "Every qualifying win earns coefficient points — the country's rank decides how many European places the league gets and how its clubs are seeded. Live 5-year rolling ranking (22/23–26/27): up to 50th on 6.375, the 0.125 coming from Larne's goalless draw with FC Iberia 1999 (a qualifying draw, shared across four clubs). Larne remain the country's last side in Europe: beaten by Iberia in the Europa League third qualifying round, they drop into the Conference League play-off. Glentoran, Linfield and Coleraine are all out. Gibraltar (6.872) hold 49th; Georgia and Luxembourg sit level on 6.250 just below.",
+  // Rank and points are the 6 August snapshot and have not been re-sourced since Larne's
+  // 11 August defeat in Tbilisi. A defeat earns nothing, so 6.375 is unlikely to have moved —
+  // but "unlikely" is not "verified", so the figure stays as sourced and dated rather than
+  // being adjusted here. Refresh from @NICoefficient when the owner supplies the next graphic.
+  notesAsOf: "2026-08-13",
 };
 
-// 26/27 domestic fixtures not yet released — Europe fills the schedule for now
+// Per-club European runs for 26/27. Domestic fixtures live in FIXTURES_2627; this block is
+// the European campaign only, which is why every club here is one of the four that entered.
 export const CLUB_FIXTURES = {
   LAR: [
     { date: "8 Jul", dt: "2026-07-08T18:45:00Z", res: "0–1 W", opp: "Tre Fiori (a) — Lusty 45'", comp: "UCL Q1 · 1st leg" },

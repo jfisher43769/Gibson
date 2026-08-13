@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  CLUBS, FULL_TABLE, PREDICTOR_GW, store,
+  CLUBS, FULL_TABLE, PREDICTOR_GW, seasonStartDisplay, store,
 } from "../../data.js";
 import { Crest } from "../components/Crest.jsx";
 import { OddsDisclaimer, OddsStrip } from "../components/Odds.jsx";
@@ -119,8 +119,8 @@ function TablePredictor() {
         {dateLocked
           ? "Predictions are closed for 26/27 — your table is locked and will be scored at the season's end."
           : submitted
-            ? "Locked in. You can still edit until the season starts on 7 August."
-            : "Order all twelve clubs into your predicted 1–12 finish. Locks when the season starts on 7 August; scored at the season's end."}
+            ? `Locked in. You can still edit until the season starts on ${seasonStartDisplay()}.`
+            : `Order all twelve clubs into your predicted 1–12 finish. Locks when the season starts on ${seasonStartDisplay()}; scored at the season's end.`}
       </div>
 
       <div style={{ ...SURFACE.flat, borderRadius: 12, overflow: "hidden", margin: "12px 0" }}>
