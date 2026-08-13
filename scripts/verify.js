@@ -2246,5 +2246,59 @@ check("EURO_COEFFICIENT prose has been reviewed since the last European result",
   return latest > 0 && asOf >= latest;
 })());
 
+// A tie can be drawn before UEFA publish its kick-off times, which is exactly what happened
+// with the 26/27 Conference League play-off: both the coefficient graphic and Larne's own
+// announcement carried the dates and neither carried a time. `dt` still has to hold a
+// timestamp — the Home board orders by it — so a leg with no confirmed time carries a
+// placeholder there and must say so on the card. The failure this prevents is the placeholder
+// leaking into the display as if it were a real kick-off.
+const legHasDisplayTime = (l) => /\d{1,2}:\d{2}/.test(String(l.date || ""));
+check("a European leg shows a kick-off time only when it has one, and flags it when it doesn't", (() => {
+  const legs = D.EURO.flatMap((e) => e.legs);
+  if (legs.length === 0) return false;
+  return legs.every((l) => legHasDisplayTime(l) === (l.timeTbc !== true));
+})());
+
+check("every timeTbc leg says so on the tie card", (() => {
+  const anyTbc = D.EURO.flatMap((e) => e.legs).some((l) => l.timeTbc === true);
+  if (!anyTbc) return true;                                 // nothing to surface
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/MatchesTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  return /l\.timeTbc &&[\s\S]{0,120}kick-off TBC/.test(src);
+})());
+
+// The neighbours table is the ranking either side of us, so it has to actually be a ranking:
+// consecutive positions, descending points, and our own row agreeing with the headline rank.
+check("EURO_COEFFICIENT neighbours form a consecutive, correctly ordered ranking", (() => {
+  const n = D.EURO_COEFFICIENT && D.EURO_COEFFICIENT.neighbours;
+  if (!n || n.length < 2) return false;
+  for (let i = 1; i < n.length; i++) {
+    if (n[i].rank !== n[i - 1].rank + 1) return false;
+    if (n[i].points > n[i - 1].points) return false;
+  }
+  return n.some((r) => r.country === "Northern Ireland");
+})());
+
+// A country's per-win value is 1.000 divided by the clubs it entered — the arithmetic behind
+// every movement in this block, and the reason Larne's 0-0 was worth 0.125.
+check("EURO_COEFFICIENT per-win/per-draw match the number of clubs entered", (() => {
+  const c = D.EURO_COEFFICIENT;
+  if (!c || c.perWin === undefined) return true;
+  if (!Number.isInteger(c.clubsEntered) || c.clubsEntered < 1) return false;
+  if (Math.abs(c.perWin - 1 / c.clubsEntered) > 0.0005) return false;
+  if (Math.abs(c.perDraw - c.perWin / 2) > 0.0005) return false;
+  return Number.isInteger(c.clubsRemaining) && c.clubsRemaining <= c.clubsEntered;
+})());
+
+// Larne's remaining-club count is a claim about who is still playing, and CLUB_FIXTURES knows
+// the answer. It read "four clubs remain" for a week after three of them were knocked out.
+check("EURO_COEFFICIENT clubsRemaining matches CLUB_FIXTURES", (() => {
+  const c = D.EURO_COEFFICIENT;
+  if (!c || c.clubsRemaining === undefined) return true;
+  const alive = Object.values(D.CLUB_FIXTURES)
+    .filter((fixtures) => !/eliminated/i.test(fixtures[fixtures.length - 1].comp || "")).length;
+  return c.clubsRemaining === alive;
+})());
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);

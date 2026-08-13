@@ -208,6 +208,15 @@ LOCATION:The Showgrounds\, Limavady
 URL:https://gibsonstats.com/club/carrick-rangers
 END:VEVENT
 BEGIN:VEVENT
+UID:gibson-LAR-20260820180000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260820T180000Z
+DTEND:20260820T200000Z
+SUMMARY:Larne v Lincoln Red Imps (a) — UECL play-off · 1st leg · kick-off TBC
+LOCATION:Gibraltar
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
 UID:gibson-match-BAL-GLE-20260821184500000@gibsonstats.com
 DTSTAMP:20270327T150000Z
 DTSTART:20260821T184500Z
@@ -251,6 +260,15 @@ DTEND:20260822T160000Z
 SUMMARY:Crusaders v Portadown — Premiership · Round 3
 LOCATION:Seaview\, Belfast
 URL:https://gibsonstats.com/club/portadown
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-LAR-20260827180000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260827T180000Z
+DTEND:20260827T200000Z
+SUMMARY:Larne v Lincoln Red Imps (h) — UECL play-off · 2nd leg · Inver Park · kick-off TBC
+LOCATION:Inver Park
+URL:https://gibsonstats.com/club/larne
 END:VEVENT
 BEGIN:VEVENT
 UID:gibson-match-POR-COL-20260829140000000@gibsonstats.com
