@@ -2356,11 +2356,21 @@ check("the cup's two handles are exact mirrors about the centreline", (() => {
 // being handles and become gold parentheses — and because each is traced as an open
 // ribbon rather than a closed ring, it is the bowl that completes the loop.
 check("each cup handle meets the bowl at both ends", (() => {
-  const bowlLeftEdge = 69.2, bowlSpan = [72, 131];
-  const l = D_CUP.pathPoints(D_CUP.CUP_PARTS.handleLeft);
-  const touching = l.filter(([x, y]) => x >= bowlLeftEdge - 1 && y >= bowlSpan[0] && y <= bowlSpan[1]);
-  // At least one contact point up at the shoulder and one lower down the body.
-  return touching.some(([, y]) => y < 90) && touching.some(([, y]) => y > 105);
+  // Derived from the bowl, not hardcoded: the first version of this check carried the
+  // old geometry's coordinates and started failing the moment the cup was reproportioned,
+  // which is a check measuring the wrong thing rather than a drawing that got worse.
+  const bowl = [D_CUP.CUP_PARTS.bowlChase, D_CUP.CUP_PARTS.bowlBody];
+  const bowlLeft = Math.min(...bowl.flatMap((d) => D_CUP.pathPoints(d).map(([x]) => x)));
+  const { top, bottom } = D_CUP.extentY(bowl);
+  const span = bottom - top;
+  return [D_CUP.CUP_PARTS.handleLeft, D_CUP.CUP_PARTS.handleRight].every((h, i) => {
+    const pts = D_CUP.pathPoints(h);
+    // Mirror the right handle so one rule covers both.
+    const touching = pts.map(([x, y]) => [i === 0 ? x : 200 - x, y])
+      .filter(([x, y]) => x >= bowlLeft - 1 && y >= top && y <= bottom);
+    return touching.some(([, y]) => y < top + span * 0.35)     // joins at the shoulder
+      && touching.some(([, y]) => y > top + span * 0.6);       // and again down the body
+  });
 })());
 
 // The figure stands with a ball under his right boot — owner's correction, 13 Aug 2026,
@@ -2384,13 +2394,35 @@ check("the football sits under the raised boot, resting on the plinth", (() => {
   return cx - r < plinthLeft;                               // and breaks its edge, so it reads round
 })());
 
-// The plaque courses step outward going down. Reversed, the base tapers to a point and
-// the trophy looks like a spinning top — which is exactly what the first draft did.
+// The plaque courses step outward going down, all the way. Reversed or flattened, the
+// base stops being a drum and the trophy looks like a spinning top.
 check("the cup's plaque courses widen towards the base", (() => {
   const widthOf = (d) => { const xs = D_CUP.pathPoints(d).map(([x]) => x); return Math.max(...xs) - Math.min(...xs); };
-  const bands = D_CUP.CUP_DRUM.filter((d) => widthOf(d) > 40);   // the two solid drum bands
-  if (bands.length !== 2) return false;
-  return widthOf(bands[1]) > widthOf(bands[0]);
+  const bands = D_CUP.CUP_DRUM.filter((d) => widthOf(d) > 40);   // the solid drum bands
+  if (bands.length < 2) return false;
+  return bands.every((d, i) => i === 0 || widthOf(d) > widthOf(bands[i - 1]));
+})());
+
+// Proportions, measured off the owner's reference photographs. This is the check that
+// would have saved a whole round: the first drawing gave the finial 24% of the mark's
+// height, which reads as a mascot standing on a cup rather than the small silver figure
+// the trophy actually carries. Every section is held to the share it has in the photos.
+check("every section of the cup keeps its measured share of the height", (() => {
+  const names = Object.keys(D_CUP.CUP_SHARES);
+  if (names.length === 0) return false;
+  return names.every((n) => {
+    const share = D_CUP.heightShare(n);
+    const [lo, hi] = D_CUP.CUP_SHARES[n];
+    return share >= lo && share <= hi;
+  });
+})());
+
+// ...and the bowl stays the largest single element, which is what makes it read as a cup
+// rather than as a statue on a plinth.
+check("the bowl is the tallest section of the cup", (() => {
+  const shares = Object.keys(D_CUP.CUP_SHARES).map((n) => [n, D_CUP.heightShare(n)]);
+  const tallest = shares.reduce((a, b) => (b[1] > a[1] ? b : a));
+  return tallest[0] === "bowl";
 })());
 
 // The icons, favicon and static share card are committed PNGs rendered from this same

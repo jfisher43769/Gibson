@@ -26,6 +26,11 @@
 // courses of the bowl are the ornament. That is also why it survives being shrunk —
 // at 28px the gaps close and it reads as a solid trophy, at 512px they open into
 // individual shields.
+//
+// PROPORTIONS are measured off the reference photographs as a share of total height,
+// and are the thing most easily got wrong: a first pass drew the finial at 24% of the
+// mark, which turned a small silver figure into a mascot standing on a cup. CUP_SHARES
+// below records what was measured, and verify.js holds the drawing to it.
 
 // Gradient stops for the mark. Defined here rather than at each call site, which is
 // how the previous version ended up with four copies of the same two hex values.
@@ -67,7 +72,7 @@ function shieldCourse(top, height, count, halfWidth) {
 
 // The football under his right boot. Named so the checks can assert where it sits
 // relative to the boot rather than pattern-matching a path string.
-export const BALL = { cx: 93, cy: 41.6, r: 5 };
+export const BALL = { cx: 96.4, cy: 27.4, r: 2.7 };
 
 // Named parts, so verify.js can make claims about the drawing that mean something —
 // "the raised leg is shorter than the standing one", not "this regex still matches".
@@ -76,29 +81,29 @@ export const CUP_PARTS = {
   // Torso and arms are flush, not separated by slivers of background: at the size this
   // ships those gaps are noise, and one silhouette with a step at each shoulder reads
   // as a person where three floating blocks read as a robot.
-  head: circle(100, 9.5, 4.2),
-  torso: "M96 15 L104 15 L104.8 28 L95.2 28 Z",
-  armLeft: "M93.4 16 L96 16 L96 27 L93.8 27 Z",
-  armRight: "M104 16 L106.6 16 L106.6 27 L104.2 27 Z",
-  legRaised: "M95.8 28 L99.2 28 L99.2 34.5 L95.8 34.5 Z",
-  bootRaised: "M91.5 34.5 L99.2 34.5 L99.2 37.6 L91.5 37.6 Z",
+  head: circle(100, 9.2, 3.1),
+  torso: "M97.6 12.4 L102.4 12.4 L103 19.8 L97 19.8 Z",
+  armLeft: "M95.8 13.2 L97.6 13.2 L97.6 19.4 L96 19.4 Z",
+  armRight: "M102.4 13.2 L104.2 13.2 L104 19.4 L102.4 19.4 Z",
+  legRaised: "M97.8 19.8 L99.6 19.8 L99.6 23.4 L97.8 23.4 Z",
+  bootRaised: "M95.4 23.4 L99.6 23.4 L99.6 25.2 L95.4 25.2 Z",
   ball: circle(BALL.cx, BALL.cy, BALL.r),
-  legStanding: "M100.8 28 L104.2 28 L104.2 42.5 L100.8 42.5 Z",
-  bootStanding: "M100 42.5 L107 42.5 L107 45.6 L100 45.6 Z",
+  legStanding: "M100.8 19.8 L102.6 19.8 L102.6 27.6 L100.8 27.6 Z",
+  bootStanding: "M100.4 27.6 L104.4 27.6 L104.4 29.4 L100.4 29.4 Z",
   // Narrower than the ball is wide, so the ball's curve breaks the plinth's edge and
   // reads as a sphere rather than merging into the bar.
-  finialPlinth: "M89.8 45.8 L110.2 45.8 L110.2 49.4 L89.8 49.4 Z",
+  finialPlinth: "M94.4 29.6 L105.6 29.6 L105.6 32 L94.4 32 Z",
 
   // ---- Domed lid ------------------------------------------------------------
-  lidDome: "M100 50.2 C89 50.2 79.5 56.8 76 64.8 L124 64.8 C120.5 56.8 111 50.2 100 50.2 Z",
-  lidRim: "M73 65.8 L127 65.8 L127 70.8 L73 70.8 Z",
+  lidDome: "M100 33 C88 33 78 40 74.5 46 L125.5 46 C122 40 112 33 100 33 Z",
+  lidRim: "M71.5 46.8 L128.5 46.8 L128.5 51.6 L71.5 51.6 Z",
 
   // ---- Bowl -----------------------------------------------------------------
   // Two courses, weighted so the smooth lower mass dominates: that is the plain oval
   // cartouche carrying the inscription, with the chasing above it.
-  bowlChase: "M68.5 72 L131.5 72 L130.6 80.4 L69.4 80.4 Z",
-  bowlBody: "M69.2 82 L130.8 82 C129.6 97 126 113 119.4 123 C116.4 127.4 112.6 130 108.6 131 "
-    + "L91.4 131 C87.4 130 83.6 127.4 80.6 123 C74 113 70.4 97 69.2 82 Z",
+  bowlChase: "M67 52.8 L133 52.8 L132 61 L68 61 Z",
+  bowlBody: "M67.8 62.6 L132.2 62.6 C131 78 127.4 96 121 106.5 C118 111 114 113.8 110 114.8 "
+    + "L90 114.8 C86 113.8 82 111 79 106.5 C72.6 96 69 78 67.8 62.6 Z",
 
   // ---- Handles --------------------------------------------------------------
   // A forged ribbon: it leaves the bowl at the shoulder, loops out and down, and returns
@@ -109,28 +114,31 @@ export const CUP_PARTS = {
   // An earlier draft used true concentric rings. They punched correctly in both SVG and
   // canvas and still looked wrong: perfect ellipses stuck on the sides, nothing like
   // forged metal. The two must stay exact mirrors about x=100; verify.js checks it.
-  handleLeft: "M70 74.5 C56 70 43 76 40.5 89 C38.5 101 45 112 57 117.5 "
-    + "C62 119.6 68 120.4 73.5 120.2 L73.8 112.6 C69 112.6 64 111.6 60 109.6 "
-    + "C51 105 47.6 97 49.4 89 C51 82 58.5 78.4 70.2 82.4 Z",
-  handleRight: "M130 74.5 C144 70 157 76 159.5 89 C161.5 101 155 112 143 117.5 "
-    + "C138 119.6 132 120.4 126.5 120.2 L126.2 112.6 C131 112.6 136 111.6 140 109.6 "
-    + "C149 105 152.4 97 150.6 89 C149 82 141.5 78.4 129.8 82.4 Z",
+  handleLeft: "M68.6 55.5 C53.9 50.8 40.3 57.1 37.7 70.6 C35.6 83 42.4 94.5 55 100.2 "
+  + "C60.2 102.4 66.5 103.2 72.2 103 L72.6 95.1 C67.5 95.1 62.3 94.1 58.1 92 "
+  + "C48.7 87.2 45.1 78.9 47 70.6 C48.7 63.3 56.5 59.6 68.8 63.7 Z",
+  handleRight: "M131.4 55.5 C146.1 50.8 159.7 57.1 162.3 70.6 C164.4 83 157.6 94.5 145 100.2 "
+  + "C139.8 102.4 133.5 103.2 127.8 103 L127.4 95.1 C132.5 95.1 137.7 94.1 141.9 92 "
+  + "C151.3 87.2 154.9 78.9 153 70.6 C151.3 63.3 143.5 59.6 131.2 63.7 Z",
 
   // ---- Stem and knop --------------------------------------------------------
-  stemNeck: "M93.4 131.6 L106.6 131.6 L106.6 137 L93.4 137 Z",
-  stemKnop: "M86 138.2 L114 138.2 L110.6 146 L89.4 146 Z",
+  stemNeck: "M94.6 115.6 L105.4 115.6 L105.4 119.8 L94.6 119.8 Z",
+  stemKnop: "M88 120.4 L112 120.4 L109.4 126.6 L90.6 126.6 Z",
 
   // ---- Engraved band and plinth ---------------------------------------------
-  baseBand: "M44 170.4 L156 170.4 L156 179 L44 179 Z",
-  basePlinth: "M39 180.4 L161 180.4 L161 192 L39 192 Z",
+  baseBand: "M48 166 L152 166 L152 174.4 L48 174.4 Z",
+  basePlinth: "M43 175.4 L157 175.4 L157 192 L43 192 Z",
 };
 
 // The two courses of winners' plaques, stepping outward towards the base.
 export const CUP_DRUM = [
-  ...shieldCourse(147.6, 10.4, 11, 38),
-  ...shieldCourse(158.8, 10.4, 13, 46),
+  ...shieldCourse(127.4, 12.2, 9, 33),
+  ...shieldCourse(140, 12.2, 11, 40),
+  ...shieldCourse(152.6, 12.2, 13, 47),
 ];
 
+// Which parts make up each section of the trophy, so the proportions can be checked
+// rather than eyeballed.
 const P = CUP_PARTS;
 export const CUP_PATHS = [
   P.head, P.torso, P.armLeft, P.armRight,
@@ -142,6 +150,39 @@ export const CUP_PATHS = [
   ...CUP_DRUM,
   P.baseBand, P.basePlinth,
 ];
+
+export const CUP_SECTIONS = {
+  finial: [P.head, P.torso, P.armLeft, P.armRight, P.legRaised, P.bootRaised, P.ball,
+    P.legStanding, P.bootStanding, P.finialPlinth],
+  lid: [P.lidDome, P.lidRim],
+  bowl: [P.bowlChase, P.bowlBody],
+  stem: [P.stemNeck, P.stemKnop],
+  drum: CUP_DRUM,
+  base: [P.baseBand, P.basePlinth],
+};
+
+// Share of total height each section should occupy, measured off the reference photos.
+// Ranges, not exact figures — the photos are hand-measured off three different angles,
+// so these are "what the real trophy looks like", not spurious precision.
+export const CUP_SHARES = {
+  finial: [0.09, 0.17],
+  lid: [0.08, 0.14],
+  bowl: [0.29, 0.37],
+  stem: [0.04, 0.09],
+  drum: [0.17, 0.27],
+  base: [0.10, 0.17],
+};
+
+// The vertical extent of a group of paths, and the mark's total height.
+export function extentY(paths) {
+  const ys = paths.flatMap((d) => pathPoints(d).map(([, y]) => y));
+  return { top: Math.min(...ys), bottom: Math.max(...ys) };
+}
+export function heightShare(section) {
+  const all = extentY(CUP_PATHS);
+  const s = extentY(CUP_SECTIONS[section]);
+  return (s.bottom - s.top) / (all.bottom - all.top);
+}
 
 // Every (x, y) pair in a path, in order — used by the checks to reason about the drawing
 // (is this leg shorter, are these two shapes mirrored) without parsing SVG properly.
