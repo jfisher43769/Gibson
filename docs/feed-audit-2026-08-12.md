@@ -169,6 +169,65 @@ should happen before anything is built.
 
 ---
 
+## 4b. Confirmed against a real payload — 13 August
+
+The flags in §4a were promises. They have now been tested against an actual Irish League
+fixture, and two things came out of it: the data is real, and the free plan cannot reach the
+current season.
+
+**The plan wall.** `/fixtures?league=408&season=2026` is refused outright:
+
+```
+API said: {"plan":"Free plans do not have access to this season, try from 2022 to 2024."}
+without the season filter: {"plan":"Free plans do not have access to the Last parameter."}
+```
+
+So no 2026 fixture can be fetched on this key at all. The probe falls back to season 2024 —
+the newest the plan allows — purely to test the **shape** of the data.
+
+**The shape.** Run 8 · `31688380053` · commit `aebb563` · 2026-08-13T09:50:23Z:
+
+```
+  season 2024: 233 fixtures, 233 finished
+  confirming against Coleraine FC v Cliftonville FC  2025-05-11 · fixture 1374874 · 0-2 (FT)
+    referee: "B. McMaster"
+    venue:   "The Showgrounds"
+    attendance: no attendance-like key anywhere in the fixture object
+    events:  18 rows — 2 goal, 7 card, 9 subst
+       GOAL  31'  Rory Hale    [Cliftonville FC] Normal Goal
+       GOAL  66'  A. Piesold   [Cliftonville FC] Normal Goal
+       CARD  18'  D. McManus   [Coleraine FC]    Yellow Card
+       CARD  55'  M. Little    [Coleraine FC]    Red Card
+       CARD  90'  J. Glackin   [Coleraine FC]    Yellow Card
+    lineups: 2 team blocks
+       Coleraine FC:    formation ?, XI 11, subs 7 — e.g. M. Little, C. Dunne, L. Ives
+       Cliftonville FC: formation ?, XI 11, subs 7 — e.g. L. Ridd, L. Conlan, J. Addis
+```
+
+This is a real NIFL Premiership match with named scorers, minutes, card colours, and both
+starting elevens. **The coverage flags are not hollow.** For a league this size that was the
+open question, and it is now closed.
+
+Four findings worth carrying forward:
+
+1. **Attendance does not exist.** Not a missing flag — the probe walked the entire fixture
+   object for any key matching attend/spectator/crowd and found none. Attendance tracking is
+   off the table from this provider, definitively.
+2. **Referee IS populated** — "B. McMaster". That was an open question in §2 and is now
+   answered for API-Football (still unknown for TheSportsDB).
+3. **Formation came back empty** (`?`) on both teams, while the elevens themselves are
+   populated. So lineups are usable for appearances but not for shape-of-team.
+4. **Names arrive abbreviated** — "A. Piesold", "D. McManus", "J. Glackin", though "Rory Hale"
+   came in full. `data.js` spells names out. Any build has to reconcile the two, which is the
+   same surname-plus-initial matching `verify.js` already does for the WINDOW ledger. It is a
+   known cost, not a blocker, but it is not free either.
+
+**What this changes about cost.** Everything buildable here needs a paid plan, because the free
+tier stops at 2024. That converts "add a free key" into a recurring bill, which is a different
+decision and the owner's to make.
+
+---
+
 ## 5. Verdict — what could be built from this data as it stands
 
 > Superseded in part by §4a. The table below describes **the existing `/api/events` endpoint**,
@@ -198,15 +257,16 @@ is "empty".
 
 | Feature | From `/api/events` today | With API-Football (league 408) |
 |---|---|---|
-| **Live scorer charts** | No | **Yes, likely** — `events` carries goals with scorer and minute |
-| **Player appearances** | No | **Yes, likely** — `lineups` covered |
-| **Discipline records** | No | **Yes, likely** — cards are `events` |
-| **Attendance tracking** | No | **Unknown** — not a coverage flag; needs a payload to answer |
+| **Live scorer charts** | No | **Yes — confirmed.** Named scorer + minute in a real payload |
+| **Player appearances** | No | **Yes — confirmed.** Both XIs + subs, named |
+| **Discipline records** | No | **Yes — confirmed.** Yellow/red with player and minute |
+| **Attendance tracking** | No | **No — confirmed absent.** No such key exists on the fixture |
 | **Possession / shots / corners** | No | **No** — `statistics_fixtures` false. Both sources agree. Hand entry stays. |
 | League top-scorer table | No | **Not served**, but derivable by aggregating goal events |
 
-"Likely" is doing real work in that table: it means the provider says covered, and nobody has
-seen a payload yet. Treat all three as unconfirmed until a real fixture is fetched.
+All three confirmations came off one real fixture (§4b), so they are evidence rather than a
+provider's promise. **But every one of them needs a paid plan**: the free tier is capped at
+season 2024 and cannot see 2026 at all.
 
 The shape of any build would also be new. `/api/events` is a scores endpoint fed by
 TheSportsDB; none of this arrives through it. Goals, cards and lineups would mean a second
