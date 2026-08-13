@@ -191,18 +191,27 @@ async function probeApiFootball(key) {
     const hasErrs = errs && (Array.isArray(errs) ? errs.length : Object.keys(errs).length);
     console.log(no(`\n  /fixtures?league=${id}&season=${current.year}&last=1 returned nothing`));
     console.log(hasErrs ? no(`    API said: ${JSON.stringify(errs)}`) : dim(`    no error given; results=${fixtures.body?.results}`));
-    // A free plan is typically pinned to older seasons. Ask the API which seasons it will
-    // actually serve, rather than assuming the current one is available.
-    const seen = await getJson(`https://v3.football.api-sports.io/fixtures?league=${id}&last=1`, H);
-    const alt = seen.body?.response?.[0];
-    if (alt) {
-      console.log(dim(`    but /fixtures?league=${id}&last=1 (no season) did return one — season ${alt.league?.season}`));
-      f = alt;
-    } else {
-      const e2 = seen.body?.errors;
-      console.log(dim(`    and without the season filter: results=${seen.body?.results}${e2 && Object.keys(e2).length ? ` errors=${JSON.stringify(e2)}` : ""}`));
+    // The plan error names the seasons it WILL serve ("try from 2022 to 2024"). Take the
+    // newest of those and confirm against it.
+    //
+    // This does not get us current data — it cannot, on this plan. What it settles is whether
+    // "covered" is real or hollow for a league this small: a provider can flag events as
+    // covered and still return nothing for the Irish League. If an older season comes back
+    // with named scorers and minutes, the data genuinely exists and the only barrier is the
+    // paywall. If it comes back empty, paying would buy nothing.
+    const range = /from\s+(\d{4})\s+to\s+(\d{4})/i.exec(JSON.stringify(errs || ""));
+    if (!range) { console.log(dim("    no allowed season range given — stopping here")); return; }
+    const allowed = Number(range[2]);
+    console.log(dim(`    falling back to season ${allowed}, which this plan allows, to test the SHAPE of the data`));
+    const older = await getJson(`https://v3.football.api-sports.io/fixtures?league=${id}&season=${allowed}`, H);
+    const rows = Array.isArray(older.body?.response) ? older.body.response : [];
+    const finished = rows.filter((r) => /^(FT|AET|PEN)$/i.test(r.fixture?.status?.short || ""));
+    if (!finished.length) {
+      console.log(no(`    season ${allowed} returned ${rows.length} fixtures, none finished — cannot test the shape`));
       return;
     }
+    f = finished[finished.length - 1];
+    console.log(dim(`    season ${allowed}: ${rows.length} fixtures, ${finished.length} finished`));
   }
   const fid = f.fixture.id;
   console.log(`\n  confirming against ${ok(`${f.teams.home.name} v ${f.teams.away.name}`)}` +
