@@ -182,8 +182,28 @@ async function probeApiFootball(key) {
   // the two questions they answer, scorers and appearances, stayed open. Now every covered
   // endpoint gets checked, and match stats are simply one of them.
   const fixtures = await getJson(`https://v3.football.api-sports.io/fixtures?league=${id}&season=${current.year}&last=1`, H);
-  const f = fixtures.body?.response?.[0];
-  if (!f) { console.log(dim("\n  no finished fixture yet to confirm anything against")); return; }
+  let f = fixtures.body?.response?.[0];
+  if (!f) {
+    // "No finished fixture" and "your plan cannot see this season" look identical from an
+    // empty response array, and they mean completely different things. API-Football puts the
+    // reason in `errors`, which this used to swallow — so say what it actually said.
+    const errs = fixtures.body?.errors;
+    const hasErrs = errs && (Array.isArray(errs) ? errs.length : Object.keys(errs).length);
+    console.log(no(`\n  /fixtures?league=${id}&season=${current.year}&last=1 returned nothing`));
+    console.log(hasErrs ? no(`    API said: ${JSON.stringify(errs)}`) : dim(`    no error given; results=${fixtures.body?.results}`));
+    // A free plan is typically pinned to older seasons. Ask the API which seasons it will
+    // actually serve, rather than assuming the current one is available.
+    const seen = await getJson(`https://v3.football.api-sports.io/fixtures?league=${id}&last=1`, H);
+    const alt = seen.body?.response?.[0];
+    if (alt) {
+      console.log(dim(`    but /fixtures?league=${id}&last=1 (no season) did return one — season ${alt.league?.season}`));
+      f = alt;
+    } else {
+      const e2 = seen.body?.errors;
+      console.log(dim(`    and without the season filter: results=${seen.body?.results}${e2 && Object.keys(e2).length ? ` errors=${JSON.stringify(e2)}` : ""}`));
+      return;
+    }
+  }
   const fid = f.fixture.id;
   console.log(`\n  confirming against ${ok(`${f.teams.home.name} v ${f.teams.away.name}`)}` +
     dim(` ${String(f.fixture.date).slice(0, 10)} · fixture ${fid} · ${f.goals.home}-${f.goals.away} (${f.fixture.status?.short})`));
