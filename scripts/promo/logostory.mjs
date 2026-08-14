@@ -75,8 +75,8 @@ h1{position:absolute;top:104px;left:60px;right:60px;margin:0;font-size:76px;font
 .foot2{position:absolute;bottom:46px;right:60px;font-size:24px;font-weight:600;color:rgba(237,245,239,0.4)}
 .mark{position:absolute}
 .lab{position:absolute;width:300px}
-.lab b{display:block;font-size:29px;font-weight:800;color:#FFB627;line-height:1.1;margin-bottom:6px}
-.lab span{font-size:24px;font-weight:600;color:rgba(237,245,239,0.7);line-height:1.34}
+.lab b{display:block;font-size:27px;font-weight:800;color:#FFB627;line-height:1.1;margin-bottom:6px}
+.lab span{font-size:21px;font-weight:600;color:rgba(237,245,239,0.7);line-height:1.34}
 .rule{position:absolute;height:2px;background:rgba(255,182,39,0.45)}
 .bar{position:absolute;left:60px;right:60px;height:56px;display:flex;align-items:center;gap:18px}
 .bar .n{width:210px;font-size:30px;font-weight:600;color:rgba(237,245,239,0.72);text-transform:capitalize}
@@ -112,20 +112,20 @@ const SLIDES = [
 
   // 3 — anatomy, labels anchored to the geometry
   (() => {
-    const top = 250, size = 900;                       // the mark's box on this slide
+    // The mark has to leave room for a label column each side. At 900px it did not, and the
+    // callouts sat on top of the trophy. The drawn cup is about 63% of its box wide, so a
+    // 520px box puts the artwork between x=376 and x=704 and the columns clear it.
+    const top = 320, size = 520;
     const toY = (cupY) => top + (cupY / 200) * size;
-    const cx = W / 2;
     return `${chrome(3, "Anatomy")}
       <h1>Every part<br>is on the cup</h1>
-      <div class="mark" style="left:${cx - size / 2}px;top:${top}px;width:${size}px;height:${size}px">${svgOf(CUP_PATHS)}</div>
+      <div class="mark" style="left:${(W - size) / 2}px;top:${top}px;width:${size}px;height:${size}px">${svgOf(CUP_PATHS)}</div>
       ${ANATOMY.map((a) => {
         const y = toY(a.y);
         const left = a.side < 0;
-        const lx = left ? 46 : W - 46 - 300;
-        const rx = left ? 352 : W - 352 - 96;
-        return `<div class="lab" style="left:${lx}px;top:${y - 34}px;text-align:${left ? "right" : "left"}">
+        return `<div class="lab" style="left:${left ? 40 : 740}px;top:${y - 36}px;text-align:${left ? "right" : "left"}">
                   <b>${a.title}</b><span>${a.body}</span></div>
-                <div class="rule" style="left:${rx}px;top:${y}px;width:96px"></div>`;
+                <div class="rule" style="left:${left ? 348 : 708}px;top:${y}px;width:26px"></div>`;
       }).join("")}`;
   })(),
 
@@ -143,14 +143,19 @@ const SLIDES = [
   `${chrome(5, "Scale")}
    <h1>It has to<br>work tiny</h1>
    <div class="sub" style="top:280px">The gaps between the plaques ARE the detail. They close up as it shrinks, so it reads as a solid trophy at the size of a browser tab.</div>
-   ${[420, 220, 120, 64, 32].reduce((acc, s, i, arr) => {
-     const gap = 40;
-     const total = arr.reduce((n, x) => n + x, 0) + gap * (arr.length - 1);
-     const startX = (W - total) / 2;
-     const x = startX + arr.slice(0, i).reduce((n, x2) => n + x2, 0) + gap * i;
-     return acc + `<div class="mark" style="left:${x}px;top:${760 - s / 2}px;width:${s}px;height:${s}px">${svgOf(CUP_PATHS)}</div>`
-       + `<div class="cap" style="left:${x}px;top:${810}px;width:${s}px">${s}px</div>`;
-   }, "")}`,
+   ${(() => {
+     // Sat on a shared baseline like a size ramp, with the captions below it — centring each
+     // one on the same y meant the 420px mark covered its own label.
+     const sizes = [420, 220, 120, 64, 32], BASE = 900, gap = 44;
+     const total = sizes.reduce((n, x) => n + x, 0) + gap * (sizes.length - 1);
+     let x = (W - total) / 2;
+     return sizes.map((sz) => {
+       const el = `<div class="mark" style="left:${x}px;top:${BASE - sz}px;width:${sz}px;height:${sz}px">${svgOf(CUP_PATHS)}</div>`
+         + `<div class="cap" style="left:${x - 20}px;top:${BASE + 22}px;width:${sz + 40}px">${sz}px</div>`;
+       x += sz + gap;
+       return el;
+     }).join("");
+   })()}`,
 
   // 6 — close
   `${chrome(6, "Live now")}
