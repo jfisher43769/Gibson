@@ -9,6 +9,7 @@ import { createHash } from "node:crypto";
 import { TAP_MIN, contrastRatio, contrastText, chalk, DARK_TEXT, relativeLuminance, tapPad } from "../src/lib/theme.js";
 import { CLUB_TYPE, oppCode } from "../src/lib/oppcode.js";
 import { fairOdds } from "./odds-model.js";
+import * as OM from "./odds-model.js";
 import { bucket as bucketEvents } from "../api/events.js";
 let fails = 0;
 // `ok` is a VALUE, not a callback — every check here passes the result of an IIFE. Passing
@@ -2444,6 +2445,167 @@ check("every icon the manifest promises actually exists", (() => {
   if (!manifest.icons?.length) return false;
   return manifest.icons.every((i) => existsSync(new URL(`../public${i.src}`, import.meta.url)))
     && ["favicon.ico", "og-card.png", "gibson-mark.png"].every((f) => existsSync(new URL(`../public/${f}`, import.meta.url)));
+})());
+
+// ---- The odds model --------------------------------------------------------------
+// These numbers are published as "GIBSON estimate" next to real fixtures, so the properties
+// that make them honest are pinned here rather than trusted to survive the next edit.
+
+// Fair odds means no margin: the three implied probabilities sum to 1.000. A bookmaker's
+// board sums to ~1.06 and the difference is their cut. Publishing a number with a hidden
+// margin under the word "fair" would be a lie about what the figure is.
+check("every fixture the model prices is a fair book — implied probabilities sum to 1", (() => {
+  const bad = [];
+  for (const f of D.PREDICTOR_GW.fixtures) {
+    const o = fairOdds(f.home.club, f.away.club, D);
+    if (!o) { bad.push(`${f.home.club} v ${f.away.club}: unpriced`); continue; }
+    const book = 1 / o.home + 1 / o.draw + 1 / o.away;
+    if (Math.abs(book - 1) > 0.006) bad.push(`${f.home.club} v ${f.away.club}: book ${book.toFixed(4)}`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// The scale factor exists to pin modelled goals to the measured figure. Centring the ratings
+// does not do it on its own, because E[exp(x)] > exp(E[x]) — before this was solved for, the
+// model ran about 4% hot on goals, which quietly shortens every favourite.
+check("the model's goals per game matches the measured league rate", (() => {
+  const r = OM.ratings(D, { includeCurrent: false });
+  if (!r) return false;
+  const clubs = Object.keys(r.att);
+  let sum = 0, n = 0;
+  for (const h of clubs) for (const a of clubs) {
+    if (h === a) continue;
+    const l = OM.lambdas(h, a, D, { includeCurrent: false });
+    if (l) { sum += l.lh + l.la; n++; }
+  }
+  return n > 0 && Math.abs(sum / n - OM.goalsPerGame(D).value) < 0.05;
+})());
+
+// Home advantage has to point the right way and stay a nudge. A sign error here would be
+// invisible in any single price and wrong in every one of them.
+check("home advantage favours the home side, and only modestly", (() => {
+  const r = OM.ratings(D, { includeCurrent: false });
+  const clubs = Object.keys(r.att).filter((c) => D.CLUBS[c]);
+  if (clubs.length < 2) return false;
+  if (!(OM.LOG_HOME > 0 && OM.LOG_HOME < 0.3)) return false;
+  // Same club against itself: the only difference left is the venue.
+  const [c] = clubs;
+  const l = OM.lambdas(c, c, D, { includeCurrent: false });
+  return l.lh > l.la && l.lh / l.la < 1.6;
+})());
+
+// Playing at home must never make a club less likely to win. Stated as "swapping the fixture
+// mirrors the price" this check FAILED, and the check was wrong rather than the model: the
+// draw probability is not invariant under a swap, because home advantage attaches to the
+// venue and not to the club. What must hold is the directional version below — and it is the
+// one that would actually catch a sign error on LOG_HOME.
+check("playing at home never makes a club less likely to win", (() => {
+  const r = OM.ratings(D, { includeCurrent: false });
+  const clubs = Object.keys(r.att).filter((c) => D.CLUBS[c]);
+  for (const h of clubs) for (const a of clubs) {
+    if (h === a) continue;
+    const atHome = OM.outcomeProbs(h, a, D, { includeCurrent: false }).home;
+    const away = OM.outcomeProbs(a, h, D, { includeCurrent: false }).away;
+    if (!(atHome > away)) return false;
+  }
+  return true;
+})());
+
+// A better attack must never make a club a longer price, and a leakier defence must never
+// make it a shorter one. This is the property the single-strength model could not express at
+// all: Crusaders' league-worst defence had nowhere to live in one number per club.
+check("the model responds monotonically to attack and defence", (() => {
+  const base = OM.ratings(D, { includeCurrent: false });
+  const clubs = Object.keys(base.att).filter((c) => D.CLUBS[c]);
+  const [h, a] = clubs;
+  const price = (att, def) => {
+    let pH = 0, pD = 0, pA = 0;
+    const mu = OM.goalsPerGame(D).value / 2;
+    const lh = mu * Math.exp(att + base.def[a] + OM.LOG_HOME);
+    const la = mu * Math.exp(base.att[a] + def - OM.LOG_HOME);
+    const pois = (k, l) => { let f = 1; for (let i = 2; i <= k; i++) f *= i; return Math.exp(-l) * l ** k / f; };
+    for (let x = 0; x <= 10; x++) for (let y = 0; y <= 10; y++) {
+      const p = pois(x, lh) * pois(y, la);
+      if (x > y) pH += p; else if (x === y) pD += p; else pA += p;
+    }
+    return pH / (pH + pD + pA);
+  };
+  const now = price(base.att[h], base.def[h]);
+  return price(base.att[h] + 0.2, base.def[h]) > now      // better attack: shorter
+    && price(base.att[h], base.def[h] + 0.2) < now;       // leakier defence: longer
+})());
+
+// Squad value has to move a club the right way, and the two mutations that first slipped past
+// these checks were both about it: removing the winsorisation, and flipping the sign on its
+// defensive half. Neither is visible in any single price, and both are caught here by changing
+// a club's valuation and watching what the ratings do — a causal test rather than a shape one.
+const withValue = (club, total) => ({
+  ...D, MARKET_VALUES: D.MARKET_VALUES.map((m) => (m.club === club ? { ...m, total } : m)),
+});
+
+check("a richer squad is rated better in attack AND in defence", (() => {
+  const club = "CRU";                                   // mid-value, so there is room both ways
+  const base = OM.ratings(D, { includeCurrent: false });
+  const rich = OM.ratings(withValue(club, 12), { includeCurrent: false });
+  const poor = OM.ratings(withValue(club, 1.2), { includeCurrent: false });
+  if (!base || !rich || !poor) return false;
+  return rich.att[club] > base.att[club] && rich.def[club] < base.def[club]
+    && poor.att[club] < base.att[club] && poor.def[club] > base.def[club];
+})());
+
+check("an extreme valuation is winsorised, not taken at face value", (() => {
+  const club = "CRU";
+  const base = OM.ratings(D, { includeCurrent: false });
+  const odd = OM.ratings(withValue(club, 60), { includeCurrent: false });
+  const absurd = OM.ratings(withValue(club, 6000), { includeCurrent: false });
+  if (!base || !odd || !absurd) return false;
+  // Both are past the cap, so a hundredfold difference between them must change nothing.
+  if (Math.abs(absurd.att[club] - odd.att[club]) > 0.02) return false;
+  // And the whole tilt stays inside the stated bound.
+  return Math.abs(absurd.att[club] - base.att[club]) < OM.VALUE_TILT * OM.VALUE_CAP * 2 + 0.02;
+})());
+
+// A promoted club has no record, so it is priced at the level of the club that went down —
+// a stated prior. If that inheritance ever breaks it would silently fall back to whatever
+// the value tilt alone says, which for a newly promoted squad is close to unplayable.
+check("a club with no recorded season still gets a rating, inherited not invented", (() => {
+  const rated = OM.ratings(D, { includeCurrent: false });
+  const noRecord = Object.keys(D.CLUBS).filter((c) => !(D.XG_TEAMS || []).some((t) => t.club === c));
+  if (noRecord.length === 0) return true;
+  return noRecord.every((c) => c in rated.att && Number.isFinite(rated.att[c]) && Number.isFinite(rated.def[c]));
+})());
+
+// No fixture should be priced as a foregone conclusion. The model's own notes record an
+// earlier attempt that produced 1.04 shots — a 96% chance in a league where the bottom club
+// beat the champions last season. This is the guardrail for that.
+check("no fixture is priced as a certainty", (() => {
+  const clubs = Object.keys(OM.ratings(D, { includeCurrent: false }).att).filter((c) => D.CLUBS[c] && c !== "GLV");
+  const bad = [];
+  for (const h of clubs) for (const a of clubs) {
+    if (h === a) continue;
+    const p = OM.outcomeProbs(h, a, D, { includeCurrent: false });
+    const top = Math.max(p.home, p.draw, p.away);
+    if (top > 0.9) bad.push(`${h} v ${a}: ${(top * 100).toFixed(1)}%`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// One result must not rewrite a club's season. The in-season update was rebuilt precisely
+// because blending raw goal rates let Linfield's 0-3 opening defeat swing their next price by
+// a full point of odds.
+check("a single result moves a price by a sane amount, not a full point of odds", (() => {
+  const worst = D.PREDICTOR_GW.fixtures.reduce((mx, f) => {
+    const cold = OM.fairOdds(f.home.club, f.away.club, D, { includeCurrent: false });
+    const warm = OM.fairOdds(f.home.club, f.away.club, D, { includeCurrent: true });
+    if (!cold || !warm) return mx;
+    return Math.max(mx, Math.abs(warm.home - cold.home), Math.abs(warm.away - cold.away));
+  }, 0);
+  const played = (D.FIXTURES_2627 || []).flatMap((r) => r.matches).filter((m) => Array.isArray(m.result)).length;
+  // Early in a season the whole in-season term should still be a nudge. The bound loosens as
+  // real evidence accumulates, because by then it SHOULD be moving prices.
+  return played > 24 || worst < 0.75;
 })());
 
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
