@@ -379,7 +379,9 @@ export function EuropeView() {
                 {e.legs.map((l) => (
                   <div key={l.label} style={{ ...SURFACE.card, borderRadius: 10, padding: "9px 11px" }}>
                     <div style={{ fontSize: 12, color: dim, letterSpacing: "0.08em", textTransform: "uppercase" }}>{l.label}</div>
-                    <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 16, color: chalk, marginTop: 2 }}>{l.date}</div>
+                    <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 16, color: chalk, marginTop: 2 }}>
+                      {l.date}{l.timeTbc && <span style={{ fontWeight: 400, fontSize: 12, color: dim }}> · kick-off TBC</span>}
+                    </div>
                     <div style={{ fontSize: 12, color: dim }}>{l.venue}</div>
                   </div>
                 ))}

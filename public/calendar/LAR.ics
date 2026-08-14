@@ -64,6 +64,24 @@ LOCATION:The Showgrounds\, Coleraine
 URL:https://gibsonstats.com/club/larne
 END:VEVENT
 BEGIN:VEVENT
+UID:gibson-LAR-20260820180000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260820T180000Z
+DTEND:20260820T200000Z
+SUMMARY:Larne v Lincoln Red Imps (a) — UECL play-off · 1st leg · kick-off TBC
+LOCATION:Gibraltar
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
+UID:gibson-LAR-20260827180000@gibsonstats.com
+DTSTAMP:20270327T150000Z
+DTSTART:20260827T180000Z
+DTEND:20260827T200000Z
+SUMMARY:Larne v Lincoln Red Imps (h) — UECL play-off · 2nd leg · Inver Park · kick-off TBC
+LOCATION:Inver Park
+URL:https://gibsonstats.com/club/larne
+END:VEVENT
+BEGIN:VEVENT
 UID:gibson-match-LAR-GLE-20260904184500000@gibsonstats.com
 DTSTAMP:20270327T150000Z
 DTSTART:20260904T184500Z

@@ -819,16 +819,37 @@ export const ROLL_OF_HONOUR = [
   { season: "2014/15", club: "CRU" },
 ];
 
+// All-time Gibson Cup wins. `mostRecent` is the last one — the number alone doesn't say
+// whether a club is a current force or hasn't won since the Heath government.
+//
+// `name` and `defunct` exist for clubs that are NOT in CLUBS. Belfast Celtic left the league in
+// 1949 and have no crest, no colours and no club page, but 14 titles is third on the all-time
+// list and a list that omitted them would be wrong rather than merely short. Anything carrying
+// `name` renders without a crest and is skipped by everything that maps a code to a club.
+//
+// Portadown (4) and Glenavon (3) are NOT in the owner's 12 Aug list, which covered the clubs
+// with titles that are in this season's Premiership plus Belfast Celtic. They are kept: the
+// list was an addition, not a replacement, and dropping them would delete two clubs' honours.
 export const ALL_TIME_TITLES = [
-  { club: "LIN", titles: 57 },
+  { club: "LIN", titles: 57, mostRecent: "2024/25" },
   { club: "GLE", titles: 23 },
+  { club: "BEL", titles: 14, name: "Belfast Celtic", defunct: true },
   { club: "CRU", titles: 7 },
   { club: "CLI", titles: 5 },
   { club: "POR", titles: 4 },
   { club: "GLV", titles: 3 },
-  { club: "LAR", titles: 3 },
-  { club: "COL", titles: 1 },
+  { club: "LAR", titles: 3, mostRecent: "2025/26" },
+  { club: "COL", titles: 1, mostRecent: "1973/74" },
 ];
+
+// The number of league titles a club has won, or null when we don't hold a figure for them —
+// which is not the same as zero and must not render as one. Ballymena, Carrick, Dungannon,
+// Bangor and Limavady are absent from ALL_TIME_TITLES because no count has been supplied,
+// not because they have never won.
+export function allTimeTitles(club) {
+  const row = ALL_TIME_TITLES.find((t) => t.club === club);
+  return row ? row.titles : null;
+}
 
 export const RECORDS = [
   { big: "1890", label: "League founded", sub: "One of the oldest national leagues in world football — the Gibson Cup its prize" },
@@ -1351,6 +1372,24 @@ export // Odds are informational only — plain numbers, no bookmaker branding, 
 // Leave as null until you have a source you trust. See Playbook section 8.
 const EURO = [
   {
+    club: "LAR", comp: "Conference League", round: "Play-off round",
+    // Drawn 13 Aug 2026. oppColor: Lincoln Red Imps play in red — same basis as the Iberia
+    // entry below, a representative accent for the Home board, not a verified brand hex.
+    opp: "Lincoln Red Imps", oppCountry: "Gibraltar", oppColor: "#D42027", odds: null,
+    legs: [
+      // Dates from @NICoefficient's 13 Aug graphic and Larne FC's own play-off announcement,
+      // which agree. NEITHER states a kick-off time, so `date` carries none and `timeTbc`
+      // says so on the card. `dt` still needs a timestamp — the Home board orders fixtures
+      // by it and decides from it whether a match is on — so it holds UEFA's usual 20:00 CET
+      // play-off slot as a PLACEHOLDER FOR ORDERING ONLY. It is never displayed. When UEFA
+      // confirm the times, set the real dt, put the kick-off in `date`, and drop timeTbc.
+      { label: "1st leg · away", date: "Thu 20 Aug", dt: "2026-08-20T18:00:00Z", venue: "Gibraltar", timeTbc: true },
+      { label: "2nd leg · home", date: "Thu 27 Aug", dt: "2026-08-27T18:00:00Z", venue: "Inver Park", timeTbc: true },
+    ],
+    prize: "Winner reaches the Conference League league phase — the stage Larne became the first Irish League club to reach in 24/25",
+    note: "THE LAST ONE STANDING: beaten by Iberia 1999 in the Europa League third round, Larne drop into the Conference League play-off and one tie now separates them from a second league-phase campaign. Lincoln Red Imps stand in the way — Gibraltar's European entrant, from a country sitting two places above Northern Ireland in the coefficient on 6.874. Kick-off times to be confirmed.",
+  },
+  {
     club: "LAR", comp: "Europa League", round: "Third qualifying round",
     // oppColor: owner-supplied ("Iberia play in red"), not a scraped/verified brand hex —
     // a representative red for the Home tab's next-match accent bar, not a precise kit code.
@@ -1400,27 +1439,38 @@ const EURO = [
 // Northern Ireland's UEFA country coefficient — the rolling five-year total that
 // decides how many European places the league gets and how its clubs are seeded.
 export const EURO_COEFFICIENT = {
-  rank: 50,
+  rank: 51,
   points: 6.375,
   window: "22/23–26/27", // live 5-year rolling ranking
-  // Up one from 51st. The 0.125 gain is exactly Larne's 0-0 with FC Iberia 1999: a
-  // qualifying draw is worth 0.500 of a point, shared across the four clubs the country
-  // entered, so 6.250 + 0.125 = 6.375. Worth stating because it shows a goalless draw
-  // nobody enjoyed still moved the country up a place.
-  previousRank: 51,
+  // DOWN one, to 51st, without losing a point. Northern Ireland are still on 6.375 — a defeat
+  // earns nothing, so Larne's exit in Tbilisi cost the country no coefficient. Georgia went
+  // past them instead: Iberia's win was worth 0.250 to Georgia (a qualifying win is 1.000,
+  // shared across the four clubs a country entered), taking them 6.250 → 6.500.
+  //
+  // That is the whole mechanic in one line: you can drop a place standing perfectly still.
+  previousRank: 50,
+  // Each club's win is worth 1.000 ÷ (clubs entered), a draw half that. Northern Ireland
+  // entered four, so Larne bank 0.250 a win and 0.125 a draw. Gibraltar entered three, so
+  // every Lincoln Red Imps win is worth 0.333 — more per result than Larne can earn.
+  perWin: 0.25,
+  perDraw: 0.125,
+  clubsEntered: 4,
+  clubsRemaining: 1,
   neighbours: [
-    { rank: 48, country: "Estonia", points: 7.041 },
-    { rank: 49, country: "Gibraltar", points: 6.872 },
-    { rank: 50, country: "Northern Ireland", points: 6.375 },
-    { rank: 51, country: "Georgia", points: 6.250 },
-    { rank: 52, country: "Luxembourg", points: 6.250 },
+    { rank: 47, country: "Andorra", points: 7.498 },
+    { rank: 48, country: "Estonia", points: 7.041, allOut: true },
+    { rank: 49, country: "Gibraltar", points: 6.874 },
+    { rank: 50, country: "Georgia", points: 6.500 },
+    { rank: 51, country: "Northern Ireland", points: 6.375 },
   ],
   lastSeason: { rank: 42, points: 8.33 },
-  source: "@NICoefficient, 6 Aug 2026 (owner-supplied graphic)",
-  note: "Every qualifying win earns coefficient points — the country's rank decides how many European places the league gets and how its clubs are seeded. Live 5-year rolling ranking (22/23–26/27): up to 50th on 6.375, the 0.125 coming from Larne's goalless draw with FC Iberia 1999 (a qualifying draw, shared across four clubs). Larne are the last side standing — Glentoran, Linfield and Coleraine are all out. Gibraltar (6.872) hold 49th; Georgia and Luxembourg sit level on 6.250 just below.",
+  source: "@NICoefficient, 13 Aug 2026 (owner-supplied graphic)",
+  note: "Every qualifying win earns coefficient points — the country's rank decides how many European places the league gets and how its clubs are seeded. Live 5-year rolling ranking (22/23–26/27): Northern Ireland sit 51st on 6.375, down a place without losing a point. Larne's defeat in Tbilisi earned nothing, and Georgia climbed past on the back of it — Iberia 1999's win took them to 6.500. Larne are the last of the country's four entrants still playing: beaten in the Europa League third qualifying round, they drop into the Conference League play-off against Lincoln Red Imps. Glentoran, Linfield and Coleraine are all out. Gibraltar (6.874) hold 49th and Andorra (7.498) 47th; Estonia are 48th on 7.041 with Flora eliminated and nobody left.",
+  notesAsOf: "2026-08-13",
 };
 
-// 26/27 domestic fixtures not yet released — Europe fills the schedule for now
+// Per-club European runs for 26/27. Domestic fixtures live in FIXTURES_2627; this block is
+// the European campaign only, which is why every club here is one of the four that entered.
 export const CLUB_FIXTURES = {
   LAR: [
     { date: "8 Jul", dt: "2026-07-08T18:45:00Z", res: "0–1 W", opp: "Tre Fiori (a) — Lusty 45'", comp: "UCL Q1 · 1st leg" },
@@ -1432,6 +1482,10 @@ export const CLUB_FIXTURES = {
     // eliminated from Europe — a UEL Q3 loser drops into the Conference League play-off round,
     // which is what this tie's `prize` line has said since the draw.
     { date: "11 Aug", dt: "2026-08-11T16:00:00Z", res: "2–1 L", opp: "FC Iberia 1999 (a) — Bedoshvili 74', Simpson 76', Sikharulashvili 102'", comp: "UEL Q3 · 2nd leg · Mikheil Meskhi Stadium · aet · 1–2 agg · into UECL play-off" },
+    // Drawn 13 Aug 2026. No kick-off times published yet — see the EURO entry for why `dt`
+    // holds a placeholder slot and the display date deliberately carries no time.
+    { date: "20 Aug", dt: "2026-08-20T18:00:00Z", opp: "Lincoln Red Imps (a)", comp: "UECL play-off · 1st leg · kick-off TBC" },
+    { date: "27 Aug", dt: "2026-08-27T18:00:00Z", opp: "Lincoln Red Imps (h)", comp: "UECL play-off · 2nd leg · Inver Park · kick-off TBC" },
   ],
   GLE: [
     { date: "9 Jul", dt: "2026-07-09T19:30:00Z", res: "1–2 L", opp: "RFS (h) — Ibsen Rossi 38'", comp: "UECL Q1 · 1st leg" },

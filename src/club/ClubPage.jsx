@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {
-  CLUBS, CLUB_META, CLUB_TOP_SCORERS, DISCIPLINE, FIXTURES_2627, FULL_TABLE, GOALS_STATS, INJURIES, MARKET_VALUES, PLAYERS, ROLL_OF_HONOUR, SEASON, STATUS_META, TEAM_STATS_2526, TRANSFERS, TRAVEL, WINDOW, XG_PLAYERS, XG_TEAMS, liveSeasonId, seasonLabel, seasonStatus,
+  ALL_TIME_TITLES, CLUBS, CLUB_META, CLUB_TOP_SCORERS, DISCIPLINE, FIXTURES_2627, FULL_TABLE, GOALS_STATS, INJURIES, MARKET_VALUES, PLAYERS, ROLL_OF_HONOUR, SEASON, STATUS_META, TEAM_STATS_2526, TRANSFERS, TRAVEL, WINDOW, XG_PLAYERS, XG_TEAMS, allTimeTitles, liveSeasonId, seasonLabel, seasonStatus,
 } from "../../data.js";
 import { ClubSection } from "./ClubSection.jsx";
 import { Avatar } from "../components/Avatar.jsx";
@@ -31,6 +31,9 @@ export function ClubPage({ club, onBack }) {
   const win = WINDOW.find((w) => w.club === club);
   const feed = TRANSFERS.filter((t) => t.from === club || t.to === club);
   const titles = ROLL_OF_HONOUR.filter((r) => r.club === club);
+  // All-time count is null, not 0, for a club we hold no figure for — see allTimeTitles().
+  const allTime = allTimeTitles(club);
+  const allTimeRow = ALL_TIME_TITLES.find((t) => t.club === club);
   const meta = CLUB_META[club]; // ground/capacity/founded/website — Wikidata (CC0), null until sourced
   const travel = TRAVEL.clubs[club]; // season away miles, derived from CLUB_META + FIXTURES_2627
   const status = seasonStatus();
@@ -278,7 +281,22 @@ export function ClubPage({ club, onBack }) {
       </ClubSection>
 
       {/* Honours */}
-      <ClubSection title="Honours · league titles, last 12 seasons">
+      <ClubSection title="Honours · league titles">
+        {/* All-time first, because it is the club's headline honour — the roll of honour below
+            only reaches back 12 seasons, which understates clubs whose titles predate it.
+            Absent for a club we hold no figure for: rendering "0" would be a claim, not a gap. */}
+        {allTime !== null && (
+          <div style={{ ...SURFACE.hero, borderRadius: 12, padding: "12px 13px", marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+              <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 34, color: "#FFB627", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{allTime}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: chalk }}>all-time league title{allTime > 1 ? "s" : ""}</span>
+            </div>
+            {allTimeRow && allTimeRow.mostRecent && (
+              <div style={{ fontSize: 12, color: dim, marginTop: 5 }}>Most recent: {allTimeRow.mostRecent}</div>
+            )}
+          </div>
+        )}
+        <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Last 12 seasons</div>
         {titles.length ? (
           <>
             <div style={{ fontSize: 13, color: chalk, marginBottom: 8 }}>

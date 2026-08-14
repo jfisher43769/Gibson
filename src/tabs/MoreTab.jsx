@@ -165,22 +165,31 @@ export function HistoryView() {
         ))}
       </div>
 
-      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>All-time league titles · current Premiership clubs</div>
+      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>All-time league titles</div>
       <div style={{ display: "grid", gap: 8, marginBottom: 20 }}>
         {ALL_TIME_TITLES.map((t, i) => {
+          // Not every club in this list is in CLUBS: Belfast Celtic left the league long before
+          // the app's club vocabulary starts, so it has no crest, no colours and no club page.
+          // The row carries its own name for that case, and Crest already renders nothing for a
+          // code it doesn't know — the spacer keeps the column aligned in its absence.
           const c = CLUBS[t.club];
+          const name = c ? c.name : t.name || t.club;
+          const barColor = c ? c.colors[0] : "#8FA69B";
           return (
             <div key={t.club} style={{ display: "flex", alignItems: "center", gap: 10, ...rise(i) }}>
-              <Crest club={t.club} size={20} />
+              {c ? <Crest club={t.club} size={20} /> : <span aria-hidden="true" style={{ width: 20, height: 23, flexShrink: 0 }} />}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: chalk }}>{c.name}</span>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 3 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: chalk, minWidth: 0 }}>
+                    {name}
+                    {t.mostRecent && <span style={{ fontWeight: 400, color: dim }}> · last {t.mostRecent}</span>}
+                  </span>
                   <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: "#FFB627", fontVariantNumeric: "tabular-nums" }}>{t.titles}</span>
                 </div>
                 <div style={{ height: 6, borderRadius: 3, background: faint, overflow: "hidden" }}>
                   <div style={{
                     width: `${Math.max((t.titles / maxTitles) * 100, 3)}%`, height: "100%",
-                    background: `linear-gradient(90deg, ${c.colors[0]}, ${c.colors[0]}AA)`, borderRadius: 3,
+                    background: `linear-gradient(90deg, ${barColor}, ${barColor}AA)`, borderRadius: 3,
                   }} />
                 </div>
               </div>
@@ -189,7 +198,9 @@ export function HistoryView() {
         })}
       </div>
       <div style={{ fontSize: 12, color: dim, marginBottom: 20, lineHeight: 1.5 }}>
-        Historic totals also include clubs no longer in the league — most famously Belfast Celtic's 14 titles.
+        Includes clubs no longer in the Premiership — Belfast Celtic, long since out of the league,
+        and Glenavon, relegated in 2025/26. A club missing from this list has no figure recorded
+        here, which is not the same as never having won.
       </div>
 
       <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Roll of honour · last 12 seasons</div>

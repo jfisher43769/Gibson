@@ -3,7 +3,9 @@
 // scripts/generate.js writes as the npm "prebuild" step (see .github/workflows/ci.yml,
 // which now builds before verifying for exactly this reason).
 import * as D from "../data.js";
+import * as D_CUP from "../src/lib/cup.js";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { TAP_MIN, contrastRatio, contrastText, chalk, DARK_TEXT, relativeLuminance, tapPad } from "../src/lib/theme.js";
 import { CLUB_TYPE, oppCode } from "../src/lib/oppcode.js";
 import { fairOdds } from "./odds-model.js";
@@ -2140,6 +2142,308 @@ check("every live match reaches the front page, not just the board's own", (() =
   // One component, used by both surfaces — not a second copy of the live list.
   if (!/export function LiveNow/.test(comp)) return false;
   return /<LiveNow /.test(matches) && !/function LiveNow/.test(matches);
+})());
+
+// The all-time titles list is not limited to clubs in CLUBS: Belfast Celtic's 14 predate the
+// app's club vocabulary entirely. Both surfaces that render it (MoreTab's bar chart and the
+// club page's Honours block) used to reach straight into CLUBS[t.club] for a name and a bar
+// colour, which throws — and white-screens the tab — the moment a row names a club that isn't
+// there. A row must therefore carry its own name whenever CLUBS can't supply one.
+check("every ALL_TIME_TITLES row resolves to a name (CLUBS entry or its own `name`)",
+  D.ALL_TIME_TITLES.every((t) => (D.CLUBS[t.club] && D.CLUBS[t.club].colors?.length === 2) || typeof t.name === "string" && t.name.length > 0));
+
+check("ALL_TIME_TITLES rows have a positive integer title count", (() => {
+  return D.ALL_TIME_TITLES.every((t) => Number.isInteger(t.titles) && t.titles > 0);
+})());
+
+check("ALL_TIME_TITLES club codes are unique", (() => {
+  const s = new Set(D.ALL_TIME_TITLES.map((t) => t.club));
+  return s.size === D.ALL_TIME_TITLES.length;
+})());
+
+// MoreTab scales every bar against ALL_TIME_TITLES[0].titles. Out of order, a later row
+// would exceed 100% and overflow its track.
+check("ALL_TIME_TITLES is sorted by title count, most first", (() => {
+  return D.ALL_TIME_TITLES.every((t, i) => i === 0 || D.ALL_TIME_TITLES[i - 1].titles >= t.titles);
+})());
+
+// A club with no supplied figure must read as absent, not as "0 titles" — which would be a
+// false claim about Ballymena, Carrick, Dungannon, Bangor and Limavady.
+check("allTimeTitles() returns null, never 0, for a club with no recorded figure", (() => {
+  const missing = Object.keys(D.CLUBS).filter((k) => !D.ALL_TIME_TITLES.some((t) => t.club === k));
+  if (missing.length === 0) return false;                 // the check would be vacuous
+  if (!missing.every((k) => D.allTimeTitles(k) === null)) return false;
+  return D.ALL_TIME_TITLES.every((t) => D.allTimeTitles(t.club) === t.titles);
+})());
+
+// MoreTab and the club page must not reintroduce the unguarded lookup this section exists for.
+check("titles surfaces guard the CLUBS lookup instead of assuming it resolves", (() => {
+  let more = "", club = "";
+  try {
+    more = readFileSync(new URL("../src/tabs/MoreTab.jsx", import.meta.url), "utf8");
+    club = readFileSync(new URL("../src/club/ClubPage.jsx", import.meta.url), "utf8");
+  } catch { return false; }
+  // The bar chart falls back to the row's own name and a neutral bar colour.
+  if (!/const name = c \? c\.name : t\.name \|\| t\.club;/.test(more)) return false;
+  if (!/const barColor = c \? c\.colors\[0\] : /.test(more)) return false;
+  if (!/\{c \? <Crest club=\{t\.club\}/.test(more)) return false;
+  // The club page hides the all-time block entirely rather than printing a zero.
+  return /allTime !== null &&/.test(club);
+})());
+
+// The Big Two record line is arithmetic over this list, not a separate hand-typed number.
+check("RECORDS' Big Two total matches Linfield + Glentoran in ALL_TIME_TITLES", (() => {
+  const rec = D.RECORDS.find((r) => /Big Two/i.test(r.label));
+  if (!rec) return false;
+  const lin = D.allTimeTitles("LIN"), gle = D.allTimeTitles("GLE");
+  return Number(rec.big) === lin + gle && rec.sub.includes(String(lin + gle));
+})());
+
+// The coefficient block quotes its own numbers back inside the prose. When the owner sends a
+// fresh @NICoefficient graphic it is the rank and points that get edited, and the sentence
+// underneath is what gets forgotten.
+check("EURO_COEFFICIENT prose agrees with its own rank and points", (() => {
+  const c = D.EURO_COEFFICIENT;
+  if (!c) return true;
+  const ordinal = (n) => n + (n % 10 === 1 && n !== 11 ? "st" : n % 10 === 2 && n !== 12 ? "nd" : n % 10 === 3 && n !== 13 ? "rd" : "th");
+  if (!c.note.includes(ordinal(c.rank))) return false;
+  if (!c.note.includes(c.points.toFixed(3))) return false;
+  const self = c.neighbours.find((n) => n.country === "Northern Ireland");
+  return !!self && self.rank === c.rank && self.points === c.points;
+})());
+
+// Larne lost in the Europa League third qualifying round and dropped into the Conference
+// League play-off; the coefficient note called them "the last side standing" for two days
+// afterwards. Any claim about who is left in Europe has to agree with CLUB_FIXTURES.
+check("EURO_COEFFICIENT names as eliminated exactly the clubs CLUB_FIXTURES records as out", (() => {
+  const c = D.EURO_COEFFICIENT;
+  if (!c) return true;
+  const out = [], alive = [];
+  for (const [code, fixtures] of Object.entries(D.CLUB_FIXTURES)) {
+    const last = fixtures[fixtures.length - 1];
+    (/eliminated/i.test(last.comp || "") ? out : alive).push(code);
+  }
+  if (alive.length === 0 || out.length === 0) return false;   // nothing to assert against
+  const named = (code) => c.note.includes(D.CLUBS[code].name);
+  return out.every(named) && alive.every(named);
+})());
+
+// What actually went stale on 11 Aug was subtler than a club changing category: the note still
+// read "Larne are the last side standing", which was *true* — they had simply been beaten in the
+// Europa League third round and dropped into the Conference League play-off, and the sentence
+// said nothing about it. So the check above (who is in, who is out) passed the whole time.
+// This is the one that catches it: the prose carries the date it was last reviewed, and that
+// date cannot predate the most recent European result on the site.
+check("EURO_COEFFICIENT prose has been reviewed since the last European result", (() => {
+  const c = D.EURO_COEFFICIENT;
+  if (!c) return true;
+  const asOf = Date.parse(`${c.notesAsOf}T23:59:59Z`);
+  if (!Number.isFinite(asOf)) return false;               // the field is required, not optional
+  const latest = Object.values(D.CLUB_FIXTURES)
+    .flat()
+    .filter((f) => f.res)
+    .map((f) => Date.parse(f.dt))
+    .filter(Number.isFinite)
+    .reduce((a, b) => Math.max(a, b), 0);
+  return latest > 0 && asOf >= latest;
+})());
+
+// A tie can be drawn before UEFA publish its kick-off times, which is exactly what happened
+// with the 26/27 Conference League play-off: both the coefficient graphic and Larne's own
+// announcement carried the dates and neither carried a time. `dt` still has to hold a
+// timestamp — the Home board orders by it — so a leg with no confirmed time carries a
+// placeholder there and must say so on the card. The failure this prevents is the placeholder
+// leaking into the display as if it were a real kick-off.
+const legHasDisplayTime = (l) => /\d{1,2}:\d{2}/.test(String(l.date || ""));
+check("a European leg shows a kick-off time only when it has one, and flags it when it doesn't", (() => {
+  const legs = D.EURO.flatMap((e) => e.legs);
+  if (legs.length === 0) return false;
+  return legs.every((l) => legHasDisplayTime(l) === (l.timeTbc !== true));
+})());
+
+check("every timeTbc leg says so on the tie card", (() => {
+  const anyTbc = D.EURO.flatMap((e) => e.legs).some((l) => l.timeTbc === true);
+  if (!anyTbc) return true;                                 // nothing to surface
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/MatchesTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  return /l\.timeTbc &&[\s\S]{0,120}kick-off TBC/.test(src);
+})());
+
+// The neighbours table is the ranking either side of us, so it has to actually be a ranking:
+// consecutive positions, descending points, and our own row agreeing with the headline rank.
+check("EURO_COEFFICIENT neighbours form a consecutive, correctly ordered ranking", (() => {
+  const n = D.EURO_COEFFICIENT && D.EURO_COEFFICIENT.neighbours;
+  if (!n || n.length < 2) return false;
+  for (let i = 1; i < n.length; i++) {
+    if (n[i].rank !== n[i - 1].rank + 1) return false;
+    if (n[i].points > n[i - 1].points) return false;
+  }
+  return n.some((r) => r.country === "Northern Ireland");
+})());
+
+// A country's per-win value is 1.000 divided by the clubs it entered — the arithmetic behind
+// every movement in this block, and the reason Larne's 0-0 was worth 0.125.
+check("EURO_COEFFICIENT per-win/per-draw match the number of clubs entered", (() => {
+  const c = D.EURO_COEFFICIENT;
+  if (!c || c.perWin === undefined) return true;
+  if (!Number.isInteger(c.clubsEntered) || c.clubsEntered < 1) return false;
+  if (Math.abs(c.perWin - 1 / c.clubsEntered) > 0.0005) return false;
+  if (Math.abs(c.perDraw - c.perWin / 2) > 0.0005) return false;
+  return Number.isInteger(c.clubsRemaining) && c.clubsRemaining <= c.clubsEntered;
+})());
+
+// Larne's remaining-club count is a claim about who is still playing, and CLUB_FIXTURES knows
+// the answer. It read "four clubs remain" for a week after three of them were knocked out.
+check("EURO_COEFFICIENT clubsRemaining matches CLUB_FIXTURES", (() => {
+  const c = D.EURO_COEFFICIENT;
+  if (!c || c.clubsRemaining === undefined) return true;
+  const alive = Object.values(D.CLUB_FIXTURES)
+    .filter((fixtures) => !/eliminated/i.test(fixtures[fixtures.length - 1].comp || "")).length;
+  return c.clubsRemaining === alive;
+})());
+
+// ---- The Gibson Cup mark ---------------------------------------------------------
+// The mark used to exist as four hand-maintained copies of the same path list: LogoMark,
+// the OG card, and the two promo drawing kits. Redrawing it meant editing four files and
+// hoping, and a missed one would have shipped a different trophy on the share cards than
+// the one in the app. Two of the four can import the source; the other two are read as
+// text and spliced into a page as a plain <script>, so they carry a generated copy —
+// the same arrangement as the three TheSportsDB club maps, and checked the same way.
+check("the promo kits' copy of the cup geometry matches src/lib/cup.js", (() => {
+  const literal = D_CUP.cupPathsLiteral();
+  return ["../scripts/promo/kit.js", "../scripts/promo/render.mjs"].every((rel) => {
+    try { return readFileSync(new URL(rel, import.meta.url), "utf8").includes(literal); }
+    catch { return false; }
+  });
+})());
+
+check("nothing keeps a private copy of the cup paths outside cup.js and the two kits", (() => {
+  // A path from the middle of the bowl: distinctive enough that finding it anywhere else
+  // means a fifth copy has appeared and the mark is free to fork again.
+  const needle = D_CUP.CUP_PARTS.bowlBody;
+  if (!needle) return false;
+  const allowed = ["src/lib/cup.js", "scripts/promo/kit.js", "scripts/promo/render.mjs"];
+  const scan = [...shippedFiles, new URL("../api/og.js", import.meta.url),
+    new URL("../scripts/promo/kit.js", import.meta.url), new URL("../scripts/promo/render.mjs", import.meta.url)];
+  const offenders = scan.filter((u) => {
+    let body = ""; try { body = readFileSync(u, "utf8"); } catch { return false; }
+    if (!body.includes(needle)) return false;
+    return !allowed.some((a) => u.pathname.endsWith(a));
+  });
+  return offenders.length === 0;
+})());
+
+// Rule 2 in cup.js: every part is a filled path. A stroke would render in the app and
+// silently vanish from every promo card, because those fill an array of Path2D.
+check("the cup mark is fills only — no strokes, which the canvas kits cannot draw", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/components/LogoMark.jsx", import.meta.url), "utf8"); } catch { return false; }
+  if (/stroke[-W]/i.test(src)) return false;
+  return !D_CUP.CUP_PATHS.some((d) => /[^MLQCAZmlqcaz0-9.,\s-]/.test(d));
+})());
+
+// The handles are the feature the owner sent the reference photos for. They must stay
+// exact mirrors: eyeballing a hand-tuned bezier against its twin does not work, and a
+// lopsided trophy is the kind of thing that looks "off" without anyone placing why.
+check("the cup's two handles are exact mirrors about the centreline", (() => {
+  const l = D_CUP.pathPoints(D_CUP.CUP_PARTS.handleLeft);
+  const r = D_CUP.pathPoints(D_CUP.CUP_PARTS.handleRight);
+  if (l.length === 0 || l.length !== r.length) return false;
+  return l.every(([lx, ly], i) => Math.abs((200 - lx) - r[i][0]) < 0.01 && Math.abs(ly - r[i][1]) < 0.01);
+})());
+
+// Both handles have to actually touch the bowl at both ends. Floating free they stop
+// being handles and become gold parentheses — and because each is traced as an open
+// ribbon rather than a closed ring, it is the bowl that completes the loop.
+check("each cup handle meets the bowl at both ends", (() => {
+  // Derived from the bowl, not hardcoded: the first version of this check carried the
+  // old geometry's coordinates and started failing the moment the cup was reproportioned,
+  // which is a check measuring the wrong thing rather than a drawing that got worse.
+  const bowl = [D_CUP.CUP_PARTS.bowlChase, D_CUP.CUP_PARTS.bowlBody];
+  const bowlLeft = Math.min(...bowl.flatMap((d) => D_CUP.pathPoints(d).map(([x]) => x)));
+  const { top, bottom } = D_CUP.extentY(bowl);
+  const span = bottom - top;
+  return [D_CUP.CUP_PARTS.handleLeft, D_CUP.CUP_PARTS.handleRight].every((h, i) => {
+    const pts = D_CUP.pathPoints(h);
+    // Mirror the right handle so one rule covers both.
+    const touching = pts.map(([x, y]) => [i === 0 ? x : 200 - x, y])
+      .filter(([x, y]) => x >= bowlLeft - 1 && y >= top && y <= bottom);
+    return touching.some(([, y]) => y < top + span * 0.35)     // joins at the shoulder
+      && touching.some(([, y]) => y > top + span * 0.6);       // and again down the body
+  });
+})());
+
+// The figure stands with a ball under his right boot — owner's correction, 13 Aug 2026,
+// after a draft that had him standing on nothing and another that buried the ball in the
+// plinth. Both facts are geometric, so both are checkable.
+check("the finial footballer's raised leg is the shorter one", (() => {
+  const bottom = (d) => Math.max(...D_CUP.pathPoints(d).map(([, y]) => y));
+  return bottom(D_CUP.CUP_PARTS.legRaised) < bottom(D_CUP.CUP_PARTS.legStanding);
+})());
+
+check("the football sits under the raised boot, resting on the plinth", (() => {
+  const { cx, cy, r } = D_CUP.BALL;
+  const boot = D_CUP.pathPoints(D_CUP.CUP_PARTS.bootRaised);
+  const bootBottom = Math.max(...boot.map(([, y]) => y));
+  const bootX = [Math.min(...boot.map(([x]) => x)), Math.max(...boot.map(([x]) => x))];
+  const plinthTop = Math.min(...D_CUP.pathPoints(D_CUP.CUP_PARTS.finialPlinth).map(([, y]) => y));
+  const plinthLeft = Math.min(...D_CUP.pathPoints(D_CUP.CUP_PARTS.finialPlinth).map(([x]) => x));
+  if (!(cx > bootX[0] && cx < bootX[1])) return false;      // ball is under the boot
+  if (!(cy - r <= bootBottom)) return false;                // boot rests on it, no gap
+  if (!(cy + r >= plinthTop)) return false;                 // ball rests on the plinth
+  return cx - r < plinthLeft;                               // and breaks its edge, so it reads round
+})());
+
+// The plaque courses step outward going down, all the way. Reversed or flattened, the
+// base stops being a drum and the trophy looks like a spinning top.
+check("the cup's plaque courses widen towards the base", (() => {
+  const widthOf = (d) => { const xs = D_CUP.pathPoints(d).map(([x]) => x); return Math.max(...xs) - Math.min(...xs); };
+  const bands = D_CUP.CUP_DRUM.filter((d) => widthOf(d) > 40);   // the solid drum bands
+  if (bands.length < 2) return false;
+  return bands.every((d, i) => i === 0 || widthOf(d) > widthOf(bands[i - 1]));
+})());
+
+// Proportions, measured off the owner's reference photographs. This is the check that
+// would have saved a whole round: the first drawing gave the finial 24% of the mark's
+// height, which reads as a mascot standing on a cup rather than the small silver figure
+// the trophy actually carries. Every section is held to the share it has in the photos.
+check("every section of the cup keeps its measured share of the height", (() => {
+  const names = Object.keys(D_CUP.CUP_SHARES);
+  if (names.length === 0) return false;
+  return names.every((n) => {
+    const share = D_CUP.heightShare(n);
+    const [lo, hi] = D_CUP.CUP_SHARES[n];
+    return share >= lo && share <= hi;
+  });
+})());
+
+// ...and the bowl stays the largest single element, which is what makes it read as a cup
+// rather than as a statue on a plinth.
+check("the bowl is the tallest section of the cup", (() => {
+  const shares = Object.keys(D_CUP.CUP_SHARES).map((n) => [n, D_CUP.heightShare(n)]);
+  const tallest = shares.reduce((a, b) => (b[1] > a[1] ? b : a));
+  return tallest[0] === "bowl";
+})());
+
+// The icons, favicon and static share card are committed PNGs rendered from this same
+// geometry. Redrawing the mark without re-rendering them ships an app whose home-screen
+// icon is a different trophy from the one in its own header — which is precisely what
+// the old share card did, sitting there with the clip-art cup long after it was replaced.
+check("the committed icons were rendered from the current cup geometry", (() => {
+  let stamped = "";
+  try { stamped = readFileSync(new URL("../public/mark.hash", import.meta.url), "utf8").trim(); }
+  catch { return false; }
+  const live = createHash("sha256").update(D_CUP.cupPathsLiteral()).digest("hex");
+  return stamped === live;
+})());
+
+check("every icon the manifest promises actually exists", (() => {
+  let manifest;
+  try { manifest = JSON.parse(readFileSync(new URL("../public/manifest.webmanifest", import.meta.url), "utf8")); }
+  catch { return false; }
+  if (!manifest.icons?.length) return false;
+  return manifest.icons.every((i) => existsSync(new URL(`../public${i.src}`, import.meta.url)))
+    && ["favicon.ico", "og-card.png", "gibson-mark.png"].every((f) => existsSync(new URL(`../public/${f}`, import.meta.url)));
 })());
 
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
