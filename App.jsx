@@ -11,7 +11,7 @@ import { LogoMark } from "./src/components/LogoMark.jsx";
 import { ReportLink } from "./src/components/ReportLink.jsx";
 import { SubNav } from "./src/components/SubNav.jsx";
 import { applyMeta, initialPath, pathForState, stateFromPath } from "./src/lib/routes.js";
-import { OVERLAY, chalk, dim, faint } from "./src/lib/theme.js";
+import { OVERLAY, chalk, dim, faint, tapPad } from "./src/lib/theme.js";
 import { track } from "./src/lib/track.js";
 import { HomeView } from "./src/tabs/HomeTab.jsx";
 import { EuropeView, FixturesView, TableView } from "./src/tabs/MatchesTab.jsx";
@@ -29,6 +29,11 @@ const SOCIAL_ICONS = {
   instagram: "M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 1 0 0 12.325 6.162 6.162 0 0 0 0-12.325zm0 10.162a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z",
 };
 const SOCIAL_NAMES = { x: "X", tiktok: "TikTok", instagram: "Instagram" };
+
+// The footer's Privacy/RSS links sit inline inside a sentence, so they need display:inline-block
+// before minHeight means anything at all — an inline box ignores it. 14 is the rendered height
+// of that 12px Barlow Condensed line.
+const FOOTER_TAP = { display: "inline-block", ...tapPad(14) };
 
 export default function App() {
   return (
@@ -145,20 +150,29 @@ function AppShell() {
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
+            {/* The tile stays 34x34; the TAP TARGET is the anchor around it, 44 tall. Growing
+                the tile itself would have painted three tall pills beside a square logo — the
+                thing being fixed is what a thumb can hit, not what the header looks like.
+                Costs no height: the row is already 46px because of the logo. */}
             {Object.entries(SOCIALS).map(([key, { url, handle }]) => (
               <a key={key} href={url} target="_blank" rel="noopener noreferrer"
                 aria-label={`GIBSON on ${SOCIAL_NAMES[key]}: ${handle}`} style={{
-                  width: 34, height: 34, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center",
-                  background: OVERLAY.fill, border: `1px solid ${faint}`, textDecoration: "none",
+                  minHeight: 44, width: 34, display: "flex", alignItems: "center", justifyContent: "center",
+                  textDecoration: "none", flexShrink: 0,
                 }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill={chalk} aria-hidden="true">
-                  <path d={SOCIAL_ICONS[key]} />
-                </svg>
+                <span style={{
+                  width: 34, height: 34, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center",
+                  background: OVERLAY.fill, border: `1px solid ${faint}`,
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill={chalk} aria-hidden="true">
+                    <path d={SOCIAL_ICONS[key]} />
+                  </svg>
+                </span>
               </a>
             ))}
           </div>
         </div>
-        <nav className="gb-nav" style={{ display: "flex", gap: 6, marginTop: 16, flexWrap: "wrap", position: "relative" }} aria-label="Views">
+        <nav className="gb-nav" style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap", position: "relative" }} aria-label="Views">
           <div aria-hidden="true" style={{
             position: "absolute", top: 0, left: 0, borderRadius: 999, background: "#FFB627",
             width: pill.w, height: pill.h, transform: `translate(${pill.x}px, ${pill.y}px)`,
@@ -166,7 +180,12 @@ function AppShell() {
           }} />
           {tabs.map((t) => (
             <button key={t.id} ref={(el) => (tabRefs.current[t.id] = el)} className="gb-tab" onClick={() => setTab(t.id)} style={{
-              position: "relative", padding: "8px 18px", borderRadius: 999, cursor: "pointer",
+              // 12px of padding round a 17px line box comes to 43, one pixel short — and the
+              // two tabs carrying an emoji rendered 44 while the three without rendered 43, so
+              // the row was uneven as well as under. minHeight pins all five at 44 regardless
+              // of what the label contains.
+              position: "relative", padding: "12px 18px", minHeight: 44, borderRadius: 999, cursor: "pointer",
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
               fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 15, letterSpacing: "0.08em", textTransform: "uppercase",
               background: "transparent",
               color: tab === t.id ? "#0B1512" : dim,
@@ -212,7 +231,10 @@ function AppShell() {
           <ReportLink />
         </div>
         <div style={{ textAlign: "center", padding: "0 0 24px", fontSize: 12, color: "rgba(143,166,155,0.85)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
-          Unofficial fan project — not affiliated with the NIFL or any club · <a href="/privacy.html" style={{ color: "rgba(143,166,155,0.85)", textDecoration: "underline" }}>Privacy</a> · <a href="/rss.xml" style={{ color: "rgba(143,166,155,0.85)", textDecoration: "underline" }}>RSS</a>
+          {/* inline-block so minHeight applies at all, then the 15px of vertical padding is
+              pulled straight back out with an equal negative margin — the links become 44px
+              tall to a thumb without opening a 30px gap in the middle of the sentence. */}
+          Unofficial fan project — not affiliated with the NIFL or any club · <a href="/privacy.html" style={{ ...FOOTER_TAP, color: "rgba(143,166,155,0.85)", textDecoration: "underline" }}>Privacy</a> · <a href="/rss.xml" style={{ ...FOOTER_TAP, color: "rgba(143,166,155,0.85)", textDecoration: "underline" }}>RSS</a>
         </div>
       </main>
     </div>

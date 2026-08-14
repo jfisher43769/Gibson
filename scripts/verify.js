@@ -4,7 +4,7 @@
 // which now builds before verifying for exactly this reason).
 import * as D from "../data.js";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
-import { contrastRatio, contrastText, chalk, DARK_TEXT, relativeLuminance } from "../src/lib/theme.js";
+import { TAP_MIN, contrastRatio, contrastText, chalk, DARK_TEXT, relativeLuminance, tapPad } from "../src/lib/theme.js";
 import { CLUB_TYPE, oppCode } from "../src/lib/oppcode.js";
 import { fairOdds } from "./odds-model.js";
 import { bucket as bucketEvents } from "../api/events.js";
@@ -1648,6 +1648,55 @@ check("every European aggregate matches the legs it is made of", (() => {
         bad.push(`${club} ${key}: comp says ${claim[1]}–${claim[2]} agg, the legs add up to ${cf}–${ca}`);
       }
     }
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// Measured on the built pages at 360px, most of what a thumb had to hit was the height of its
+// own text: "See all →" was 53x14, Privacy 63x14, RSS 26x14, the error-report link 148x14, the
+// crest buttons 26x30 in a table row and 16x18 in a score row, and every nav tab 35. The floor
+// is 44. This pins the helper's arithmetic AND the fact that it is still wired in, because the
+// failure mode here is silent: nothing looks wrong, taps just miss.
+check("tapPad() produces a 44px hit area that costs no layout height", (() => {
+  const bad = [];
+  for (const content of [14, 18.4, 29.9, 36, 44, 60]) {
+    const p = tapPad(content);
+    const outer = Math.max(TAP_MIN, content + p.paddingTop + p.paddingBottom);
+    if (outer < TAP_MIN) bad.push(`content ${content} → hit area only ${outer}`);
+    // The whole point: padding grows the hit box, an equal negative margin gives the space
+    // back, so the margin box is what it always was and nothing on the page moves.
+    if (p.paddingTop !== -p.marginTop || p.paddingBottom !== -p.marginBottom) {
+      bad.push(`content ${content} → padding ${p.paddingTop}/${p.paddingBottom} not cancelled by margin ${p.marginTop}/${p.marginBottom}`);
+    }
+    if (p.minHeight !== TAP_MIN) bad.push(`content ${content} → minHeight ${p.minHeight}`);
+  }
+  // Already-large controls must not be given negative margins that would drag neighbours in.
+  if (tapPad(60).paddingTop !== 0 || tapPad(60).marginTop !== 0) bad.push("a control taller than 44 was still padded");
+
+  const read = (rel) => { try { return decomment(readFileSync(new URL(`../${rel}`, import.meta.url), "utf8")); } catch { return ""; } };
+  // Each of these was measured under 44 and fixed by tapPad — if the call goes, so does the fix.
+  for (const rel of ["App.jsx", "src/components/Crest.jsx", "src/components/ReportLink.jsx", "src/tabs/HomeTab.jsx"]) {
+    if (!/tapPad\(/.test(read(rel))) bad.push(`${rel} no longer calls tapPad()`);
+  }
+  const app = read("App.jsx");
+  // The nav is the app's only navigation, so it gets its own assertions rather than riding on
+  // the helper: 44 tall regardless of whether a label happens to carry an emoji, and 8px apart.
+  // Anchored to the tab's own padding, not a bare /minHeight: 44/ — the social icons carry one
+  // too, so the loose version passed with the nav's deleted. Caught by mutation-testing it.
+  if (!/padding:\s*"12px 18px",\s*minHeight:\s*44/.test(app)) bad.push("nav tabs lost their minHeight: 44");
+  if (!/gap:\s*8,\s*marginTop:\s*16/.test(app)) bad.push("nav gap is no longer 8");
+  // The social tile is painted by an inner span so the anchor can be a taller transparent hit
+  // box. If someone flattens that back onto the anchor, the tile becomes a 34x44 pill.
+  if (!/minHeight:\s*44,\s*width:\s*34/.test(app)) bad.push("social icons lost their 44px hit box");
+  // FOOTER_TAP merely EXISTING is not the fix — the constant can stay defined while the spread
+  // is deleted from the links, and then the footer silently loses its hit area while this check
+  // stays green off the tapPad() call above. Found by mutation-testing this check during the
+  // rebase that landed it, which is the second time a loose assertion here has passed with the
+  // thing it guards removed.
+  for (const href of ["/privacy.html", "/rss.xml"]) {
+    const re = new RegExp(`href="${href.replace(/[/.]/g, "\\$&")}"[^>]*\\.\\.\\.FOOTER_TAP`);
+    if (!re.test(app)) bad.push(`footer ${href} link no longer spreads FOOTER_TAP`);
   }
   if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
   return bad.length === 0;
