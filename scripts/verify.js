@@ -2705,13 +2705,50 @@ check("Home leads with the league table, not just a fixture", (() => {
   return table > 0 && results > 0 && table < results;
 })());
 
-// Two games in, a league table is noise — one result moves a club six places. The snapshot
-// must defer to last season until the current one has something to say, using the same rule
-// the Stats tab and every club page already follow.
-check("the table snapshot defers to last season while the new one is meaningless", (() => {
+// The snapshot shows the season being played, from its first result — it used to hold last
+// season's final table up for the first five games, which meant a visitor in August met a
+// champion crowned in April (owner's instruction, 14 Aug 2026). The fallback survives for the
+// pre-season case only, where the live table is twelve clubs on nought.
+//
+// Gated on tableStage(), not on a games-played threshold, so the rows and the label are
+// derived from the same recorded results and cannot disagree about which season is on screen.
+check("the table snapshot shows the current season once a result exists", (() => {
   let src = "";
   try { src = readFileSync(new URL("../src/components/TableSnapshot.jsx", import.meta.url), "utf8"); } catch { return false; }
-  return /seasonStatus\(\)/.test(src) && /status\.early/.test(src) && /FULL_TABLE/.test(src) && /currentTable\(\)/.test(src);
+  if (!/tableStage\(\)/.test(src) || !/currentTable\(\)/.test(src) || !/FULL_TABLE/.test(src)) return false;
+  // The old rule must be gone, not merely bypassed: an `early` test left in the file is the
+  // thing that produced the wrong table, and this check exists to stop it coming back.
+  if (/status\.early|seasonStatus\(\)/.test(src)) { console.log("      ↳ still gated on the early-season flag"); return false; }
+  // And the live branch must be the one that reads the live table.
+  return /const live = !!stage/.test(src) && /live \? currentTable\(\) : FULL_TABLE/.test(src);
+})());
+
+// The whole justification for showing a one-round-old table is that the header admits it is
+// one round old. Without the stage in the label it is an unqualified league table that happens
+// to be wrong about the league.
+check("the snapshot label names the season and how far into it the table is", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/components/TableSnapshot.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const m = src.match(/const seasonLabel = [\s\S]*?;\n/);
+  if (!m) return false;
+  return /SEASON\.current\.display/.test(m[0]) && /stage\.round/.test(m[0])
+    && /SEASON\.previous\.display/.test(m[0]) && /final/.test(m[0]);
+})());
+
+// tableStage() is now what decides which season the front page shows, so its null case is
+// load-bearing: before a ball is kicked it must return null rather than "round 1, 0 played",
+// and it must report the round that actually has results.
+check("tableStage() returns null before any result and names the latest played round", (() => {
+  const s = D.tableStage();
+  if (s === null) return true;  // pre-season: the snapshot falls back, which is correct
+  if (!Number.isFinite(s.round) || s.round < 1) return false;
+  if (typeof s.complete !== "boolean") return false;
+  // The round it names must be the last one carrying a result, and it must carry at least one.
+  const round = D.FIXTURES_2627.find((r) => r.round === s.round);
+  if (!round || !round.matches.some((m) => Array.isArray(m.result))) return false;
+  const later = D.FIXTURES_2627.filter((r) => r.round > s.round)
+    .some((r) => r.matches.some((m) => Array.isArray(m.result)));
+  return !later && s.played > 0 && s.played <= s.of;
 })());
 
 // Truncating "Dungannon Swifts" to "Dunganno…" is not a shorter name, it is a broken one.

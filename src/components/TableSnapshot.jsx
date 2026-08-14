@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  CLUBS, FULL_TABLE, SEASON, clubName, currentTable, seasonStatus,
+  FULL_TABLE, SEASON, clubName, currentTable, tableStage,
 } from "../../data.js";
 import { Crest } from "./Crest.jsx";
 import { SURFACE, chalk, dim, faint } from "../lib/theme.js";
@@ -11,18 +11,26 @@ import { SURFACE, chalk, dim, faint } from "../lib/theme.js";
 // tagline, two rows of navigation and a fixture date — the first actual number a visitor met
 // was a day of the month. A position and a points total now sit above the fold.
 //
-// WHICH SEASON. Two games into a campaign the table is noise: one result swings a club six
-// places, and a snapshot that says Ballymena are top tells a visitor something untrue about
-// the league. So until EARLY_SEASON_GAMES have been played it shows last season's FINAL table,
-// labelled as such — the same rule seasonStatus() already applies to the Stats tab and every
-// club page, reused rather than reinvented so the app cannot disagree with itself about when
-// a season becomes worth reporting.
+// WHICH SEASON. The season that is actually being played, from its first result. This used to
+// defer to last season's final table until EARLY_SEASON_GAMES had been played, on the argument
+// that two games in a table is noise. True as statistics, wrong as a front page: a visitor
+// opening a live league's stats app in August wants to see the league as it stands, and the
+// old rule showed them a champion crowned in April with nothing on screen admitting the new
+// season was under way. Owner's instruction, 14 Aug 2026.
 //
-// WHICH ROWS. Top four, and the visitor's club pinned underneath when it finished outside
-// them. Five rows maximum: the whole value is that it fits without scrolling.
+// The noise is handled by labelling instead of hiding — the header says which season and how
+// far into it, so "after round 1" carries its own warning that one result moved these clubs.
+// Last season's final table is still the fallback, but only before a ball is kicked, where the
+// alternative is twelve clubs on nought sorted alphabetically.
+//
+// WHICH ROWS. Top four, and the visitor's club pinned underneath when it sits outside them.
+// Five rows maximum: the whole value is that it fits without scrolling.
 export function TableSnapshot({ myClub, onOpenTable }) {
-  const status = seasonStatus();
-  const live = !status.early;
+  // tableStage() returns null until some fixture carries a result, which is exactly the
+  // "nothing has happened yet" case — derived from the same results that build the table, so
+  // the label and the rows can never disagree about what season is on screen.
+  const stage = tableStage();
+  const live = !!stage;
   const rows = live ? currentTable() : FULL_TABLE;
   if (!rows || rows.length === 0) return null;
 
@@ -31,8 +39,11 @@ export function TableSnapshot({ myClub, onOpenTable }) {
   const pinned = mineIdx >= 4 ? { ...rows[mineIdx], pos: mineIdx + 1 } : null;
   const shown = [...top.map((r, i) => ({ ...r, pos: i + 1 })), ...(pinned ? [pinned] : [])];
 
+  // Deliberately shorter than the Table view's own header ("round 3 · 2 of 6 played"): this one
+  // shares a line with the word "Table" on a 360px screen, and the full phrasing pushed the row
+  // sideways. The detail is one tap away in the view this strip opens.
   const seasonLabel = live
-    ? `${SEASON.current.display} · ${status.gamesPlayed} game${status.gamesPlayed === 1 ? "" : "s"} played`
+    ? `${SEASON.current.display} · ${stage.complete ? "after " : ""}round ${stage.round}`
     : `${SEASON.previous.display} · final`;
 
   const Row = ({ r, gap }) => {
