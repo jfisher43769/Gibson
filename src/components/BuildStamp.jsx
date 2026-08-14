@@ -23,7 +23,7 @@ const BUILD_STAMP = (() => {
 // string, so it can never go stale against the deployed bundle.
 export function BuildStamp() {
   return (
-    <div style={{ textAlign: "center", padding: "26px 0 10px", fontSize: 12, color: "rgba(143,166,155,0.55)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
+    <div style={{ textAlign: "center", padding: "26px 0 10px", fontSize: 12, color: "rgba(143,166,155,0.85)", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed'", fontWeight: 700, textTransform: "uppercase" }}>
       GIBSON {APP_VERSION} · build {BUILD_STAMP} · 🏆
     </div>
   );

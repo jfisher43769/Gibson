@@ -343,7 +343,7 @@ export function EuropeView() {
                 })}
               </div>
               {EURO_COEFFICIENT.source && (
-                <div style={{ fontSize: 11, color: "rgba(143,166,155,0.5)", marginTop: 6 }}>
+                <div style={{ fontSize: 11, color: "rgba(143,166,155,0.85)", marginTop: 6 }}>
                   Source: {EURO_COEFFICIENT.source}
                 </div>
               )}

@@ -1523,6 +1523,67 @@ check("crest text colour is the higher-contrast option and clears 3:1 for every 
   });
 })());
 
+// Translucent text colours are how contrast gets lost quietly. Nobody writes an unreadable
+// hex; they write a readable one and dial the alpha down until the line "recedes", and on a
+// bright desk it still looks fine. Measured on the built pages, the footer disclaimer, the
+// version stamp and every "Source:" footnote sat at 2.7–3.0:1 — under the 4.5:1 body-text
+// floor, on the lines that carry the project's own provenance and non-affiliation notice.
+//
+// So: composite every translucent inline text colour over the two grounds it can actually sit
+// on and require 4.5:1 against both. This is deliberately not a check for one bad grey — it
+// prices the alpha of whatever colour someone reaches for next.
+//
+// It prices the COLOUR, not the rendered stroke. Below about 12px at regular weight the strokes
+// are thin enough that anti-aliasing means no pixel ever reaches the nominal colour: the 11px
+// "Source:" footnotes compute at 5.2:1 here and measure 4.1:1 on screen. So a tick here means
+// the colour is not the problem — it does not on its own certify a line as readable at any size.
+check("every translucent text colour clears 4.5:1 on both app surfaces", (() => {
+  const PAGE = [11, 21, 18];                       // the app's ground (#0B1512)
+  const composite = (fg, a, bg) => fg.map((c, i) => c * a + bg[i] * (1 - a));
+  // SURFACE.card is rgba(240,255,245,0.03) over the page ground — the lighter of the two
+  // backgrounds body text lands on, and therefore the harder one for pale text to clear.
+  const CARD = composite([240, 255, 245], 0.03, PAGE);
+  const lumOf = (rgb) => relativeLuminance("#" + rgb.map((c) => Math.round(c).toString(16).padStart(2, "0")).join(""));
+
+  const files = [];
+  const walk = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (e.isDirectory()) walk(`${dir}/${e.name}`);
+      else if (/\.jsx?$/.test(e.name)) files.push(`${dir}/${e.name}`);
+    }
+  };
+  walk(new URL("../src", import.meta.url).pathname);
+  files.push(new URL("../App.jsx", import.meta.url).pathname);
+
+  const bad = [];
+  for (const f of files) {
+    const src = decomment(readFileSync(f, "utf8"));
+    const lines = src.split("\n");
+    lines.forEach((line, i) => {
+      // Inline text colours only — `background`/`border`/`stroke` rgba() is not text.
+      const re = /\bcolor:\s*"rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)"/g;
+      let m;
+      while ((m = re.exec(line))) {
+        const [r, g, b, a] = [+m[1], +m[2], +m[3], +m[4]];
+        if (a >= 1) continue;
+        // The watermark step (theme.js: "120 watermark") is texture, not text — a giant shirt
+        // number bled off the card edge and clipped by overflow:hidden. WCAG exempts purely
+        // decorative text, and raising its alpha would turn a background wash into a shout.
+        // Exempted by size so the exemption can't quietly spread to readable copy.
+        if (/fontSize:\s*(1[2-9]\d|[2-9]\d\d)\b/.test(line)) continue;
+        const onPage = contrastRatio(lumOf(composite([r, g, b], a, PAGE)), lumOf(PAGE));
+        const onCard = contrastRatio(lumOf(composite([r, g, b], a, CARD)), lumOf(CARD));
+        const worst = Math.min(onPage, onCard);
+        if (worst < 4.5) {
+          bad.push(`${f.replace(/.*\/Gibson\//, "")}:${i + 1} rgba(${r},${g},${b},${a}) → ${worst.toFixed(2)}:1`);
+        }
+      }
+    });
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
 // The Predictor card invites people to play, so every fixture and the deadline on it must be
 // the gameweek the app is actually offering — a card naming a tie the Predictor doesn't have
 // sends people to an app that contradicts the post they arrived from. It reads PREDICTOR_GW
