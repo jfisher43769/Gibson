@@ -1687,8 +1687,18 @@ check("tapPad() produces a 44px hit area that costs no layout height", (() => {
   // the helper: 44 tall regardless of whether a label happens to carry an emoji, and 8px apart.
   // Anchored to the tab's own padding, not a bare /minHeight: 44/ — the social icons carry one
   // too, so the loose version passed with the nav's deleted. Caught by mutation-testing it.
-  if (!/padding:\s*"12px 18px",\s*minHeight:\s*44/.test(app)) bad.push("nav tabs lost their minHeight: 44");
-  if (!/gap:\s*8,\s*marginTop:\s*16/.test(app)) bad.push("nav gap is no longer 8");
+  // Asserted as properties, not as exact pixels. The first version pinned the literal
+  // `padding: "12px 18px"` and `gap: 8, marginTop: 16`, and both broke the moment the nav
+  // legitimately became a single scrolling row — a check that fails on an intended change is
+  // a tripwire. What must survive is the 44px hit area and the 8px separation the mobile
+  // review asked for, whatever the surrounding layout does.
+  if (!/minHeight:\s*44,\s*borderRadius:\s*999/.test(app)) bad.push("nav tabs lost their minHeight: 44");
+  const navGap = /className="gb-nav"[^>]*?gap:\s*(\d+)/.exec(app);
+  if (!navGap || Number(navGap[1]) < 8) bad.push(`nav gap is ${navGap ? navGap[1] : "unset"}, under the 8px minimum`);
+  // One row: wrapping it cost a second row of height on the screen least able to afford it.
+  if (/className="gb-nav"[^>]*?flexWrap/.test(app)) bad.push("nav wraps again instead of scrolling");
+  // And it has to stay reachable from the bottom of a long list.
+  if (!/gb-navwrap/.test(app)) bad.push("nav is no longer inside the sticky wrapper");
   // The social tile is painted by an inner span so the anchor can be a taller transparent hit
   // box. If someone flattens that back onto the anchor, the tile becomes a 34x44 pill.
   if (!/minHeight:\s*44,\s*width:\s*34/.test(app)) bad.push("social icons lost their 44px hit box");
@@ -2674,6 +2684,67 @@ check("the picks card is tall enough for every fixture in the round", (() => {
   const cardH = Math.min(124, rowH - 16);
   const lastRowBottom = HEAD + (n - 1) * rowH + cardH / 2;
   return lastRowBottom < H - FOOT + 60;
+})());
+
+// ---- Home screen v2 ----------------------------------------------------------------
+// The layout itself is checked in a real browser by scripts/home-shot.mjs, which CI runs —
+// none of these can catch a card that is 30px too wide. What lives here is the stuff that IS
+// statically true, so a refactor cannot quietly undo the point of the restructure.
+
+// A stats app whose front page led with a logo, a tagline, two rows of nav and a fixture
+// date. The first number a visitor met was a day of the month.
+check("Home leads with the league table, not just a fixture", (() => {
+  let home = "";
+  try { home = readFileSync(new URL("../src/tabs/HomeTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  if (!/<TableSnapshot\b/.test(home)) return false;
+  // Above the results list, or it is not above the fold. Anchored to the rendered heading
+  // (">Latest results<"), not the bare words — the first match for those is a comment 100
+  // lines higher up, which had this asserting the opposite of what it meant to.
+  const table = home.indexOf("<TableSnapshot");
+  const results = home.indexOf(">Latest results<");
+  return table > 0 && results > 0 && table < results;
+})());
+
+// Two games in, a league table is noise — one result moves a club six places. The snapshot
+// must defer to last season until the current one has something to say, using the same rule
+// the Stats tab and every club page already follow.
+check("the table snapshot defers to last season while the new one is meaningless", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/components/TableSnapshot.jsx", import.meta.url), "utf8"); } catch { return false; }
+  return /seasonStatus\(\)/.test(src) && /status\.early/.test(src) && /FULL_TABLE/.test(src) && /currentTable\(\)/.test(src);
+})());
+
+// Truncating "Dungannon Swifts" to "Dunganno…" is not a shorter name, it is a broken one.
+check("every club has a short name that fits a narrow row, and no row falls back to ellipsis", (() => {
+  const bad = Object.entries(D.CLUBS).filter(([, c]) => !c.short || c.short.length > 12).map(([k]) => k);
+  if (bad.length) { console.log("      ↳ " + bad.join(", ")); return false; }
+  let row = "";
+  try { row = readFileSync(new URL("../src/components/ScoreRow.jsx", import.meta.url), "utf8"); } catch { return false; }
+  return !/textOverflow/.test(row);
+})());
+
+// relativeDay is the whole point of the reworked board: the old one led with a giant "15",
+// which on the 14th said nothing about the game being tomorrow. Compared as calendar days in
+// the reader's own timezone, so a Friday-teatime and a Friday-midnight reader agree.
+check("relativeDay names today, tomorrow and the week — and stops there", (() => {
+  const at = (iso) => Date.parse(iso);
+  const now = at("2026-08-14T12:00:00");
+  if (D.relativeDay(at("2026-08-14T20:00:00"), now) !== "Today") return false;
+  if (D.relativeDay(at("2026-08-15T15:00:00"), now) !== "Tomorrow") return false;
+  if (D.relativeDay(at("2026-08-17T15:00:00"), now) !== "Monday") return false;
+  // Beyond a week "Saturday" is ambiguous, so it must decline and let the date speak.
+  if (D.relativeDay(at("2026-08-23T15:00:00"), now) !== null) return false;
+  // Just-past-midnight must still read as the same calendar day, not as hours elapsed.
+  if (D.relativeDay(at("2026-08-15T15:00:00"), at("2026-08-14T23:59:00")) !== "Tomorrow") return false;
+  return D.relativeDay(NaN, now) === null;
+})());
+
+// The one piece of personal state the app keeps. A code saved last season can name a club
+// that has since been relegated out of CLUBS, and returning it would pin a ghost row.
+check("a saved club is validated against CLUBS before it is trusted", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/lib/myclub.js", import.meta.url), "utf8"); } catch { return false; }
+  return /CLUBS\[v\]/.test(src) && /useEffect/.test(src);
 })());
 
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);

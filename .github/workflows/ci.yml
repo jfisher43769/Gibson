@@ -19,3 +19,9 @@ jobs:
       - run: npm run build
       - run: node scripts/verify.js
       - run: node scripts/render-test.mjs
+      # The Home restructure's faults — a headline sliced off the card, a club grid pushing
+      # the page 30px sideways — were invisible to build, verify AND the render test, because
+      # all three pass on a page that is merely too wide. This one opens it at 360 and 430 and
+      # measures. A white-screen incident is exactly what it exists to stop.
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/home-shot.mjs

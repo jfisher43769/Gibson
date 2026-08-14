@@ -27,8 +27,9 @@ const SOCIAL_ICONS = {
   x: "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z",
   tiktok: "M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z",
   instagram: "M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 1 0 0 12.325 6.162 6.162 0 0 0 0-12.325zm0 10.162a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z",
+  facebook: "M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 3.925 23.094 9.056 24v-8.437H6.33v-3.49h2.726V9.75c0-2.708 1.6-4.204 4.05-4.204 1.174 0 2.4.21 2.4.21v2.656h-1.353c-1.333 0-1.748.833-1.748 1.687v2.024h2.976l-.476 3.49h-2.5V24C20.075 23.094 24 18.1 24 12.073z",
 };
-const SOCIAL_NAMES = { x: "X", tiktok: "TikTok", instagram: "Instagram" };
+const SOCIAL_NAMES = { x: "X", tiktok: "TikTok", instagram: "Instagram", facebook: "Facebook" };
 
 // The footer's Privacy/RSS links sit inline inside a sentence, so they need display:inline-block
 // before minHeight means anything at all — an inline box ignores it. 14 is the rendered height
@@ -97,8 +98,8 @@ function AppShell() {
   const tabs = [
     { id: "home", label: "Home" },
     { id: "matches", label: "Matches" },
-    { id: "predictor", label: "Predictor 🎯" },
-    { id: "stats", label: "Stats ⚡" },
+    { id: "predictor", label: "Predictor" },
+    { id: "stats", label: "Stats" },
     { id: "more", label: "More" },
   ];
 
@@ -136,24 +137,27 @@ function AppShell() {
       <div data-testid="gibson-build-stamp" aria-hidden="true" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)" }}>
         {`GIBSON-BUILD:${BUILD_TIME}`}
       </div>
-      <header className="gb-header" style={{ padding: "22px 18px 14px", maxWidth: 760, margin: "0 auto" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <LogoMark size={46} />
-          <div style={{ flex: 1 }}>
+      <header className="gb-header" style={{ padding: "12px 18px 10px", maxWidth: 760, margin: "0 auto" }}>
+        {/* One row. The tagline used to wrap to two lines at 400px and run into the social
+            buttons; shortened and pinned to nowrap it cannot. The whole block is ~44px tall
+            now against ~110px before, which is most of what got a real number above the fold. */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <LogoMark size={36} />
+          <div style={{ flex: 1, minWidth: 0 }}>
             <h1 style={{
-              fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 38, letterSpacing: "0.04em",
+              fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 27, letterSpacing: "0.05em",
               textTransform: "uppercase", lineHeight: 1,
               background: "linear-gradient(90deg, #EDF5EF, #FFB627)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
             }}>Gibson</h1>
-            <div style={{ fontSize: 12, color: dim, letterSpacing: "0.18em", textTransform: "uppercase", marginTop: 2 }}>
-              The home of Irish League stats
-            </div>
+            <div style={{
+              fontSize: 10, color: dim, letterSpacing: "0.2em", textTransform: "uppercase",
+              marginTop: 1, whiteSpace: "nowrap",
+            }}>Irish League stats</div>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 4 }}>
             {/* The tile stays 34x34; the TAP TARGET is the anchor around it, 44 tall. Growing
-                the tile itself would have painted three tall pills beside a square logo — the
-                thing being fixed is what a thumb can hit, not what the header looks like.
-                Costs no height: the row is already 46px because of the logo. */}
+                the tile itself would have painted tall pills beside a small logo — the thing
+                being fixed is what a thumb can hit, not what the header looks like. */}
             {Object.entries(SOCIALS).map(([key, { url, handle }]) => (
               <a key={key} href={url} target="_blank" rel="noopener noreferrer"
                 aria-label={`GIBSON on ${SOCIAL_NAMES[key]}: ${handle}`} style={{
@@ -161,10 +165,10 @@ function AppShell() {
                   textDecoration: "none", flexShrink: 0,
                 }}>
                 <span style={{
-                  width: 34, height: 34, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center",
+                  width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
                   background: OVERLAY.fill, border: `1px solid ${faint}`,
                 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill={chalk} aria-hidden="true">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill={chalk} aria-hidden="true">
                     <path d={SOCIAL_ICONS[key]} />
                   </svg>
                 </span>
@@ -172,7 +176,10 @@ function AppShell() {
             ))}
           </div>
         </div>
-        <nav className="gb-nav" style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap", position: "relative" }} aria-label="Views">
+      </header>
+      <div className="gb-navwrap">
+        <div style={{ maxWidth: 760, margin: "0 auto", padding: "0 18px 8px" }}>
+        <nav className="gb-nav" style={{ display: "flex", gap: 8, position: "relative", paddingBottom: 2 }} aria-label="Views">
           <div aria-hidden="true" style={{
             position: "absolute", top: 0, left: 0, borderRadius: 999, background: "#FFB627",
             width: pill.w, height: pill.h, transform: `translate(${pill.x}px, ${pill.y}px)`,
@@ -180,12 +187,10 @@ function AppShell() {
           }} />
           {tabs.map((t) => (
             <button key={t.id} ref={(el) => (tabRefs.current[t.id] = el)} className="gb-tab" onClick={() => setTab(t.id)} style={{
-              // 12px of padding round a 17px line box comes to 43, one pixel short — and the
-              // two tabs carrying an emoji rendered 44 while the three without rendered 43, so
-              // the row was uneven as well as under. minHeight pins all five at 44 regardless
-              // of what the label contains.
-              position: "relative", padding: "12px 18px", minHeight: 44, borderRadius: 999, cursor: "pointer",
-              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              // 12px of padding round a 17px line box comes to 43, one pixel short, so
+              // minHeight pins all five at 44 regardless of what the label contains.
+              position: "relative", padding: "12px 14px", minHeight: 44, borderRadius: 999, cursor: "pointer",
+              display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
               fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 15, letterSpacing: "0.08em", textTransform: "uppercase",
               background: "transparent",
               color: tab === t.id ? "#0B1512" : dim,
@@ -194,7 +199,8 @@ function AppShell() {
             }}>{t.label}</button>
           ))}
         </nav>
-      </header>
+        </div>
+      </div>
 
       <main className="gb-main" style={{ maxWidth: 760, margin: "0 auto", padding: "0 18px" }}>
         {clubPage ? (
