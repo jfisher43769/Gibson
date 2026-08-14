@@ -52,6 +52,14 @@ export const GlobalStyle = () => (
     .gb-hscroll::-webkit-scrollbar { display: none; }
     .gb-hscroll > * { scroll-snap-align: start; flex: 0 0 auto; }
 
+    /* A row of four headline numbers. Flex-wrapped with a min-width they went 3 + 1 on a phone,
+       stranding the fourth alone across a full-width row and reading as though it belonged to
+       something else. Two-by-two is a shape; three-and-one is an accident. */
+    .gb-stat-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    @media (min-width: 560px) {
+      .gb-stat-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+
     /* The mark's base is three courses of winners' plaques stepping outward — a terrace in
        profile. Three hairlines at three widths says the same thing between sections, and
        nothing else in the app uses it. */

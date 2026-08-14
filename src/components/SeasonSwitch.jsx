@@ -55,10 +55,16 @@ export function NoSeasonData({ status, what = "Stats", seasonId = SEASON.current
   // Two distinct reasons a season can have nothing to show, and they need different copy:
   // the current season hasn't produced the numbers yet, or an older season's numbers have
   // been rolled into SEASON_ARCHIVE and aren't wired back into these views yet.
+  //
+  // The in-season line used to read "too early for these to mean much", which was written when
+  // nothing at all existed for the new season. Derived numbers now sit directly above this panel
+  // on the Stats tab and on every club page, so that wording read as a flat contradiction of the
+  // figures a reader had just scrolled past. What is actually missing is the hand-compiled set —
+  // xG, possession, ratings — and saying so is both true and more useful than "too early".
   const body = isCurrent
     ? (status.gamesPlayed === 0
         ? `The season kicks off on ${seasonStartDisplay()}. ${what} fill in here as results come in — until then, tap ${SEASON.previous.display} for last season's completed numbers.`
-        : `Only ${status.gamesPlayed} game${status.gamesPlayed === 1 ? "" : "s"} played so far — too early for these to mean much. Tap ${SEASON.previous.display} for last season's completed numbers.`)
+        : `${status.gamesPlayed} game${status.gamesPlayed === 1 ? "" : "s"} played so far. These are compiled by hand rather than derived from the scorelines, so they arrive once the season has some substance behind it. Tap ${SEASON.previous.display} for last season's completed numbers.`)
     : `${display} has been archived. Its completed numbers are kept in the season archive — tap ${SEASON.current.display} for the live season.`;
   return (
     <div style={{ ...SURFACE.flat, borderRadius: 12, padding: "18px 16px", textAlign: "center" }}>

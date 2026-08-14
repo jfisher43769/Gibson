@@ -2687,7 +2687,7 @@ check("the picks card is tall enough for every fixture in the round", (() => {
 })());
 
 // ---- Home screen v2 ----------------------------------------------------------------
-// The layout itself is checked in a real browser by scripts/home-shot.mjs, which CI runs —
+// The layout itself is checked in a real browser by scripts/screens.mjs, which CI runs —
 // none of these can catch a card that is 30px too wide. What lives here is the stuff that IS
 // statically true, so a refactor cannot quietly undo the point of the restructure.
 
@@ -2749,6 +2749,118 @@ check("tableStage() returns null before any result and names the latest played r
   const later = D.FIXTURES_2627.filter((r) => r.round > s.round)
     .some((r) => r.matches.some((m) => Array.isArray(m.result)));
   return !later && s.played > 0 && s.played <= s.of;
+})());
+
+// The club page gated everything season-scoped on the hand-compiled exports (XG_TEAMS,
+// TEAM_STATS_2526, PLAYERS…), which do not exist until well into a campaign — so picking the
+// current season on a club page returned "no stats yet" while the Stats tab showed live derived
+// figures for that same club two taps away. An app that disagrees with itself about whether data
+// exists is worse than one that has none.
+check("the club page carries the current season's derived stats", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/club/ClubPage.jsx", import.meta.url), "utf8"); } catch { return false; }
+  return /<ClubSeasonSoFar\b/.test(src) && /import \{ ClubSeasonSoFar \}/.test(src);
+})());
+
+// ABOVE the season switch, for the same reason the Stats tab puts it there: these are the only
+// current-season numbers that exist, and a control defaulting to last season would bury them.
+check("the club page's live stats sit above the season switch, not inside it", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/club/ClubPage.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const panel = src.indexOf("<ClubSeasonSoFar");
+  const sw = src.indexOf("<SeasonSwitch");
+  return panel > 0 && sw > 0 && panel < sw;
+})());
+
+// One club, one set of numbers. The club panel and the league panel must read the same
+// derivation — two independent tallies of the same scorelines is how a club page ends up
+// disagreeing with the Stats tab about how many goals a side has scored.
+check("the club and league season panels share one derivation", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/components/SeasonSoFar.jsx", import.meta.url), "utf8"); } catch { return false; }
+  // Comments stripped first: this file explains its own derivation in prose, and counting the
+  // word in a comment made the check pass or fail on how the file was documented.
+  const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+  const uses = code.match(/currentSeasonStats\(\)/g) || [];
+  if (uses.length !== 2) { console.log(`      ↳ ${uses.length} call(s), expected one per panel`); return false; }
+  // And neither may re-tally FIXTURES_2627 itself.
+  return !/FIXTURES_2627/.test(code);
+})());
+
+// A club with no game played must not be given a position. Larne's opener moved to September;
+// deriving "12th · 0 pts" from an empty row states a fact about the fixture list as though it
+// were a fact about the club.
+check("a club that has played nothing gets no current-season position", (() => {
+  const stats = D.currentSeasonStats();
+  if (!stats.matches) return true;                           // pre-season, nothing to get wrong
+  let src = "";
+  try { src = readFileSync(new URL("../src/components/SeasonSoFar.jsx", import.meta.url), "utf8"); } catch { return false; }
+  if (!/if \(!c \|\| !c\.p\) return null;/.test(src)) return false;
+  let club = "";
+  try { club = readFileSync(new URL("../src/club/ClubPage.jsx", import.meta.url), "utf8"); } catch { return false; }
+  // The hero applies the same rule via the findIndex predicate.
+  return /r\.club === club && r\.p > 0/.test(club);
+})());
+
+// The hero printed last season's finishing position under a hardcoded "25/26" label, so a club
+// top of the league in August still led with where they finished in April — Home's fault,
+// repeated. Season labels must come from SEASON, never be typed as literals.
+check("the club hero leads with the current season and hardcodes no season label", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/club/ClubPage.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const hero = src.slice(src.indexOf("{liveRow ? ("), src.indexOf("{/* Club info"));
+  if (!hero) return false;
+  const cur = hero.indexOf("SEASON.current.display");
+  const prev = hero.indexOf("SEASON.previous.display");
+  if (cur < 0 || prev < 0 || cur > prev) return false;
+  // A literal "25/26" or "2026/27" in any STRING in this file is a label that will be wrong in a
+  // year — this file had four, in empty states and a section title. Both comment forms are
+  // stripped: prose explaining why the labels are derived was itself tripping the test.
+  const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+  const literal = code.match(/["'`][^"'`\n]*\b\d{2}\/\d{2}\b[^"'`\n]*["'`]/);
+  if (literal) { console.log(`      ↳ hardcoded season label: ${literal[0].slice(0, 60)}`); return false; }
+  return true;
+})());
+
+// Both lists in the league panel printed the raw three-letter club code where the row had space
+// for the name. The codes are an internal key; every other list in the app names the club.
+check("the season panels name clubs rather than printing their codes", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/components/SeasonSoFar.jsx", import.meta.url), "utf8"); } catch { return false; }
+  // Anchored on the RENDERED form — `>{c.club}<` — not on the bare substring. `{c.club}` also
+  // appears inside `club={c.club}`, which is the fix, so the loose version of this test failed
+  // on correct code. That is the second time a check here has matched the thing it guards.
+  if (/>\{c\.club\}<|>\{t\.club\}</.test(src)) return false;  // the bug, verbatim
+  return /<ClubName club=\{c\.club\}/.test(src) && /<ClubName club=\{t\.club\}/.test(src)
+    && /clubName\(club, \{ short: true \}\)/.test(src);
+})());
+
+// Four headline tiles flex-wrapped 3 + 1 on a phone, stranding the fourth across a full-width
+// row where it read as a heading for whatever came next. The column count belongs to a grid
+// with a breakpoint, not to a min-width the tile guesses at. scripts/screens.mjs measures the
+// wrap itself; this stops the flex version being reintroduced.
+check("headline stat tiles are laid out by the grid, not by flex-wrap guesswork", (() => {
+  let src = "", css = "";
+  try {
+    src = readFileSync(new URL("../src/components/SeasonSoFar.jsx", import.meta.url), "utf8");
+    css = readFileSync(new URL("../src/components/GlobalStyle.jsx", import.meta.url), "utf8");
+  } catch { return false; }
+  if (/flexWrap/.test(src)) { console.log("      ↳ a tile row is still flex-wrapped"); return false; }
+  const rows = src.match(/className="gb-stat-row"/g) || [];
+  if (rows.length < 3) { console.log(`      ↳ ${rows.length} tile row(s) using the class`); return false; }
+  // Two columns on a phone, four when there is room — both halves must exist or the class
+  // silently becomes single-column.
+  return /\.gb-stat-row \{[^}]*repeat\(2, minmax\(0, 1fr\)\)/.test(css)
+    && /\.gb-stat-row \{ grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/.test(css);
+})());
+
+// ordinal() was a lambda inside ClubPage until a second surface needed it. Two copies of the
+// 11/12/13 exception is how one of them starts saying "11st".
+check("ordinal() handles the teens, which is the only part anyone gets wrong", (() => {
+  const cases = [[1, "1st"], [2, "2nd"], [3, "3rd"], [4, "4th"], [11, "11th"], [12, "12th"],
+    [13, "13th"], [21, "21st"], [22, "22nd"], [23, "23rd"], [111, "111th"], [112, "112th"]];
+  for (const [n, want] of cases) if (D.ordinal(n) !== want) { console.log(`      ↳ ${n} → ${D.ordinal(n)}, want ${want}`); return false; }
+  return D.ordinal(NaN) === "" && D.ordinal(undefined) === "";
 })());
 
 // Truncating "Dungannon Swifts" to "Dunganno…" is not a shorter name, it is a broken one.

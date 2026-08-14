@@ -314,6 +314,16 @@ export function seasonStartDisplay() {
 // Compared as CALENDAR days in the reader's own timezone, not as a difference in hours: a
 // 3pm Saturday match is "tomorrow" from Friday teatime and from Friday midnight alike, and
 // hours-since would call one of those two wrong.
+// "1st", "2nd", "11th". Lived as a one-line lambda inside ClubPage until a second surface
+// needed to print a league position; two copies of the 11/12/13 exception is exactly how one
+// of them ends up saying "11st".
+export function ordinal(n) {
+  if (!Number.isFinite(n)) return "";
+  const tens = n % 100;
+  if (tens >= 11 && tens <= 13) return `${n}th`;
+  return n + ({ 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th");
+}
+
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 export function relativeDay(ms, now = Date.now()) {
   if (!Number.isFinite(ms)) return null;

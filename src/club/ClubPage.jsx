@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import {
-  ALL_TIME_TITLES, CLUBS, CLUB_META, CLUB_TOP_SCORERS, DISCIPLINE, FIXTURES_2627, FULL_TABLE, GOALS_STATS, INJURIES, MARKET_VALUES, PLAYERS, ROLL_OF_HONOUR, SEASON, STATUS_META, TEAM_STATS_2526, TRANSFERS, TRAVEL, WINDOW, XG_PLAYERS, XG_TEAMS, allTimeTitles, liveSeasonId, seasonLabel, seasonStatus,
+  ALL_TIME_TITLES, CLUBS, CLUB_META, CLUB_TOP_SCORERS, DISCIPLINE, FIXTURES_2627, FULL_TABLE, GOALS_STATS, INJURIES, MARKET_VALUES, PLAYERS, ROLL_OF_HONOUR, SEASON, STATUS_META, TEAM_STATS_2526, TRANSFERS, TRAVEL, WINDOW, XG_PLAYERS, XG_TEAMS, allTimeTitles, currentTable, liveSeasonId, ordinal, seasonLabel, seasonStatus, tableStage,
 } from "../../data.js";
 import { ClubSection } from "./ClubSection.jsx";
 import { Avatar } from "../components/Avatar.jsx";
 import { GibsonBoundary } from "../components/Boundary.jsx";
 import { Crest } from "../components/Crest.jsx";
 import { DepartedTag } from "../components/DepartedTag.jsx";
+import { ClubSeasonSoFar } from "../components/SeasonSoFar.jsx";
 import { NoSeasonData, SeasonSwitch } from "../components/SeasonSwitch.jsx";
 import { OVERLAY, SURFACE, chalk, dim, faint, ratingColor } from "../lib/theme.js";
 import { FixturesView } from "../tabs/MatchesTab.jsx";
@@ -14,10 +15,21 @@ import { FixturesView } from "../tabs/MatchesTab.jsx";
 export function ClubPage({ club, onBack }) {
   const c = CLUBS[club];
   const c1 = c.colors[0];
-  const ord = (n) => n + (n % 10 === 1 && n !== 11 ? "st" : n % 10 === 2 && n !== 12 ? "nd" : n % 10 === 3 && n !== 13 ? "rd" : "th");
   const tableIdx = FULL_TABLE.findIndex((r) => r.club === club);
   const row = tableIdx >= 0 ? FULL_TABLE[tableIdx] : null;
   const pos = tableIdx >= 0 ? tableIdx + 1 : null;
+  // This season's standing, from the same results that build the table everywhere else.
+  // The hero used to print last season's position under a "25/26" label and nothing else, so a
+  // club top of the league in August still led with where they finished in April — the same
+  // fault the home screen had, and the same fix: lead with the season being played.
+  //
+  // A club with no game played yet (Larne, whose opener was moved to September) is NOT given a
+  // live position: it would read "12th · 0 pts" purely because the fixture list moved, which is
+  // a fact about the calendar dressed up as a fact about the club.
+  const liveStage = tableStage();
+  const liveTable = liveStage ? currentTable() : null;
+  const liveIdx = liveTable ? liveTable.findIndex((r) => r.club === club && r.p > 0) : -1;
+  const liveRow = liveIdx >= 0 ? liveTable[liveIdx] : null;
   const mv = MARKET_VALUES.find((m) => m.club === club);
   const xg = XG_TEAMS.find((t) => t.club === club);
   const teamStat = TEAM_STATS_2526.find((t) => t.club === club);
@@ -75,7 +87,7 @@ export function ClubPage({ club, onBack }) {
           background: `linear-gradient(135deg, ${c1}22, transparent 62%), rgba(240,255,245,0.03)`,
           border: `1px solid ${faint}`, borderRadius: 14, padding: "18px 16px", marginBottom: 22,
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: row || mv ? 14 : 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: liveRow || row || mv ? 14 : 0 }}>
             <Crest club={club} size={54} tappable={false} />
             <div style={{ minWidth: 0 }}>
               <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 26, textTransform: "uppercase", color: chalk, lineHeight: 1 }}>{c.name}</div>
@@ -83,16 +95,28 @@ export function ClubPage({ club, onBack }) {
               {row && row.note && <div style={{ fontSize: 12, color: "#FFB627", marginTop: 4 }}>{noteLabel[row.note]} · {seasonLabel("FULL_TABLE")}</div>}
             </div>
           </div>
-          {row ? (
+          {/* Current season first when there is one. Last season stays on the card as its own
+              labelled tile rather than being replaced — for a promoted club it is the only
+              record there is, and for everyone else it is the comparison that gives the new
+              position its meaning. */}
+          {liveRow ? (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(72px, 1fr))", gap: 8 }}>
-              {tile("25/26", ord(pos), "#FFB627")}
+              {tile(SEASON.current.display, ordinal(liveIdx + 1), "#FFB627")}
+              {tile("W-D-L", `${liveRow.w}-${liveRow.d}-${liveRow.l}`)}
+              {tile("Points", liveRow.pts)}
+              {row && tile(`${SEASON.previous.display} final`, ordinal(pos))}
+              {mv && tile("Squad value", `€${mv.total.toFixed(2)}m`)}
+            </div>
+          ) : row ? (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(72px, 1fr))", gap: 8 }}>
+              {tile(`${SEASON.previous.display} final`, ordinal(pos), "#FFB627")}
               {tile("W-D-L", `${row.w}-${row.d}-${row.l}`)}
               {tile("Points", row.pts)}
               {mv && tile("Squad value", `€${mv.total.toFixed(2)}m`)}
             </div>
           ) : (
             <>
-              {empty("Promoted from the Championship — no 25/26 Premiership record.")}
+              {empty(`Promoted from the Championship — no ${SEASON.previous.display} Premiership record.`)}
               {mv && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(72px, 1fr))", gap: 8 }}>{tile("Squad value", `€${mv.total.toFixed(2)}m`)}</div>}
             </>
           )}
@@ -125,6 +149,12 @@ export function ClubPage({ club, onBack }) {
         {meta && <div style={{ fontSize: 11, color: "rgba(143,166,155,0.85)", marginTop: 10 }}>Source: {meta.source}</div>}
       </ClubSection>
 
+      {/* This season's own numbers, above the switch and outside it — same arrangement the
+          Stats tab uses, for the same reason. They exist from the first result, while the
+          curated blocks below do not exist until well into a campaign, so a control that
+          defaults to last season would hide the only current-season data there is. */}
+      <ClubSeasonSoFar club={club} />
+
       {/* Season */}
       {/* Season selector — governs the two season-scoped sections below (Season + Squad).
           Club info, fixtures, transfers and honours aren't season stats, so they stay put. */}
@@ -141,7 +171,7 @@ export function ClubPage({ club, onBack }) {
             {tile("xG against", xg.xga.toFixed(2))}
             {tile("xG diff", `${xg.xgd >= 0 ? "+" : "−"}${Math.abs(xg.xgd).toFixed(2)}`, xg.xgd >= 0 ? "#3DDC84" : "#E8663C")}
           </div>
-        ) : empty("No expected-goals data for 25/26.")}
+        ) : empty(`No expected-goals data for ${SEASON.previous.display}.`)}
         {(teamStat || goalsStat) && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(84px, 1fr))", gap: 8, marginBottom: 12 }}>
             {teamStat && tile("Goals", teamStat.goals, "#3DDC84")}
@@ -159,7 +189,7 @@ export function ClubPage({ club, onBack }) {
               <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14, color: col, fontVariantNumeric: "tabular-nums" }}>{p.n}</span>
             </div>
           ))
-        ) : empty("No booking data recorded for 25/26.")}
+        ) : empty(`No booking data recorded for ${SEASON.previous.display}.`)}
       </ClubSection>
 
       {/* Squad */}
@@ -178,7 +208,7 @@ export function ClubPage({ club, onBack }) {
               <div style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 20, color: ratingColor(p.rating), fontVariantNumeric: "tabular-nums" }}>{p.rating.toFixed(1)}</div>
             </div>
           ))
-        ) : empty("GIBSON Index ratings are added club by club, not simulated — coverage builds up as the 2026/27 season is played.")}
+        ) : empty(`GIBSON Index ratings are added club by club, not simulated — coverage builds up as the ${SEASON.current.display} season is played.`)}
 
         {/* Club top scorer — Transfermarkt, all competitions. Deliberately separate from the
             xG block below: that one is league-only FootyStats data, and this view publishes
@@ -271,7 +301,7 @@ export function ClubPage({ club, onBack }) {
       </ClubSection>
 
       {/* Fixtures — reuses the existing by-club fixtures view, locked to this club */}
-      <ClubSection title="Fixtures · 26/27">
+      <ClubSection title={`Fixtures · ${SEASON.current.display}`}>
         <FixturesView key={club} fixedClub={club} />
         <a href={`/calendar/${club}.ics`} style={{
           display: "inline-flex", alignItems: "center", gap: 6, marginTop: 10, padding: "7px 14px",
