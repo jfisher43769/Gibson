@@ -1096,12 +1096,12 @@ export const PREDICTOR_GW = {
   name: "Round 2 · BoyleSports Premiership",
   deadline: "Sat 15 Aug 3pm",
   fixtures: [
-    { id: "f-BAN-CLI", home: { club: "BAN" }, away: { club: "CLI" }, comp: "Round 2 · Clandeboye Park · Sat 15 Aug, 3pm", result: null, odds: { home: 2.63, draw: 4.09, away: 2.66 } },
-    { id: "f-COL-LAR", home: { club: "COL" }, away: { club: "LAR" }, comp: "Round 2 · The Showgrounds · Sat 15 Aug, 3pm", result: null, odds: { home: 2.39, draw: 4.11, away: 2.96 } },
-    { id: "f-CRU-BAL", home: { club: "CRU" }, away: { club: "BAL" }, comp: "Round 2 · Seaview · Sat 15 Aug, 3pm", result: null, odds: { home: 2.46, draw: 4.1, away: 2.86 } },
-    { id: "f-LIM-CAR", home: { club: "LIM" }, away: { club: "CAR" }, comp: "Round 2 · Limavady Showgrounds · Sat 15 Aug, 3pm", result: null, odds: { home: 3.95, draw: 4.3, away: 1.95 } },
-    { id: "f-LIN-GLE", home: { club: "LIN" }, away: { club: "GLE" }, comp: "Round 2 · Windsor Park · Sat 15 Aug, 3pm", result: null, odds: { home: 2.57, draw: 4.1, away: 2.73 } },
-    { id: "f-POR-DUN", home: { club: "POR" }, away: { club: "DUN" }, comp: "Round 2 · Shamrock Park · Sat 15 Aug, 3pm", result: null, odds: { home: 2.52, draw: 4.1, away: 2.79 } },
+    { id: "f-BAN-CLI", home: { club: "BAN" }, away: { club: "CLI" }, comp: "Round 2 · Clandeboye Park · Sat 15 Aug, 3pm", result: null, odds: { home: 2.81, draw: 4.08, away: 2.5 } },
+    { id: "f-COL-LAR", home: { club: "COL" }, away: { club: "LAR" }, comp: "Round 2 · The Showgrounds · Sat 15 Aug, 3pm", result: null, odds: { home: 2.2, draw: 4.06, away: 3.34 } },
+    { id: "f-CRU-BAL", home: { club: "CRU" }, away: { club: "BAL" }, comp: "Round 2 · Seaview · Sat 15 Aug, 3pm", result: null, odds: { home: 3.32, draw: 4.28, away: 2.15 } },
+    { id: "f-LIM-CAR", home: { club: "LIM" }, away: { club: "CAR" }, comp: "Round 2 · Limavady Showgrounds · Sat 15 Aug, 3pm", result: null, odds: { home: 3.39, draw: 4.02, away: 2.19 } },
+    { id: "f-LIN-GLE", home: { club: "LIN" }, away: { club: "GLE" }, comp: "Round 2 · Windsor Park · Sat 15 Aug, 3pm", result: null, odds: { home: 3.13, draw: 3.82, away: 2.39 } },
+    { id: "f-POR-DUN", home: { club: "POR" }, away: { club: "DUN" }, comp: "Round 2 · Shamrock Park · Sat 15 Aug, 3pm", result: null, odds: { home: 2.7, draw: 4.1, away: 2.6 } },
   ],
 };
 // Larne v Bangor (originally round 1) was rescheduled to Tue 8 Sep — see FIXTURES_2627 —
