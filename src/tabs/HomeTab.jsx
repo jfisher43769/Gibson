@@ -1,17 +1,20 @@
 import React, { useContext, useState } from "react";
 import {
   CLUBS, CLUB_FIXTURES, EURO, FIXTURES_2627, LEAGUE_LORE, LIVE_WINDOW_MS, PREDICTOR_GW, STATUS_META, TRANSFERS,
+  CLUB_META, clubName,
   dayMonth, leagueFixtureLabel, londonKickoffLabel, matchDetail, nextLeagueFixture, recentResults,
+  relativeDay,
 } from "../../data.js";
 import { ClubNavContext, Crest } from "../components/Crest.jsx";
 import { LiveCaveat, LiveNow } from "../components/LiveNow.jsx";
 import { MatchDetail, StatsAffordance } from "../components/MatchDetail.jsx";
 import { ScoreRow } from "../components/ScoreRow.jsx";
+import { TableSnapshot } from "../components/TableSnapshot.jsx";
 import { TvBadge } from "../components/TvBadge.jsx";
-import { CountUp } from "../components/CountUp.jsx";
 import { findLive, useLiveEvents } from "../lib/live.js";
 import { oppCode } from "../lib/oppcode.js";
-import { SURFACE, chalk, dim, faint, tapPad } from "../lib/theme.js";
+import { OVERLAY, SURFACE, chalk, dim, faint, tapPad } from "../lib/theme.js";
+import { useMyClub } from "../lib/myclub.js";
 
 // One side of the scoreboard. A Premiership club shows its crest, which is what the rest of
 // the app leads with; a European opponent isn't in CLUBS so Crest can't draw it, and that
@@ -37,6 +40,7 @@ function BoardSide({ crest, code, name }) {
 
 export function HomeView({ goTo }) {
   const openClub = useContext(ClubNavContext);
+  const { club: myClub, choose: chooseClub, clear: clearClub, ready: myClubReady } = useMyClub();
   const live = useLiveEvents();
   // Which result is expanded on the front page. One at a time, same as the fixtures list.
   const [openResult, setOpenResult] = useState(null);
@@ -111,6 +115,8 @@ export function HomeView({ goTo }) {
         awayColor: EURO.find((e) => e.club === heroFix.club)?.oppColor || null,
         // Rendered from the tie's UTC dt, so it stays right either side of the clocks going back.
         time: londonKickoffLabel(heroFix.dt),
+        when: relativeDay(new Date(heroFix.dt).getTime(), now),
+        venue: heroFix.venue || null,
         sub: `${CLUBS[heroFix.club].name} v ${heroFix.opp} · ${heroFix.comp}`,
       }
     : {
@@ -121,6 +127,10 @@ export function HomeView({ goTo }) {
         // Past the last fixture the board is showing a game that has been played, so the
         // kick-off time would be stating something that already happened.
         time: leagueFix.done ? null : leagueFix.time || null,
+        // "TOMORROW · 3PM" is what a visitor actually needs; the date is supporting text.
+        when: leagueFix.done ? null : relativeDay(leagueFix.kickoffMs, now),
+        // Wikidata's ground name where we have it, the club's own otherwise.
+        venue: CLUB_META[leagueFix.h]?.ground || CLUBS[leagueFix.h]?.ground || null,
         // "Opening night" belongs to one fixture, not to a round — leagueFixtureLabel()
         // decides, so the board can't call a 3pm Saturday game opening night just because
         // it is still round 1.
@@ -142,7 +152,6 @@ export function HomeView({ goTo }) {
     ...recorded.map((r) => ({ ...r, when: r.kickoffMs })),
     ...feedOnly.map((f) => ({ ...f, when: Date.parse(`${f.date}T12:00:00Z`) || 0 })),
   ].sort((a, b) => b.when - a.when).slice(0, 5);
-  const heroDate = board.date.match(/^(\d+)(\S*)(.*)$/);
   return (
     <div className="gb-narrow" style={{ animation: "riseIn 0.4s ease-out" }}>
       <div style={{
@@ -166,11 +175,11 @@ export function HomeView({ goTo }) {
             <span style={{ color: "#3DDC84", fontWeight: 800 }}>Live now</span>
           </>) : <span style={{ color: dim }}>Next match</span>}
         </div>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "center", gap: 18 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "center", gap: 12 }}>
           <BoardSide crest={board.homeCrest} code={board.home} name={board.homeName} />
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, minWidth: 0, paddingTop: 6 }}>
             {liveMatch ? (<>
-              <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 48, lineHeight: 1, color: "#FFB627", fontVariantNumeric: "tabular-nums", textShadow: "0 0 18px rgba(255,182,39,0.35)" }}>
+              <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 44, lineHeight: 1, color: "#FFB627", fontVariantNumeric: "tabular-nums", textShadow: "0 0 18px rgba(255,182,39,0.35)" }}>
                 {liveMatch.hs}–{liveMatch.as}
               </span>
               {/* The feed's own status (2H, HT) rather than anything we work out ourselves —
@@ -181,23 +190,49 @@ export function HomeView({ goTo }) {
                   letterSpacing: "0.08em", color: "#3DDC84", textTransform: "uppercase",
                 }}>{liveMatch.status}</span>
               )}
-            </>) : (<>
-              <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 48, lineHeight: 1, color: "#FFB627", fontVariantNumeric: "tabular-nums", textShadow: "0 0 18px rgba(255,182,39,0.35)" }}>
-                {heroDate ? <><CountUp value={parseInt(heroDate[1], 10)} />{heroDate[2]}</> : board.date}
-                {heroDate && heroDate[3] && <span style={{ fontSize: 20, letterSpacing: "0.12em", color: dim }}>{heroDate[3].toUpperCase()}</span>}
-              </span>
-              {board.time && (
-                <span style={{
-                  fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 19, lineHeight: 1,
-                  letterSpacing: "0.08em", color: chalk, fontVariantNumeric: "tabular-nums",
-                }}>{board.time.toUpperCase()}</span>
-              )}
-            </>)}
+            </>) : (
+              <span style={{
+                fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 22, lineHeight: 1,
+                color: dim, letterSpacing: "0.1em",
+              }}>V</span>
+            )}
           </div>
           <BoardSide crest={board.awayCrest} code={board.away} name={board.awayName} />
         </div>
+        {/* The headline sits UNDER the crests, across the full card, rather than squeezed
+            between two fixed-width club columns. In the middle it could not fit: 84px a side
+            plus a nowrap "TOMORROW · 3PM" came to 358px inside a 292px card on a 360px phone,
+            and the first letter was sliced off. Full width, it has the whole card to use. */}
+        {!liveMatch && (
+          <div style={{ marginTop: 12 }}>
+            <div style={{
+              fontFamily: "'Barlow Condensed'", fontWeight: 800, lineHeight: 1, color: "#FFB627",
+              fontSize: "clamp(26px, 8vw, 38px)", letterSpacing: "0.03em", textTransform: "uppercase",
+              textShadow: "0 0 18px rgba(255,182,39,0.35)",
+            }}>
+              {board.when || board.date}{board.time ? ` · ${board.time.toUpperCase()}` : ""}
+            </div>
+            {board.when && (
+              <div style={{ fontSize: 12, color: dim, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 4 }}>
+                {board.date}
+              </div>
+            )}
+          </div>
+        )}
         <div style={{ height: 2, width: 130, margin: "13px auto 9px", background: "#FFB627", opacity: 0.7, borderRadius: 1 }} />
         <div style={{ fontSize: 12, color: dim }}>{board.sub}</div>
+        {board.venue && !liveMatch && (
+          <div style={{ fontSize: 12, color: dim, marginTop: 3 }}>{board.venue}</div>
+        )}
+        {!liveMatch && (
+          <button onClick={() => goTo("predictor")} style={{
+            marginTop: 11, padding: "9px 18px", minHeight: 44, borderRadius: 999, cursor: "pointer",
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            background: OVERLAY.fill, color: "#FFB627", border: "1px solid rgba(255,182,39,0.45)",
+            fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 14,
+            letterSpacing: "0.08em", textTransform: "uppercase",
+          }}>Predict this week →</button>
+        )}
         {board.tv && (
           <div style={{ display: "flex", justifyContent: "center", marginTop: 9 }}>
             <TvBadge tv={board.tv} />
@@ -208,6 +243,10 @@ export function HomeView({ goTo }) {
             hang a footnote when it has no rows, so this is printed here instead of there. */}
         {liveMatch && <LiveCaveat />}
       </div>
+      <hr className="gb-steps" aria-hidden="true" />
+      {/* The reason this screen exists. Directly under the board so a position and a points
+          total are visible without scrolling. */}
+      <TableSnapshot myClub={myClub} onOpenTable={() => goTo("matches", "table")} />
       {/* Anything else in play. The board above carries one fixture; on a Saturday with four
           or six 3pm kick-offs the rest were appearing nowhere on the front page. */}
       <LiveNow matches={live.data && live.data.live} exclude={{ h: board.home, a: board.away }}
@@ -245,20 +284,46 @@ export function HomeView({ goTo }) {
         </div>
       )}
       {openClub && (<>
-        <div style={{ ...label, marginBottom: 8 }}>Your club</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 8, marginBottom: 18 }}>
-          {Object.keys(CLUBS).filter((k) => k !== "GLV").map((k) => (
-            <button key={k} onClick={() => openClub(k)} aria-label={`Open ${CLUBS[k].name} club page`} style={{
-              ...SURFACE.card, borderRadius: 12, padding: "8px 3px 7px", cursor: "pointer",
-              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, minHeight: 48,
-            }}>
-              <Crest club={k} size={26} tappable={false} />
-              <span style={{
-                fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 10.5, color: chalk, textAlign: "center", lineHeight: 1.1,
-                display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
-              }}>{CLUBS[k].name}</span>
-            </button>
-          ))}
+        {/* Two states, one row of crests.
+            Unpicked: a full-width prompt, because the choice is what makes the rest of the
+            screen personal — the table snapshot pins the club, and that is a reason to come
+            back on a Tuesday rather than a grid of twelve links to nowhere in particular.
+            Picked: the same row, collapsed, with the choice marked and changeable.
+            Either way it SCROLLS. As a 2x6 grid it pushed a 360px page 30px sideways. */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 8 }}>
+          <span style={{ ...label, marginBottom: 0 }}>{myClub ? "Your club" : "Pick your club"}</span>
+          {myClub && (
+            <button onClick={clearClub} style={seeAll} aria-label="Choose a different club">Change</button>
+          )}
+        </div>
+        {!myClub && myClubReady && (
+          <div style={{ fontSize: 12, color: dim, lineHeight: 1.5, marginBottom: 8 }}>
+            Pick one and GIBSON keeps it on this device — your club gets pinned to the table above.
+          </div>
+        )}
+        <div className="gb-hscroll" style={{ marginBottom: 18 }}>
+          {Object.keys(CLUBS).filter((k) => k !== "GLV").map((k) => {
+            const mine = k === myClub;
+            return (
+              <button key={k}
+                onClick={() => (mine ? openClub(k) : chooseClub(k))}
+                aria-label={mine ? `Open ${CLUBS[k].name} club page` : `Choose ${CLUBS[k].name} as your club`}
+                aria-pressed={mine}
+                style={{
+                  ...SURFACE.card, borderRadius: 12, padding: "8px 6px 7px", cursor: "pointer",
+                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                  gap: 4, minHeight: 62, width: 72,
+                  border: `1px solid ${mine ? "rgba(255,182,39,0.55)" : faint}`,
+                  background: mine ? "rgba(255,182,39,0.12)" : SURFACE.card.background,
+                }}>
+                <Crest club={k} size={24} tappable={false} />
+                <span style={{
+                  fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 11,
+                  color: mine ? "#FFB627" : chalk, textAlign: "center", lineHeight: 1.1, whiteSpace: "nowrap",
+                }}>{clubName(k, { short: true })}</span>
+              </button>
+            );
+          })}
         </div>
       </>)}
       {(restEuro.length > 0 || heroFix) && (<>

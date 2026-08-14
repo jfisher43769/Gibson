@@ -21,20 +21,31 @@
    over from the first scaffold — misleading on a file where the difference between measured
    and estimated is the whole point. */
 export const CLUBS = {
-  LAR: { name: "Larne", ground: "Inver Park", colors: ["#C8102E", "#FFFFFF"], pattern: "plain" },
-  COL: { name: "Coleraine", ground: "The Showgrounds", colors: ["#005EB8", "#FFFFFF"], pattern: "stripes" },
-  GLE: { name: "Glentoran", ground: "The Oval", colors: ["#00693E", "#C8102E"], pattern: "sleeve" },
-  LIN: { name: "Linfield", ground: "Windsor Park", colors: ["#0033A0", "#FFFFFF"], pattern: "plain" },
-  CLI: { name: "Cliftonville", ground: "Solitude", colors: ["#EE1C25", "#FFFFFF"], pattern: "plain" },
-  DUN: { name: "Dungannon Swifts", ground: "Stangmore Park", colors: ["#1D4F91", "#FFFFFF"], pattern: "plain" },
-  BAL: { name: "Ballymena United", ground: "The Showgrounds", colors: ["#6CACE4", "#FFFFFF"], pattern: "plain" },
-  POR: { name: "Portadown", ground: "Shamrock Park", colors: ["#DA291C", "#000000"], pattern: "plain" },
-  BAN: { name: "Bangor", ground: "Clandeboye Park", colors: ["#FDB913", "#0033A0"], pattern: "plain" },
-  CAR: { name: "Carrick Rangers", ground: "Loughview Leisure", colors: ["#FFB81C", "#000000"], pattern: "stripes" },
-  CRU: { name: "Crusaders", ground: "Seaview", colors: ["#D01317", "#000000"], pattern: "stripes" },
-  GLV: { name: "Glenavon", ground: "Mourneview Park", colors: ["#0072CE", "#FFFFFF"], pattern: "plain" },
-  LIM: { name: "Limavady United", ground: "Limavady Showgrounds", colors: ["#1D6FB8", "#FFFFFF"], pattern: "plain" },
+  LAR: { name: "Larne", short: "Larne", ground: "Inver Park", colors: ["#C8102E", "#FFFFFF"], pattern: "plain" },
+  COL: { name: "Coleraine", short: "Coleraine", ground: "The Showgrounds", colors: ["#005EB8", "#FFFFFF"], pattern: "stripes" },
+  GLE: { name: "Glentoran", short: "Glentoran", ground: "The Oval", colors: ["#00693E", "#C8102E"], pattern: "sleeve" },
+  LIN: { name: "Linfield", short: "Linfield", ground: "Windsor Park", colors: ["#0033A0", "#FFFFFF"], pattern: "plain" },
+  CLI: { name: "Cliftonville", short: "Cliftonville", ground: "Solitude", colors: ["#EE1C25", "#FFFFFF"], pattern: "plain" },
+  DUN: { name: "Dungannon Swifts", short: "Dungannon", ground: "Stangmore Park", colors: ["#1D4F91", "#FFFFFF"], pattern: "plain" },
+  BAL: { name: "Ballymena United", short: "Ballymena", ground: "The Showgrounds", colors: ["#6CACE4", "#FFFFFF"], pattern: "plain" },
+  POR: { name: "Portadown", short: "Portadown", ground: "Shamrock Park", colors: ["#DA291C", "#000000"], pattern: "plain" },
+  BAN: { name: "Bangor", short: "Bangor", ground: "Clandeboye Park", colors: ["#FDB913", "#0033A0"], pattern: "plain" },
+  CAR: { name: "Carrick Rangers", short: "Carrick", ground: "Loughview Leisure", colors: ["#FFB81C", "#000000"], pattern: "stripes" },
+  CRU: { name: "Crusaders", short: "Crusaders", ground: "Seaview", colors: ["#D01317", "#000000"], pattern: "stripes" },
+  GLV: { name: "Glenavon", short: "Glenavon", ground: "Mourneview Park", colors: ["#0072CE", "#FFFFFF"], pattern: "plain" },
+  LIM: { name: "Limavady United", short: "Limavady", ground: "Limavady Showgrounds", colors: ["#1D6FB8", "#FFFFFF"], pattern: "plain" },
 };
+// A club's name, short enough for a narrow row. Four of the twelve names do not fit a phone's
+// results list — Ballymena United, Carrick Rangers, Dungannon Swifts, Limavady United — and
+// they were being cut off with an ellipsis, which is the wrong tool: "Dunganno…" is not a
+// shorter name, it is a broken one. The short form is editorial, held in CLUBS, and falls
+// back to the full name for the eight that never needed one.
+export function clubName(code, { short = false } = {}) {
+  const c = CLUBS[code];
+  if (!c) return code;
+  return short ? (c.short || c.name) : c.name;
+}
+
 
 // Season labelling foundation. `current` is the season about to kick off (seasonStart);
 // `previous` is the completed season the site's stats still describe. SEASON_TAGS maps
@@ -296,6 +307,26 @@ export function seasonStartDisplay() {
 // pages with an empty state is worse than leading with last season's real numbers, clearly
 // labelled and one tap from the new season. The "26/27 starts 7 August" strip is what
 // signals the new season; that stays, driven by `early`/`started` below.
+// "Today", "Tomorrow", or the weekday — for a fixture close enough that the calendar date is
+// the less useful fact. The board led with a giant "15", which on the 14th told a visitor
+// nothing about whether the game was tomorrow or in three weeks.
+//
+// Compared as CALENDAR days in the reader's own timezone, not as a difference in hours: a
+// 3pm Saturday match is "tomorrow" from Friday teatime and from Friday midnight alike, and
+// hours-since would call one of those two wrong.
+const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+export function relativeDay(ms, now = Date.now()) {
+  if (!Number.isFinite(ms)) return null;
+  const at = new Date(ms), from = new Date(now);
+  const midnight = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const days = Math.round((midnight(at) - midnight(from)) / 86400000);
+  if (days === 0) return "Today";
+  if (days === 1) return "Tomorrow";
+  // Naming a weekday more than a week out is ambiguous — "Saturday" could be either one.
+  if (days > 1 && days <= 6) return WEEKDAYS[at.getDay()];
+  return null;
+}
+
 export function seasonStatus(now = Date.now()) {
   const gamesPlayed = currentSeasonGamesPlayed();
   const started = now >= Date.parse(`${SEASON.seasonStart}T00:00:00Z`);
