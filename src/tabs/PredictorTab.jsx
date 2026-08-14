@@ -4,7 +4,7 @@ import {
 } from "../../data.js";
 import { Crest } from "../components/Crest.jsx";
 import { OddsDisclaimer, OddsStrip } from "../components/Odds.jsx";
-import { roundRect } from "../lib/canvas.js";
+import { drawFooterLockup, roundRect } from "../lib/canvas.js";
 import { SITE_ORIGIN } from "../lib/routes.js";
 import { OVERLAY, SURFACE, chalk, dim, faint, rise } from "../lib/theme.js";
 import { track } from "../lib/track.js";
@@ -75,8 +75,8 @@ function TablePredictor() {
       ctx.fillStyle = "#EDF5EF"; ctx.font = "bold 34px 'Barlow Condensed','Arial Narrow',sans-serif";
       ctx.fillText(CLUBS[code].name.toUpperCase(), 205, y + 38);
     });
-    ctx.textAlign = "center"; ctx.fillStyle = "#FFB627"; ctx.font = "bold 28px 'Barlow Condensed','Arial Narrow',sans-serif";
-    ctx.fillText("🏆 GIBSON · " + SHARE_HOST, W / 2, H - 36);
+    drawFooterLockup(ctx, W / 2, H - 36, "GIBSON · " + SHARE_HOST,
+      "bold 28px 'Barlow Condensed','Arial Narrow',sans-serif", "#FFB627", 34);
     cv.toBlob(async (blob) => {
       if (!blob) return;
       const file = new File([blob], "gibson-my-table.png", { type: "image/png" });
@@ -315,9 +315,8 @@ export function PredictorView() {
       ctx.fillText("THINK YOU KNOW BETTER? 🎯", W/2, footY);
     }
     // gibson footer
-    ctx.fillStyle = "#FFB627";
-    ctx.font = "bold 30px 'Barlow Condensed', 'Arial Narrow', sans-serif";
-    ctx.fillText("🏆 GIBSON · " + SHARE_HOST, W/2, H - 60);
+    drawFooterLockup(ctx, W / 2, H - 60, "GIBSON · " + SHARE_HOST,
+      "bold 30px 'Barlow Condensed', 'Arial Narrow', sans-serif", "#FFB627", 36);
     // share
     cv.toBlob(async (blob) => {
       if (!blob) return;

@@ -2608,5 +2608,42 @@ check("a single result moves a price by a sane amount, not a full point of odds"
   return played > 24 || worst < 0.75;
 })());
 
+// ---- The mark, wherever it stands for GIBSON ---------------------------------------
+// A trophy emoji is somebody else's artwork and a generic cup. It is fine as DECORATION —
+// "Champions 🏆" in a table row means champions — but not where the mark is standing in for
+// the brand. These three places were doing the latter: the share cards users post publicly,
+// the in-app crash screen, and the pre-React fallback that mirrors it.
+check("the Predictor share cards carry the mark, not a trophy emoji", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/PredictorTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  // Both cards — the table and the picks — go out with the same lockup.
+  const calls = (src.match(/drawFooterLockup\(/g) || []).length;
+  if (calls < 2) return false;
+  // And neither footer went back to the emoji.
+  return !/🏆\s*GIBSON/.test(src);
+})());
+
+check("both crash screens show the mark rather than an emoji", (() => {
+  let boundary = "", html = "";
+  try {
+    boundary = readFileSync(new URL("../src/components/Boundary.jsx", import.meta.url), "utf8");
+    html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  } catch { return false; }
+  if (!/<LogoMark\s/.test(boundary) || /fontSize: 44[^}]*}}>🏆/.test(boundary)) return false;
+  // index.html cannot import LogoMark — it runs before the app module, which is its whole
+  // purpose — so it uses the icon file, and must not fall back to the emoji.
+  const crash = html.slice(html.indexOf("gibsonCrashScreen"));
+  return /icon-\d+\.png/.test(crash) && !/>🏆</.test(crash);
+})());
+
+// The canvas mark must come from the shared geometry, not a second drawing. This is the same
+// rule the promo kits are held to, extended to the app's own share cards.
+check("the app's canvas mark is drawn from src/lib/cup.js", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/lib/canvas.js", import.meta.url), "utf8"); } catch { return false; }
+  if (!/from "\.\/cup\.js"/.test(src)) return false;
+  return /CUP_PATHS/.test(src) && /new Path2D/.test(src);
+})());
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);
