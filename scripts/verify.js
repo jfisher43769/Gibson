@@ -1689,6 +1689,15 @@ check("tapPad() produces a 44px hit area that costs no layout height", (() => {
   // The social tile is painted by an inner span so the anchor can be a taller transparent hit
   // box. If someone flattens that back onto the anchor, the tile becomes a 34x44 pill.
   if (!/minHeight:\s*44,\s*width:\s*34/.test(app)) bad.push("social icons lost their 44px hit box");
+  // FOOTER_TAP merely EXISTING is not the fix — the constant can stay defined while the spread
+  // is deleted from the links, and then the footer silently loses its hit area while this check
+  // stays green off the tapPad() call above. Found by mutation-testing this check during the
+  // rebase that landed it, which is the second time a loose assertion here has passed with the
+  // thing it guards removed.
+  for (const href of ["/privacy.html", "/rss.xml"]) {
+    const re = new RegExp(`href="${href.replace(/[/.]/g, "\\$&")}"[^>]*\\.\\.\\.FOOTER_TAP`);
+    if (!re.test(app)) bad.push(`footer ${href} link no longer spreads FOOTER_TAP`);
+  }
   if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
   return bad.length === 0;
 })());
