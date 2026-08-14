@@ -2645,5 +2645,36 @@ check("the app's canvas mark is drawn from src/lib/cup.js", (() => {
   return /CUP_PATHS/.test(src) && /new Path2D/.test(src);
 })());
 
+// The Predictor's share cards are images the user posts publicly — GIBSON's own advertising,
+// which is where rule 2 draws the line at a bookmaker's name. scripts/promo/predictor.mjs has
+// been checked for this since it was written; the in-app card was printing PREDICTOR_GW.name
+// verbatim, and that name is "Round N · <Sponsor> Premiership". It went out on every share.
+check("the in-app share cards name the league, not its sponsor", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/PredictorTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  // The canvas cards must not print the sponsored name straight onto the image.
+  if (/fillText\([^)]*PREDICTOR_GW\.name/.test(src)) return false;
+  return /NIFL PREMIERSHIP/.test(src);
+})());
+
+// The picks card grew past its own canvas: six fixtures needed 1410px and the height was
+// pinned at 1080, so the last tie rendered off the bottom edge with the footer on top of it.
+// Nothing caught it because nothing tied the canvas to the number of rows drawn on it.
+check("the picks card is tall enough for every fixture in the round", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/PredictorTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const m = /const HEAD = (\d+), FOOT = (\d+), ROW_MAX = (\d+);/.exec(src);
+  if (!m) return false;
+  const [HEAD, FOOT, ROW_MAX] = m.slice(1).map(Number);
+  if (!/const H = Math\.min\(\d+, Math\.max\(\d+, HEAD \+ n \* ROW_MAX \+ FOOT\)\)/.test(src)) return false;
+  // Simulate the real gameweek: every row, plus the footer block, must land inside the canvas.
+  const n = D.PREDICTOR_GW.fixtures.length;
+  const H = Math.min(1350, Math.max(1080, HEAD + n * ROW_MAX + FOOT));
+  const rowH = Math.min(ROW_MAX, (H - HEAD - FOOT) / n);
+  const cardH = Math.min(124, rowH - 16);
+  const lastRowBottom = HEAD + (n - 1) * rowH + cardH / 2;
+  return lastRowBottom < H - FOOT + 60;
+})());
+
 console.log(fails === 0 ? "ALL CHECKS PASS" : `${fails} FAILURES`);
 process.exit(fails === 0 ? 0 : 1);

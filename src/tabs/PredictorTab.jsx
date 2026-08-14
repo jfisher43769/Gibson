@@ -253,7 +253,18 @@ export function PredictorView() {
 
   const shareImage = async () => {
     track("share_card_generated", { gw: PREDICTOR_GW.id, scored: resultsIn });
-    const W = 1080, H = 1080;
+    const W = 1080;
+    // Height follows the fixture count instead of being fixed at 1080. Six fixtures needed
+    // 1410px of card and got 1080, so the last tie ran off the bottom edge and the footer
+    // landed on top of it. Capped at 4:5, the tallest ratio a feed shows without cropping,
+    // and the rows compress to fit if a round is ever bigger than that allows.
+    const n = PREDICTOR_GW.fixtures.length;
+    const HEAD = 320, FOOT = 190, ROW_MAX = 150;
+    const H = Math.min(1350, Math.max(1080, HEAD + n * ROW_MAX + FOOT));
+    const rowH = Math.min(ROW_MAX, (H - HEAD - FOOT) / n);
+    const cardH = Math.min(124, rowH - 16);
+    const k = cardH / 124;                       // scale the row's insides with its box
+    const startY = HEAD;
     const cv = document.createElement("canvas");
     cv.width = W; cv.height = H;
     const ctx = cv.getContext("2d");
@@ -272,39 +283,42 @@ export function PredictorView() {
     ctx.fillText(resultsIn ? "MY PREDICTOR SCORE" : "MY PICKS", W/2, 150);
     ctx.fillStyle = "#FFB627";
     ctx.font = "bold 34px 'Barlow Condensed', 'Arial Narrow', sans-serif";
-    ctx.fillText(PREDICTOR_GW.name.toUpperCase() + " · GIBSON 🎯", W/2, 210);
+    // NIFL, not the sponsor. PREDICTOR_GW.name is "Round N · <Sponsor> Premiership", and this
+    // card is an image the user posts publicly — GIBSON's own advertising, which is exactly
+    // where rule 2 says a bookmaker's name must not appear. scripts/promo/predictor.mjs has
+    // said so since it was written; this card was quietly printing it anyway.
+    const roundOnly = /^(Round\s+\d+)/i.exec(PREDICTOR_GW.name);
+    ctx.fillText(((roundOnly ? roundOnly[1] : "PREDICTOR") + " · NIFL PREMIERSHIP · GIBSON").toUpperCase() + " 🎯", W/2, 210);
     // fixtures
-    const n = PREDICTOR_GW.fixtures.length;
-    const rowH = 150, startY = 320;
     PREDICTOR_GW.fixtures.forEach((f, i) => {
       const y = startY + i * rowH;
       // card
       ctx.fillStyle = "rgba(240,255,245,0.04)";
       ctx.strokeStyle = "rgba(240,255,245,0.12)";
-      roundRect(ctx, 70, y - 62, W - 140, 124, 18); ctx.fill(); ctx.stroke();
+      roundRect(ctx, 70, y - cardH / 2, W - 140, cardH, 18); ctx.fill(); ctx.stroke();
       const pk = picks[f.id] || [0, 0];
       ctx.fillStyle = "#EDF5EF";
-      ctx.font = "bold 33px 'Barlow Condensed', 'Arial Narrow', sans-serif";
-      ctx.textAlign = "right"; ctx.fillText(sideName(f.home).toUpperCase(), W/2 - 110, y + 3);
-      ctx.textAlign = "left"; ctx.fillText(sideName(f.away).toUpperCase(), W/2 + 110, y + 3);
+      ctx.font = `bold ${Math.round(33 * k)}px 'Barlow Condensed', 'Arial Narrow', sans-serif`;
+      ctx.textAlign = "right"; ctx.fillText(sideName(f.home).toUpperCase(), W/2 - 110, y - cardH * 0.09);
+      ctx.textAlign = "left"; ctx.fillText(sideName(f.away).toUpperCase(), W/2 + 110, y - cardH * 0.09);
       ctx.textAlign = "center";
       ctx.fillStyle = "#FFB627";
-      ctx.font = "bold 52px 'Barlow Condensed', 'Arial Narrow', sans-serif";
-      ctx.fillText(`${pk[0]} – ${pk[1]}`, W/2, y + 8);
+      ctx.font = `bold ${Math.round(52 * k)}px 'Barlow Condensed', 'Arial Narrow', sans-serif`;
+      ctx.fillText(`${pk[0]} – ${pk[1]}`, W/2, y - cardH * 0.05);
       // scored chip / comp line
       const pts = scoreFor(f);
       if (pts !== null) {
-        ctx.font = "bold 26px 'Barlow Condensed', 'Arial Narrow', sans-serif";
+        ctx.font = `bold ${Math.round(26 * k)}px 'Barlow Condensed', 'Arial Narrow', sans-serif`;
         ctx.fillStyle = pts === 3 ? "#3DDC84" : pts === 1 ? "#FFB627" : "#E8663C";
-        ctx.fillText(pts === 3 ? "EXACT · +3" : pts === 1 ? "RESULT · +1" : "+0", W/2, y + 48);
+        ctx.fillText(pts === 3 ? "EXACT · +3" : pts === 1 ? "RESULT · +1" : "+0", W/2, y + cardH * 0.36);
       } else {
-        ctx.font = "24px 'Barlow Condensed', 'Arial Narrow', sans-serif";
+        ctx.font = `${Math.round(24 * k)}px 'Barlow Condensed', 'Arial Narrow', sans-serif`;
         ctx.fillStyle = "#8FA69B";
-        ctx.fillText(f.comp, W/2, y + 46);
+        ctx.fillText(f.comp, W/2, y + cardH * 0.34);
       }
     });
     // total
-    const footY = startY + n * rowH + 40;
+    const footY = H - 132;
     if (resultsIn) {
       ctx.fillStyle = "#3DDC84";
       ctx.font = "bold 58px 'Barlow Condensed', 'Arial Narrow', sans-serif";
