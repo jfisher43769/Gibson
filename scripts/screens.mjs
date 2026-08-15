@@ -136,6 +136,25 @@ function unplayedClubChecks(code) {
   };
 }
 
+// The Table view was never visited by this harness, which is how a league table stuck on a
+// loading skeleton reached the owner's phone. dist has no /api/*, so the served 404 makes the
+// feed fetch fail — which is exactly the case that must still render a table.
+async function tableChecks(page) {
+  // Counted from real table rows, not from club names appearing in the page text — those turn
+  // up in the fixtures list below and made this pass against a screen showing only a skeleton.
+  const rows = await page.evaluate(() => document.querySelectorAll("[data-table-row]").length);
+  if (rows >= 12) pass(`table rendered with the feed HUNG (${rows} rows)`);
+  else fail(`${rows} table rows with the feed hung — expected the full twelve`);
+
+  // A skeleton still animating after the fetch has failed IS the bug. dist serves no /api, so
+  // by the time this runs the request has already 404'd.
+  const skel = await page.evaluate(() =>
+    [...document.querySelectorAll("*")].filter((el) =>
+      el.offsetParent !== null && (getComputedStyle(el).animationName || "").includes("shimmer")).length);
+  if (skel === 0) pass("no loading skeleton left on screen");
+  else fail(`${skel} skeleton element(s) still animating after the feed failed`);
+}
+
 async function statsChecks(page) {
   const sofar = await page.evaluate(() => {
     const el = document.querySelector("[data-season-sofar]");
@@ -163,6 +182,10 @@ const PAGES = [
   // nothing to assert, and inventing a subject would be worse than skipping.
   ...(unplayed ? [{ name: `club-${CLUB_TO_SLUG[unplayed.club]}`, path: `/club/${CLUB_TO_SLUG[unplayed.club]}`,
     checks: unplayedClubChecks(unplayed.club) }] : []),
+  // The feed is STALLED here, not 404'd. dist serves no /api, so an ordinary visit gets an
+  // instant error — which the old code handled fine. The bug the owner hit was a request that
+  // never settles, and only a hang reproduces it.
+  { name: "table", path: "/table", checks: tableChecks, stall: ["**/api/**"], settle: 7000 },
   { name: "stats", path: "/stats", checks: statsChecks },
 ];
 console.log(`subjects: ${mostPlayed.club} (${mostPlayed.p} played)`
@@ -175,8 +198,12 @@ for (const width of [360, 430]) {
     const page = await browser.newPage({ viewport: { width, height: 800 }, deviceScaleFactor: 2 });
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    await page.goto(`http://localhost:4177${spec.path}`, { waitUntil: "networkidle" });
-    await page.waitForTimeout(500);
+    // A stalled route never reaches networkidle, which is the point — wait on load instead and
+    // then sit past the client's own timeout, so what we measure is the state a reader is left
+    // looking at when the feed simply never answers.
+    for (const pattern of spec.stall || []) await page.route(pattern, () => { /* never fulfilled */ });
+    await page.goto(`http://localhost:4177${spec.path}`, { waitUntil: spec.stall ? "load" : "networkidle" });
+    await page.waitForTimeout(spec.settle || 500);
 
     console.log(`\n${spec.path}  @${width}px`);
     if (errors.length) fail(`page errors: ${errors.slice(0, 2).join(" | ")}`);

@@ -1873,16 +1873,19 @@ check("the Home board shows the live score once its fixture kicks off", (() => {
 // Two components each fetching /api/events is how one of them ends up a version behind and
 // the front page contradicts the fixtures list.
 check("live scores are fetched through one shared hook, not per tab", (() => {
+  // Matches the timeout wrapper as well as a bare fetch — both are a call to the endpoint, and
+  // this check is about WHERE that call lives, not what it is named.
+  const callsEvents = /fetch(WithTimeout)?\(\s*["'`]\/api\/events/;
   const files = ["../src/tabs/HomeTab.jsx", "../src/tabs/MatchesTab.jsx"];
   for (const f of files) {
     let src = "";
     try { src = readFileSync(new URL(f, import.meta.url), "utf8"); } catch { return false; }
-    if (/fetch\(\s*["'`]\/api\/events/.test(src)) return false;
+    if (callsEvents.test(src)) return false;
     if (!/useLiveEvents\(\)/.test(src)) return false;
   }
   let hook = "";
   try { hook = readFileSync(new URL("../src/lib/live.js", import.meta.url), "utf8"); } catch { return false; }
-  return /fetch\(\s*["'`]\/api\/events/.test(hook);
+  return callsEvents.test(hook);
 })());
 
 // The match-card scripts picked "the nearest UNPLAYED fixture", so the moment a result was
@@ -2991,6 +2994,59 @@ check("no promo generator names a bookmaker or the league's sponsor", (() => {
   }
   if (bad.length) { console.log("      ↳ " + bad.join(", ")); return false; }
   return files.length > 0;
+})());
+
+// Every feed call must carry a deadline.
+//
+// None of the four did. `.catch` fires on a network ERROR; a stalled connection — the normal
+// failure on mobile data — never settles at all. The table view gated its whole block on a
+// `checking` flag cleared in `.finally`, so one hung request left the league table showing a
+// loading skeleton for as long as the page stayed open, with the real numbers sitting in
+// data.js the entire time. That is what the owner saw on 15 Aug 2026.
+check("every feed fetch has a timeout", (() => {
+  const bad = [];
+  const app = ["src/tabs/MatchesTab.jsx", "src/lib/live.js"];
+  for (const f of app) {
+    let src = "";
+    try { src = readFileSync(new URL(`../${f}`, import.meta.url), "utf8"); } catch { bad.push(`${f} missing`); continue; }
+    const code = decomment(src);
+    // A bare fetch( to one of our own endpoints is the bug; fetchWithTimeout is the fix.
+    const bare = code.match(/(?<!WithTimeout)\bfetch\(\s*["'`]\/api\//g) || [];
+    if (bare.length) bad.push(`${f}: ${bare.length} un-timed fetch(/api/...)`);
+    if (!/fetchWithTimeout\(/.test(code)) bad.push(`${f}: never uses fetchWithTimeout`);
+  }
+  // The serverless functions must bound their upstream call too, or they hold the connection
+  // open until the platform kills them and the browser gets a stall instead of {ok:false}.
+  for (const f of ["api/table.js", "api/events.js"]) {
+    let src = "";
+    try { src = readFileSync(new URL(`../${f}`, import.meta.url), "utf8"); } catch { bad.push(`${f} missing`); continue; }
+    const code = decomment(src);
+    const calls = (code.match(/\bfetch\(/g) || []).length;
+    const signals = (code.match(/AbortSignal\.timeout\(/g) || []).length;
+    if (calls !== signals) bad.push(`${f}: ${calls} upstream fetch(es), ${signals} with a timeout`);
+  }
+  // And the helper must actually abort rather than merely look like it does.
+  let net = "";
+  try { net = readFileSync(new URL("../src/lib/net.js", import.meta.url), "utf8"); } catch { bad.push("src/lib/net.js missing"); }
+  if (net) {
+    if (!/new AbortController\(\)/.test(net)) bad.push("net.js: no AbortController");
+    if (!/\.abort\(\)/.test(net)) bad.push("net.js: never calls abort()");
+    if (!/clearTimeout\(/.test(net)) bad.push("net.js: leaks its timer on success");
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// The league table is derived from data.js and is ready before the page paints. Gating it on a
+// network round-trip put a spinner where numbers already existed, and made a hung request the
+// FINAL state rather than a slow one.
+check("the league table renders without waiting for the feed", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/MatchesTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const code = decomment(src);
+  if (/\bchecking\b/.test(code)) { console.log("      ↳ a loading flag still gates the table"); return false; }
+  // The derived table must be what it draws by default, with the feed only able to replace it.
+  return /const derived = currentTable\(\)/.test(code) && /useFeed \? live\.rows : derived/.test(code);
 })());
 
 // Truncating "Dungannon Swifts" to "Dunganno…" is not a shorter name, it is a broken one.
