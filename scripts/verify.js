@@ -2863,6 +2863,48 @@ check("ordinal() handles the teens, which is the only part anyone gets wrong", (
   return D.ordinal(NaN) === "" && D.ordinal(undefined) === "";
 })());
 
+// cards.mjs (stills) and matchday.mjs (video) each answer "which fixtures are on today", and
+// each keeps its own copy of the filter. If one drifts, the two disagree about the same
+// afternoon — and the failure mode is not cosmetic: drop the null-kickoff guard and Larne v
+// Bangor, moved to September, gets posted to social as though it kicks off at three.
+//
+// The data-level invariant (a postponed fixture has no kick-off time) is checked further up.
+// This checks that both generators actually USE it, and exclude finished games too.
+check("both matchday generators exclude moved and finished fixtures", (() => {
+  const files = ["cards.mjs", "matchday.mjs"];
+  for (const f of files) {
+    let src = "";
+    try { src = readFileSync(new URL(`../scripts/promo/${f}`, import.meta.url), "utf8"); } catch {
+      console.log(`      ↳ ${f} missing`); return false;
+    }
+    if (!/m\.ms !== null/.test(src)) { console.log(`      ↳ ${f}: no null-kickoff guard`); return false; }
+    // A finished game must not sit on a "what's on today" card. cards.mjs gets this from its
+    // LIVE_WINDOW_MS lower bound; matchday.mjs says it outright as well.
+    if (!/LIVE_WINDOW_MS/.test(src)) { console.log(`      ↳ ${f}: no live-window bound`); return false; }
+    if (!/nextLeagueFixture\(/.test(src)) { console.log(`      ↳ ${f}: picks its round some other way`); return false; }
+  }
+  return true;
+})());
+
+// Golden rule 2, extended to the promo output: the video generators post publicly, so a
+// bookmaker name reaching one of them is the same regulatory problem as one reaching the app.
+// The league's sponsored name is in data.js comments and must not be printed on a card either.
+check("no promo generator names a bookmaker or the league's sponsor", (() => {
+  const dir = new URL("../scripts/promo/", import.meta.url);
+  let files = [];
+  try { files = readdirSync(dir).filter((f) => f.endsWith(".mjs") || f.endsWith(".js")); } catch { return false; }
+  const banned = /BoyleSports|Boyle Sports|bet365|Paddy ?Power|Ladbrokes|William Hill|Sky ?Bet|Betfair/i;
+  const bad = [];
+  for (const f of files) {
+    const src = readFileSync(new URL(f, dir), "utf8");
+    // Strip comments: a file may legitimately explain WHY it must not print the sponsor.
+    const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+    if (banned.test(code)) bad.push(f);
+  }
+  if (bad.length) { console.log("      ↳ " + bad.join(", ")); return false; }
+  return files.length > 0;
+})());
+
 // Truncating "Dungannon Swifts" to "Dunganno…" is not a shorter name, it is a broken one.
 check("every club has a short name that fits a narrow row, and no row falls back to ellipsis", (() => {
   const bad = Object.entries(D.CLUBS).filter(([, c]) => !c.short || c.short.length > 12).map(([k]) => k);
