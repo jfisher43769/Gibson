@@ -3,20 +3,21 @@
 //   node scripts/promo/matchday.mjs
 //   NOW_MS=... node scripts/promo/matchday.mjs      # render as if it were another moment
 //
-// The whole day's card in one cut: what is on, when, where, the tie of the day, and the
-// table it all lands on. Takes no arguments — the round is whichever one is next by real
-// kick-off time, using the SAME nextLeagueFixture() + one-week filter cards.mjs uses, so the
-// still set and the video can never disagree about which fixtures are today.
+// The whole day's card in one cut: what is on, when and where, then the two games worth
+// stopping for. Takes no arguments — the round is whichever one is next by real kick-off
+// time, using the SAME nextLeagueFixture() + one-week filter cards.mjs uses, so the still set
+// and the video can never disagree about which fixtures are today.
 //
 // preview.mjs already covers a single tie in depth. This is the other half of a matchday:
-// six games, thirty seconds, posted before three o'clock.
+// six games, twenty-odd seconds, posted before three o'clock.
 //
-// Every fact is read from data.js (CLUBS, FIXTURES_2627, CLUB_META, FULL_TABLE, and the
-// derived currentTable/tableStage) — nothing on screen is typed in here, so the video cannot
-// drift from the app or invent a statistic (CLAUDE.md golden rule 1). The tie of the day is
-// CHOSEN from the data too, by combined finishing position last season, rather than picked by
-// hand: on a card containing the champions away at the runners-up, no human should have to
-// decide what the headline is.
+// Every fact is read from data.js (CLUBS, FIXTURES_2627, CLUB_META, FULL_TABLE) — nothing on
+// screen is typed in here, so the video cannot drift from the app or invent a statistic
+// (CLAUDE.md golden rule 1). The billed ties are CHOSEN from the data too, by combined
+// finishing position last season, rather than picked by hand: on a card carrying both the
+// champions away at the runners-up and the Big Two derby, no human should have to decide.
+//
+// There is deliberately no league table in here — see the note above the facts block.
 //
 // No odds here, and so no bookmaker anything (golden rule 2) — the model's call lives in
 // preview.mjs and predictor.mjs, both of which carry the full "GIBSON estimate" framing. A
@@ -86,51 +87,42 @@ const uniformTime = times.length === 1 ? times[0] : null;
 const days = [...new Set(rows.map((r) => `${r.day} ${r.date}`))];
 const uniformDay = days.length === 1 ? days[0] : null;
 
-// ---- The tie of the day, chosen rather than decided ------------------------------------
-// Combined finishing position last season, lowest wins. On this card that is the champions
-// away at the runners-up, which is the right answer and nobody had to type it.
+// ---- The ties of the day, chosen rather than decided ------------------------------------
+// Combined finishing position last season, lowest wins, top TWO. One headline undersold a
+// card carrying both the champions away at the runners-up AND the Big Two derby — on most
+// Saturdays there is more than one game worth stopping for, and the same rule finds them.
 const prevPos = (c) => {
   const i = D.FULL_TABLE.findIndex((r) => r.club === c);
   return i >= 0 ? i + 1 : D.FULL_TABLE.length + 1;   // promoted club: ranked last, not zero
 };
-const headline = [...rows].sort((x, y) =>
-  (prevPos(x.h.code) + prevPos(x.a.code)) - (prevPos(y.h.code) + prevPos(y.a.code)))[0];
-const hl = {
-  h: headline.h, a: headline.a, venue: headline.venue, time: headline.time,
-  day: headline.day, date: headline.date, tv: headline.tv,
-  hPos: prevPos(headline.h.code), aPos: prevPos(headline.a.code),
-};
-
-// ---- The table it lands on --------------------------------------------------------------
-// Current season once a result exists, last season's final before that — the same rule the
-// home screen's snapshot follows, so the video and the app agree about which table is "the"
-// table on any given weekend.
-const stage = D.tableStage();
-const live = !!stage;
-// Goal difference travels with the points because early on it is the only thing separating
-// them: after round one this table is five clubs on three points, and a column of identical
-// "3"s with no explanation of the order reads as a bug rather than as a league table.
-const tableRows = (live ? D.currentTable() : D.FULL_TABLE).slice(0, 5)
-  .map((r, i) => ({
-    pos: i + 1, club: clubOf(r.club), pts: r.pts, p: r.p,
-    gd: `${r.gd > 0 ? "+" : r.gd < 0 ? "−" : ""}${Math.abs(r.gd)}`,
-  }));
-const tableLabel = live
-  ? `${D.SEASON.current.display} · ${stage.complete ? "AFTER " : ""}ROUND ${stage.round}`
-  : `${D.SEASON.previous.display} · FINAL`;
-
+const TIE_COUNT = 2;
 const ord = (n) => D.ordinal(n).toUpperCase();
+// Labels, not rankings: the second is picked by the same rule as the first, so calling it
+// "second best" would overstate what the arithmetic actually says.
+const TIE_KICKERS = ["TIE OF THE DAY", "THE OTHER ONE TO WATCH"];
+const ties = [...rows]
+  .sort((x, y) => (prevPos(x.h.code) + prevPos(x.a.code)) - (prevPos(y.h.code) + prevPos(y.a.code)))
+  .slice(0, TIE_COUNT)
+  .map((t, i) => ({
+    h: t.h, a: t.a, venue: t.venue, time: t.time, day: t.day, date: t.date, tv: t.tv,
+    hPos: prevPos(t.h.code), aPos: prevPos(t.a.code),
+    hPosText: ord(prevPos(t.h.code)), aPosText: ord(prevPos(t.a.code)),
+    kicker: TIE_KICKERS[i] || "ALSO TODAY",
+  }));
+
+// No table scene. Two rounds in, "as it stands" is five clubs level on three points — true,
+// and worth nothing to a viewer. The app is where a table earns its place; a matchday cut is
+// for what is about to be played. Owner's call, 15 Aug 2026.
+
 const facts = {
-  round: round.round, rows, uniformTime, uniformDay,
-  hl: { ...hl, hPosText: ord(hl.hPos), aPosText: ord(hl.aPos) },
-  tableRows, tableLabel, seasonPrev: D.SEASON.previous.display,
+  round: round.round, rows, uniformTime, uniformDay, ties,
+  seasonPrev: D.SEASON.previous.display,
   count: rows.length,
 };
 
 console.log(`matchday: round ${facts.round} · ${facts.count} fixtures · ${uniformDay || "mixed days"} ${uniformTime || "mixed times"}`);
 for (const r of rows) console.log(`   ${r.h.name} v ${r.a.name} — ${r.day} ${r.date} ${r.time} ${r.venue}`);
-console.log(`   tie of the day: ${hl.h.name} (${hl.hPos}) v ${hl.a.name} (${hl.aPos}) at ${hl.venue}`);
-console.log(`   table: ${tableLabel} — ${tableRows.map((r) => `${r.pos} ${r.club.code} ${r.pts}`).join(", ")}`);
+for (const t of ties) console.log(`   ${t.kicker.toLowerCase()}: ${t.h.name} (${t.hPos}) v ${t.a.name} (${t.aPos}) at ${t.venue}`);
 
 const kit = readFileSync(join(HERE, "kit.js"), "utf8");
 const f800 = readFileSync(join(FONT_DIR, "barlow-condensed-latin-800-normal.woff2")).toString("base64");
@@ -179,10 +171,41 @@ function fixtureRow(y,r,k,showTime){
   ctx.restore();
 }
 
-const T={hook:[0,3000],card:[3000,10200],tie:[10200,15400],table:[15400,19400],sign:[19400,23200]};
+// Built from the tie count rather than written out, so a round with only one fixture worth
+// billing still ends up with a whole video instead of five dead seconds.
+const TIE_MS=5000, CARD_END=10200, SIGN_MS=3800;
+const T={hook:[0,3000],card:[3000,CARD_END]};
+F.ties.forEach((_,i)=>{T['tie'+i]=[CARD_END+i*TIE_MS,CARD_END+(i+1)*TIE_MS]});
+const SIGN_AT=CARD_END+F.ties.length*TIE_MS;
+T.sign=[SIGN_AT,SIGN_AT+SIGN_MS];
+const ORDER=['hook','card',...F.ties.map((_,i)=>'tie'+i),'sign'];
 const END=T.sign[1];
-const CUTS=Object.values(T).map(v=>v[0]);
+const CUTS=ORDER.map(k=>T[k][0]);
 const pOf=(t,k)=>(t-T[k][0])/(T[k][1]-T[k][0]);
+const sceneAt=(t)=>ORDER.find(k=>t<T[k][1])||'sign';
+
+// One tie, drawn once. Both billed games go through this — a second copy of the scene is how
+// the two drift apart the first time either is adjusted.
+function tieScene(p,F2){
+  kicker(p,F2.kicker);
+  const k=outBack(cl((p-0.05)/0.28));
+  ctx.save();ctx.globalAlpha=cl(k*1.4);
+  ctx.save();ctx.translate(W*0.27,H*0.30);ctx.scale(k,k);shield(F2.h,0,0,260);ctx.restore();
+  ctx.save();ctx.translate(W*0.73,H*0.30);ctx.scale(k,k);shield(F2.a,0,0,260);ctx.restore();
+  slam('V',W/2,H*0.30,90,GOLD,0);
+  slam(F2.h.name.toUpperCase(),W/2,H*0.475,112,CHALK,(1-k)*16);
+  slam(F2.a.name.toUpperCase(),W/2,H*0.565,112,CHALK,(1-k)*16);
+  ctx.restore();
+  // Why this one is billed, stated rather than implied.
+  const q=outExpo(cl((p-0.34)/0.26));
+  if(q>0){ctx.save();ctx.globalAlpha=q;
+    slam(F2.hPosText+' V '+F2.aPosText+' LAST SEASON',W/2,H*0.665,54,GOLD,0,800,W-200,4);ctx.restore()}
+  const r=outExpo(cl((p-0.52)/0.26));
+  if(r>0){ctx.save();ctx.globalAlpha=r;
+    slam(F2.venue.toUpperCase(),W/2,H*0.755,52,CHALK,0,600,W-180,4);
+    slam(F2.day+' '+F2.date+' · '+F2.time+(F2.tv?' · '+F2.tv.toUpperCase():''),
+      W/2,H*0.815,46,'rgba(237,245,239,0.7)',0,600,W-180,4);ctx.restore()}
+}
 
 function draw(t){
   const fr=Math.round(t/1000*${FPS});
@@ -191,9 +214,10 @@ function draw(t){
   for(const c of CUTS){const d=t-c;if(d>=0&&d<150){const q=1-d/150,r=rng(fr*13+c);sx+=(r()-.5)*24*q;sy+=(r()-.5)*24*q}}
   ctx.save();ctx.translate(sx,sy);
 
-  if(t<T.card[0]){                                    // ---- hook
+  const SC=sceneAt(t);
+  if(SC==='hook'){                                    // ---- hook
     const p=pOf(t,'hook');
-    sweep(cl(p*1.4),F.hl.h.colors[0],F.hl.a.colors[0]);
+    sweep(cl(p*1.4),F.ties[0].h.colors[0],F.ties[0].a.colors[0]);
     const k=outBack(cl((p-0.04)/0.30));
     ctx.save();ctx.globalAlpha=cl(k*1.4);
     slam('ROUND '+F.round,W/2,H*0.33,66,GOLD,0,600,W-260,20);
@@ -205,7 +229,7 @@ function draw(t){
       slam(F.count+' GAME'+(F.count===1?'':'S')+(F.uniformTime?' · ALL '+F.uniformTime:''),
         W/2,H*0.675,52,'rgba(237,245,239,0.85)',0,600,W-220,8);ctx.restore()}
   }
-  else if(t<T.tie[0]){                                // ---- the whole card
+  else if(SC==='card'){                               // ---- the whole card
     const p=pOf(t,'card');
     kicker(p,'TODAY IN THE PREMIERSHIP');
     title(p,'THE CARD');
@@ -220,52 +244,8 @@ function draw(t){
     if(q>0&&F.uniformTime){ctx.save();ctx.globalAlpha=q;
       slam('EVERY ONE AT '+F.uniformTime,W/2,H*0.905,46,GOLD,0,600,W-200,8);ctx.restore()}
   }
-  else if(t<T.table[0]){                              // ---- tie of the day
-    const p=pOf(t,'tie');
-    kicker(p,'TIE OF THE DAY');
-    const k=outBack(cl((p-0.05)/0.28));
-    ctx.save();ctx.globalAlpha=cl(k*1.4);
-    ctx.save();ctx.translate(W*0.27,H*0.30);ctx.scale(k,k);shield(F.hl.h,0,0,260);ctx.restore();
-    ctx.save();ctx.translate(W*0.73,H*0.30);ctx.scale(k,k);shield(F.hl.a,0,0,260);ctx.restore();
-    slam('V',W/2,H*0.30,90,GOLD,0);
-    slam(F.hl.h.name.toUpperCase(),W/2,H*0.475,112,CHALK,(1-k)*16);
-    slam(F.hl.a.name.toUpperCase(),W/2,H*0.565,112,CHALK,(1-k)*16);
-    ctx.restore();
-    // Why this one is the headline, stated rather than implied.
-    const q=outExpo(cl((p-0.34)/0.26));
-    if(q>0){ctx.save();ctx.globalAlpha=q;
-      slam(F.hl.hPosText+' V '+F.hl.aPosText+' LAST SEASON',W/2,H*0.665,54,GOLD,0,800,W-200,4);
-      ctx.restore()}
-    const r=outExpo(cl((p-0.52)/0.26));
-    if(r>0){ctx.save();ctx.globalAlpha=r;
-      slam(F.hl.venue.toUpperCase(),W/2,H*0.755,52,CHALK,0,600,W-180,4);
-      slam(F.hl.day+' '+F.hl.date+' · '+F.hl.time+(F.hl.tv?' · '+F.hl.tv.toUpperCase():''),
-        W/2,H*0.815,46,'rgba(237,245,239,0.7)',0,600,W-180,4);ctx.restore()}
-  }
-  else if(t<T.sign[0]){                               // ---- the table it lands on
-    const p=pOf(t,'table');
-    kicker(p,F.tableLabel);
-    title(p,'AS IT STANDS');
-    const top=H*0.275,gap=H*0.115;
-    F.tableRows.forEach((r,i)=>{
-      const k=outBack(cl((p-0.10-i*0.085)/0.32));if(k<=0)return;
-      const y=top+gap*i;
-      ctx.save();ctx.globalAlpha=cl(k*1.4);ctx.translate((1-k)*30,0);
-      panel(PX,y-46,PW,92,24);
-      rowText(String(r.pos),PX+50,y,58,r.pos===1?GOLD:'rgba(237,245,239,0.55)',800,'center');
-      shield(r.club,PX+130,y,72);
-      const s=fitFont(r.club.short.toUpperCase(),800,PW-520,46);
-      ctx.font='800 '+s+'px "Barlow Condensed"';ctx.textAlign='left';ctx.textBaseline='middle';
-      ctx.fillStyle=CHALK;ctx.fillText(r.club.short.toUpperCase(),PX+180,y);
-      rowText(r.gd,PX+PW-150,y,44,'rgba(237,245,239,0.7)',800,'right');
-      rowText('GD',PX+PW-150,y+34,24,'rgba(237,245,239,0.45)',600,'right');
-      rowText(String(r.pts),PX+PW-46,y,58,CHALK,800,'right');
-      rowText('PTS',PX+PW-46,y+36,24,'rgba(237,245,239,0.45)',600,'right');
-      ctx.restore();
-    });
-    const q=outExpo(cl((p-0.62)/0.26));
-    if(q>0){ctx.save();ctx.globalAlpha=q;
-      slam('FULL TABLE ON GIBSON',W/2,H*0.885,52,GOLD,0,800,W-220,6);ctx.restore()}
+  else if(SC.startsWith('tie')){                      // ---- the games worth billing
+    tieScene(pOf(t,SC),F.ties[Number(SC.slice(3))]);
   }
   else{                                               // ---- sign-off
     const lt=t-T.sign[0],dur=T.sign[1]-T.sign[0];

@@ -7,7 +7,7 @@ Video generators rendering **1080x1920 (9:16) MP4s** for X and TikTok, plus two 
 | `render.mjs` | `gibson-season-launch.mp4` | Season-launch hype cut — the date, the twelve clubs, the champions, round one |
 | `features.mjs` | `gibson-features.mp4` | Feature tour — nine cards showing what the app does, then what it deliberately doesn't have |
 | `preview.mjs` | `gibson-preview-<h>-<a>.mp4` | Match preview — kick-off, last season, tale of the tape, team news, the call |
-| `matchday.mjs` | `gibson-matchday-r<n>.mp4` | The whole day's card — every fixture in the round, the tie of the day, the table it lands on |
+| `matchday.mjs` | `gibson-matchday-r<n>.mp4` | The whole day's card — every fixture in the round, then the two ties worth billing |
 | `cards.mjs` | `gibson-card-*.png` | Five 1080x1350 stills: the round's fixtures, the headline tie, one number, the champions, the season |
 | `goal.mjs` | `gibson-goal-<fixture>-<min>.jpg` | Live goal graphic — scorer, minute and the score as it stands, in the scoring club's colours |
 | `status.mjs` | `gibson-<state>-<fixture>.jpg` | Half-time / full-time card — the state, the score, scorers, the ground across the top |
@@ -49,8 +49,11 @@ once the gameweek is rolled over it is a one-command job each week.
 
 `matchday.mjs` takes no arguments either, and picks its round with the same
 `nextLeagueFixture()` + one-week filter `cards.mjs` uses — the still set and the video cannot
-disagree about which games are on. It chooses the tie of the day rather than being told: the
-fixture whose two clubs finished highest between them last season. `NOW_MS` works here too.
+disagree about which games are on. It chooses the two billed ties rather than being told: the
+fixtures whose clubs finished highest between them last season. `NOW_MS` works here too.
+
+No league table in it. Early in a season "as it stands" is a column of clubs level on points,
+which is true and worth nothing to a viewer; the app is where a table earns its place.
 
 Deliberately carries no odds. The model's call lives in `preview.mjs` and `predictor.mjs`,
 both of which have room for the "GIBSON estimate, not betting advice" framing golden rule 2
