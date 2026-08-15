@@ -1012,6 +1012,47 @@ export const MATCH_STATS = [
   { round: 2, h: "POR", a: "DUN", poss: [47, 53], shots: [6, 14], sot: [2, 8], corners: [3, 4], yellows: [4, 3] },
 ];
 
+// ===== 26/27 leading scorers =====
+// The league's scoring chart for the current season, from Transfermarkt (owner screenshot,
+// 15 Aug 2026). This is a SOURCED list, which is what makes it publishable — the goals we
+// record ourselves in MATCH_EVENTS come from match graphics that aren't made for every game,
+// so a table built from those would understate everyone whose goals went unrecorded. That
+// reasoning is why SeasonSoFar shows no scorer totals of its own; it does not apply here.
+//
+// It is the TOP of a longer chart, not the whole of it, so it ranks the leaders and claims
+// nothing about anyone absent from it. Two further rows were cut off in the screenshot and are
+// left out rather than half-read.
+//
+// Deliberately NOT added to SEASON_TAGS: every entry there is 2025-26, and liveSeasonId()
+// returns null the moment the tags disagree — which is the rollover-didn't-finish alarm, not
+// something to trip by adding a current-season export.
+//
+// Nationality is not recorded. At screenshot size the Ulster Banner and the flag of England
+// are one white field with a red cross, and most of this league is Northern Irish — a guess
+// there is a claim about a person, which is the one thing golden rule 1 exists to stop.
+//
+// verify.js cross-checks every club's scorers against the goals that club has actually scored
+// in currentTable(), so a misread crest cannot sit here quietly.
+export const TOP_SCORERS_2627 = [
+  { player: "Paul Heatley", club: "CAR", pos: "Left Winger", age: 39, apps: 2, goals: 2 },
+  { player: "Jordan Stewart", club: "GLE", pos: "Attacking Midfield", age: 31, apps: 2, goals: 2 },
+  { player: "Chris McKee", club: "BAL", pos: "Centre-Forward", age: 24, apps: 2, goals: 2 },
+  { player: "Ben Quinn", club: "CLI", pos: "Right Winger", age: 21, apps: 2, goals: 2 },
+  { player: "Ben Doherty", club: "COL", pos: "Left-Back", age: 29, apps: 2, goals: 1 },
+  { player: "Owen Wardell", club: "CRU", pos: "Left Midfield", age: 20, apps: 2, goals: 1 },
+  { player: "Kirk Millar", club: "LIN", pos: "Right Midfield", age: 34, apps: 2, goals: 1 },
+  { player: "Elliot Dunlop", club: "CRU", pos: "Left Winger", age: 20, apps: 2, goals: 1 },
+  { player: "Alfie Gaston", club: "LIM", pos: "Attacking Midfield", age: 18, apps: 2, goals: 1 },
+  { player: "Igor Rutkowski", club: "BAL", pos: "Centre-Forward", age: 22, apps: 2, goals: 1 },
+];
+
+// That club's leading scorers, in chart order. Empty for a club with nobody on the list, which
+// is a fact about the top ten and not about the club, so the caller says so rather than
+// implying nobody has scored.
+export function clubTopScorers(club) {
+  return TOP_SCORERS_2627.filter((p) => p.club === club);
+}
+
 export function matchStatsFor(round, h, a) {
   return MATCH_STATS.find((s) => s.round === round && s.h === h && s.a === a) || null;
 }

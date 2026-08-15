@@ -2996,6 +2996,66 @@ check("no promo generator names a bookmaker or the league's sponsor", (() => {
   return files.length > 0;
 })());
 
+// The current-season scoring chart, transcribed off a phone screenshot where the club is a
+// 20px crest. THE CROSS-CHECK IS THE POINT: a club's scorers cannot between them have scored
+// more goals than that club has scored, and those two numbers come from completely independent
+// places — Transfermarkt's chart and our own recorded scorelines. A crest read wrong lands the
+// goals on the wrong club and this fails.
+check("TOP_SCORERS_2627 agrees with the goals each club has actually scored", (() => {
+  const bad = [];
+  const table = D.currentTable();
+  const gf = Object.fromEntries(table.map((r) => [r.club, r.gf]));
+  const byClub = {};
+  for (const p of D.TOP_SCORERS_2627) {
+    if (!D.CLUBS[p.club]) { bad.push(`${p.player}: unknown club ${p.club}`); continue; }
+    byClub[p.club] = (byClub[p.club] || 0) + p.goals;
+  }
+  for (const [club, goals] of Object.entries(byClub)) {
+    if (goals > (gf[club] ?? 0)) bad.push(`${club}: chart credits ${goals} goals, club has scored ${gf[club] ?? 0}`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+check("TOP_SCORERS_2627 is a well-formed, ranked chart", (() => {
+  const bad = [];
+  const seen = new Set();
+  let prev = Infinity;
+  for (const p of D.TOP_SCORERS_2627) {
+    if (!p.player || typeof p.player !== "string") { bad.push("a row has no player name"); continue; }
+    if (seen.has(p.player)) bad.push(`${p.player} appears twice`);
+    seen.add(p.player);
+    if (!Number.isInteger(p.goals) || p.goals < 1) bad.push(`${p.player}: goals ${p.goals}`);
+    if (!Number.isInteger(p.apps) || p.apps < 1) bad.push(`${p.player}: apps ${p.apps}`);
+    // Apps can be fewer than goals (a hat-trick is one appearance), but never more than the
+    // number of games the club has played.
+    const row = D.currentTable().find((r) => r.club === p.club);
+    if (row && p.apps > row.p) bad.push(`${p.player}: ${p.apps} apps, ${p.club} has played ${row.p}`);
+    if (p.age !== undefined && (!Number.isInteger(p.age) || p.age < 15 || p.age > 45)) bad.push(`${p.player}: age ${p.age}`);
+    if (p.goals > prev) bad.push(`${p.player} breaks the ranking — ${p.goals} after ${prev}`);
+    prev = p.goals;
+  }
+  // No nationality field: at screenshot size the Ulster Banner and England's flag are the same
+  // white field with a red cross, and a guess there is a claim about a person.
+  if (D.TOP_SCORERS_2627.some((p) => p.nat || p.nationality)) bad.push("a row records nationality, which cannot be read reliably from the source");
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// The chart is publishable because it is SOURCED. Totals summed from MATCH_EVENTS are not, and
+// the panel must keep saying so — graphics aren't made for every match, so our own goal records
+// are always a subset and any table built from them understates whoever went unrecorded.
+check("scorer tables come from the sourced chart, never from our own partial goal records", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/components/SeasonSoFar.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const code = decomment(src);
+  if (!/TOP_SCORERS_2627/.test(code) || !/clubTopScorers\(/.test(code)) return false;
+  // MATCH_EVENTS must not be totalled here, by any route.
+  if (/MATCH_EVENTS|topScorers\(/.test(code)) { console.log("      ↳ the panel reaches for our own goal records"); return false; }
+  // And the source has to be named on screen, or a partial chart reads as the whole league.
+  return /Transfermarkt/.test(src);
+})());
+
 // Every feed call must carry a deadline.
 //
 // None of the four did. `.catch` fires on a network ERROR; a stalled connection — the normal

@@ -1,6 +1,7 @@
 import React from "react";
 import {
-  SEASON, aggregateMatchStats, clubName, currentSeasonStats, ordinal, recordedCoverage, tableStage,
+  SEASON, TOP_SCORERS_2627, aggregateMatchStats, clubName, clubTopScorers, currentSeasonStats,
+  ordinal, recordedCoverage, tableStage,
 } from "../../data.js";
 import { Crest } from "./Crest.jsx";
 import { SURFACE, chalk, dim, faint } from "../lib/theme.js";
@@ -19,9 +20,11 @@ import { SURFACE, chalk, dim, faint } from "../lib/theme.js";
 //   wrong-number problem golden rule 1 exists to prevent, and it is worse than showing nothing
 //   because it looks authoritative.
 //
-// Top scorers deliberately absent: graphics aren't made for every match, so MATCH_EVENTS will
-// always be a subset and a scorer table would understate everyone whose goals went unrecorded.
-// The data is still kept per-match in data.js — it just isn't totalled here.
+// Top scorers come from TOP_SCORERS_2627, a sourced chart — NOT from totalling MATCH_EVENTS.
+// That distinction is the whole point: match graphics aren't made for every game, so our own
+// goal records are always a subset and a table built from them would understate everyone whose
+// goals went unrecorded. A published chart has no such hole. The per-match records stay in
+// data.js for the graphics; they are still never summed into a league table.
 
 const label = { fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 };
 
@@ -97,6 +100,37 @@ export function SeasonSoFar() {
         nothing but the scorelines, so they are complete for the {s.matches} match{s.matches === 1 ? "" : "es"} played.
       </div>
 
+      {TOP_SCORERS_2627.length > 0 && (<>
+        <div style={{ ...label, marginTop: 4 }}>Leading scorers</div>
+        <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden", marginBottom: 10 }}>
+          {TOP_SCORERS_2627.map((p, i) => (
+            <div key={p.player} style={{
+              display: "flex", alignItems: "center", gap: 10, padding: "9px 13px",
+              borderBottom: i < TOP_SCORERS_2627.length - 1 ? `1px solid ${faint}` : "none",
+            }}>
+              <span style={{
+                fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 14, color: dim,
+                width: 16, textAlign: "center", fontVariantNumeric: "tabular-nums",
+              }}>{i + 1}</span>
+              <Crest club={p.club} size={20} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: chalk, flex: 1, minWidth: 0,
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.player}</span>
+              <span style={{ fontSize: 12, color: dim, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
+                {p.apps} app{p.apps === 1 ? "" : "s"}
+              </span>
+              <span style={{
+                fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, color: "#3DDC84",
+                fontVariantNumeric: "tabular-nums", width: 22, textAlign: "right",
+              }}>{p.goals}</span>
+            </div>
+          ))}
+        </div>
+        {/* Said plainly, because a top-ten cut off at ten says nothing about number eleven. */}
+        <div style={{ fontSize: 12, color: dim, lineHeight: 1.5, marginBottom: 16 }}>
+          The top of the chart, not all of it — via Transfermarkt.
+        </div>
+      </>)}
+
       {teamStats.length > 0 && (<>
         <div style={{ ...label, marginTop: 4 }}>Possession &amp; shooting · per match</div>
         <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden", marginBottom: 10 }}>
@@ -159,6 +193,7 @@ export function ClubSeasonSoFar({ club }) {
   const stage = tableStage();
   const cover = recordedCoverage();
   const mine = cover.statsComplete ? aggregateMatchStats().find((t) => t.club === club) : null;
+  const scorers = clubTopScorers(club);
   const gdSign = c.gd > 0 ? "+" : c.gd < 0 ? "−" : "";
 
   // Home and away read as one row each rather than a grid of tiles: with two or three games
@@ -211,6 +246,31 @@ export function ClubSeasonSoFar({ club }) {
         kept a clean sheet in {c.csPct}%. Derived from the {c.p} match{c.p === 1 ? "" : "es"} they have
         played — scorelines are all these need, so they are complete rather than sampled.
       </div>
+
+      {scorers.length > 0 && (<>
+        <div style={{ ...label, marginTop: 4 }}>On the scoresheet</div>
+        <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden", marginBottom: 10 }}>
+          {scorers.map((p, i) => (
+            <div key={p.player} style={{
+              display: "flex", alignItems: "center", gap: 10, padding: "9px 13px",
+              borderBottom: i < scorers.length - 1 ? `1px solid ${faint}` : "none",
+            }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: chalk, flex: 1, minWidth: 0,
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.player}</span>
+              <span style={{ fontSize: 12, color: dim, whiteSpace: "nowrap" }}>{p.pos}</span>
+              <span style={{
+                fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, color: "#3DDC84",
+                fontVariantNumeric: "tabular-nums", width: 22, textAlign: "right",
+              }}>{p.goals}</span>
+            </div>
+          ))}
+        </div>
+        {/* An absent club has nobody in the league's top ten — which is not the same as nobody
+            having scored, so this only ever appears when there IS someone. */}
+        <div style={{ fontSize: 12, color: dim, lineHeight: 1.5, marginBottom: mine ? 16 : 0 }}>
+          Their players in the league's leading scorers — via Transfermarkt.
+        </div>
+      </>)}
 
       {mine && (<>
         <div style={{ ...label, marginTop: 4 }}>Possession &amp; shooting · per match</div>
