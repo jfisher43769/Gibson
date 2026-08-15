@@ -1001,6 +1001,15 @@ export const MATCH_STATS = [
   { round: 1, h: "CAR", a: "POR", poss: [62, 38], shots: [5, 3], sot: [1, 0], corners: [3, 3], yellows: [2, 4], reds: [0, 1] },
   { round: 1, h: "DUN", a: "COL", poss: [48, 52], shots: [12, 6], sot: [6, 4], corners: [5, 10], yellows: [1, 1] },
   { round: 1, h: "GLE", a: "LIM", poss: [62, 38], shots: [11, 5], sot: [3, 1], corners: [5, 2], yellows: [2, 3] },
+  // Round 2, full time. Owner-supplied screenshots, 15 Aug 2026. Four of the six — Coleraine
+  // v Larne and Limavady v Carrick were not sent, so they are simply absent rather than
+  // guessed, and recordedCoverage() will keep the aggregate blocks hidden until they arrive.
+  { round: 2, h: "BAN", a: "CLI", poss: [48, 52], shots: [7, 9], sot: [3, 6], corners: [1, 3], yellows: [2, 1] },
+  // No possession row on the Crusaders card — the source didn't publish it for this match, and
+  // an omitted field is the honest record of that.
+  { round: 2, h: "CRU", a: "BAL", shots: [10, 10], sot: [5, 3], corners: [5, 7], yellows: [2, 1] },
+  { round: 2, h: "LIN", a: "GLE", poss: [46, 54], shots: [7, 7], sot: [4, 4], corners: [6, 1], yellows: [3, 3], reds: [0, 1] },
+  { round: 2, h: "POR", a: "DUN", poss: [47, 53], shots: [6, 14], sot: [2, 8], corners: [3, 4], yellows: [4, 3] },
 ];
 
 export function matchStatsFor(round, h, a) {
@@ -1044,12 +1053,16 @@ export function matchDetail(round, h, a) {
     goals,
     // Ordered as a match is read, and only the rows actually recorded. Percent rows carry a
     // suffix so the panel doesn't need to know which is which.
+    // Red cards were missing from this list while MATCH_STATS had carried a `reds` field all
+    // along — so the app held Glentoran's sending-off at Windsor Park and showed everything
+    // about that match except the most consequential thing in it.
     rows: stats ? [
       { label: "Possession", pair: stats.poss, suffix: "%" },
       { label: "Shots", pair: stats.shots },
       { label: "On target", pair: stats.sot },
       { label: "Corners", pair: stats.corners },
       { label: "Yellow cards", pair: stats.yellows },
+      { label: "Red cards", pair: stats.reds },
     ].filter((r) => Array.isArray(r.pair)) : [],
   };
 }
