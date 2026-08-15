@@ -2025,20 +2025,37 @@ check("topScorers() counts every recorded goal exactly once", (() => {
 
 // Hand-entered match stats. Same three rules the matchstats graphic enforces, because the
 // numbers come from the same place — a phone screenshot read at speed.
-check("MATCH_STATS entries are internally consistent and map to played fixtures", (() => D.MATCH_STATS.every((s) => {
-  const round = D.FIXTURES_2627.find((r) => r.round === s.round);
-  const fixture = round && round.matches.find((m) => m.h === s.h && m.a === s.a);
-  if (!fixture || !Array.isArray(fixture.result)) return false;
-  // Possession and shots are the spine and must be there; the rest are optional, because a
-  // source that doesn't show a yellow-card row is not the same fact as no yellow cards.
-  const required = ["poss", "shots", "sot"], optional = ["corners", "yellows", "reds"];
+check("MATCH_STATS entries are internally consistent and map to played fixtures", (() => {
+  const bad = [];
+  // EVERY field is optional, including possession. This used to require poss/shots/sot, on the
+  // reasoning that possession is "the spine" — but the same argument the check already made for
+  // yellow cards applies to it: a source that doesn't show a possession row is not the same
+  // fact as an even split. Crusaders v Ballymena, 15 Aug 2026, published no possession, and
+  // both matchDetail() and aggregateMatchStats() already coped with its absence. Only this
+  // check forbade it.
+  //
+  // What is actually required is that an entry says SOMETHING, that everything it does say is
+  // well-formed, and that each consistency rule applies only when both of its inputs are there.
+  const FIELDS = ["poss", "shots", "sot", "corners", "yellows", "reds"];
   const wellFormed = (p) => Array.isArray(p) && p.length === 2 && p.every((n) => Number.isFinite(n) && n >= 0);
-  if (!required.every((f) => wellFormed(s[f]))) return false;
-  if (!optional.every((f) => s[f] === undefined || wellFormed(s[f]))) return false;
-  if (s.poss[0] + s.poss[1] !== 100) return false;          // possession is a share of one ball
-  if (Array.isArray(s.reds) && s.reds.some((n) => n > 5)) return false;
-  return [0, 1].every((i) => s.sot[i] <= s.shots[i]);       // can't hit the target more than you shoot
-}))());
+  for (const s of D.MATCH_STATS) {
+    const tie = `r${s.round} ${s.h} v ${s.a}`;
+    const round = D.FIXTURES_2627.find((r) => r.round === s.round);
+    const fixture = round && round.matches.find((m) => m.h === s.h && m.a === s.a);
+    if (!fixture) { bad.push(`${tie}: no such fixture`); continue; }
+    if (!Array.isArray(fixture.result)) { bad.push(`${tie}: fixture has no result`); continue; }
+    const present = FIELDS.filter((f) => s[f] !== undefined);
+    if (present.length === 0) { bad.push(`${tie}: records nothing`); continue; }
+    const malformed = present.filter((f) => !wellFormed(s[f]));
+    if (malformed.length) { bad.push(`${tie}: malformed ${malformed.join(", ")}`); continue; }
+    if (s.poss && s.poss[0] + s.poss[1] !== 100) bad.push(`${tie}: possession sums to ${s.poss[0] + s.poss[1]}, not 100`);
+    if (s.reds && s.reds.some((n) => n > 5)) bad.push(`${tie}: implausible red count`);
+    // Can't hit the target more than you shoot — only checkable when both were recorded.
+    if (s.sot && s.shots && [0, 1].some((i) => s.sot[i] > s.shots[i])) bad.push(`${tie}: on-target exceeds total shots`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
 
 // The guard that makes partial hand-entered data safe to hold: a total is only ever built
 // when every played match has been written up. Without this, a top-scorer table assembled
@@ -2128,7 +2145,14 @@ check("matchDetail() returns what was recorded, and nothing when nothing was", (
     const d = D.matchDetail(s.round, s.h, s.a);
     if (!d || d.rows.length === 0) return false;
     if (!d.rows.every((r) => Array.isArray(r.pair) && r.pair.length === 2)) return false;
-    if (d.rows.filter((r) => r.suffix === "%").length !== 1) return false;   // possession only
+    // At most one percent row, and only when possession was actually recorded. This demanded
+    // exactly one, which made possession compulsory by the back door.
+    if (d.rows.filter((r) => r.suffix === "%").length > 1) return false;
+    if ((d.rows.some((r) => r.suffix === "%")) !== Array.isArray(s.poss)) return false;
+    // Every recorded field reaches the panel — a stat held but never shown is a stat we may as
+    // well not have typed in. Red cards were the one being dropped.
+    const recorded = ["poss", "shots", "sot", "corners", "yellows", "reds"].filter((f) => Array.isArray(s[f])).length;
+    if (d.rows.length !== recorded) return false;
   }
   for (const e of D.MATCH_EVENTS) {
     const d = D.matchDetail(e.round, e.h, e.a);
