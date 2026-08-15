@@ -40,6 +40,12 @@ const score = [Number(sm[1]), Number(sm[2])];
 
 // Same default crop and reasoning as goal.mjs: frame head and shoulders above the shirt's
 // sponsor band, because Irish League shirts carry bookmakers (golden rule 2).
+//
+// [x, y, scale] as fractions — the source square is min(width,height) * scale, taken from
+// (width*x, height*y). The default suits a FULL-BODY or torso photo, where the head is a small
+// part of the frame. A Transfermarkt-style headshot is already cropped tight, so the default
+// takes the top three-quarters of it and cuts the chin off: use --crop=0,0.06,1 for those,
+// which frames the whole head and leaves the sponsor band out of shot anyway.
 const photoPath = flag("photo");
 if (photoPath && !existsSync(photoPath)) die(`No such photo: ${photoPath}`);
 const photoCrop = (flag("crop") || "0.125,0,0.75").split(",").map(Number);
