@@ -89,6 +89,15 @@ async function homeChecks(page) {
   else fail(`scores at differing x: ${[...new Set(xs)].join(", ")}`);
 }
 
+// WHICH clubs get visited is derived, never named. This harness hardcoded Larne as "the club
+// that has played nothing" — true for one week, and it failed the moment Larne played. A gate
+// that has to be edited every time the league plays a game stops being read.
+const D = await import(`file://${join(REPO, "data.js")}`);
+const { CLUB_TO_SLUG } = await import(`file://${join(REPO, "src/lib/routes.js")}`);
+const standings = D.currentTable();
+const mostPlayed = [...standings].sort((a, b) => b.p - a.p || b.pts - a.pts)[0];
+const unplayed = standings.find((r) => r.p === 0);
+
 // A club that has played must show its own current-season numbers. The club page used to gate
 // everything season-scoped on hand-compiled exports, so picking the current season returned an
 // empty state while the Stats tab showed live figures for the same club two taps away.
@@ -115,13 +124,16 @@ function playedClubChecks(code) {
   };
 }
 
-// Larne's opener was moved to September, so they have played nothing. A position derived from
-// an empty row would read "12th · 0 pts", which is a fact about the fixture list wearing the
-// costume of a fact about the club. The panel must be absent, not zeroed.
-async function unplayedClubChecks(page) {
-  const panel = await page.evaluate(() => !!document.querySelector('[data-club-sofar="LAR"]'));
-  if (panel) fail("LAR has played no games but shows a current-season panel");
-  else pass("LAR (no games played) shows no invented current-season numbers");
+// A club with no game played must not be given a position: derived from an empty row it would
+// read "12th · 0 pts", a fact about the fixture list wearing the costume of a fact about the
+// club. The panel must be absent, not zeroed. Which club that is changes week to week — early
+// on it was Larne, whose opener moved to September — so it is looked up, not named.
+function unplayedClubChecks(code) {
+  return async (page) => {
+    const panel = await page.evaluate((c) => !!document.querySelector(`[data-club-sofar="${c}"]`), code);
+    if (panel) fail(`${code} has played no games but shows a current-season panel`);
+    else pass(`${code} (no games played) shows no invented current-season numbers`);
+  };
 }
 
 async function statsChecks(page) {
@@ -145,10 +157,16 @@ async function statsChecks(page) {
 
 const PAGES = [
   { name: "home", path: "/", checks: homeChecks },
-  { name: "club-linfield", path: "/club/linfield", checks: playedClubChecks("LIN") },
-  { name: "club-larne", path: "/club/larne", checks: unplayedClubChecks },
+  { name: `club-${CLUB_TO_SLUG[mostPlayed.club]}`, path: `/club/${CLUB_TO_SLUG[mostPlayed.club]}`,
+    checks: playedClubChecks(mostPlayed.club) },
+  // Only when the league actually still has one. Once every club has kicked off there is
+  // nothing to assert, and inventing a subject would be worse than skipping.
+  ...(unplayed ? [{ name: `club-${CLUB_TO_SLUG[unplayed.club]}`, path: `/club/${CLUB_TO_SLUG[unplayed.club]}`,
+    checks: unplayedClubChecks(unplayed.club) }] : []),
   { name: "stats", path: "/stats", checks: statsChecks },
 ];
+console.log(`subjects: ${mostPlayed.club} (${mostPlayed.p} played)`
+  + (unplayed ? `, ${unplayed.club} (none played)` : ", no unplayed club left to test"));
 
 // ===== the walk =====
 

@@ -365,7 +365,12 @@ export const FIXTURES_2627 = [
     { h: "LAR", a: "BAN", d: "Tue 8 Sep" }, // rescheduled from Sun 9 Aug (NIFL, 27 Jul 2026)
   ]},
   { round: 2, date: "Sat 15 Aug", matches: [
-    { h: "BAN", a: "CLI" }, { h: "COL", a: "LAR" }, { h: "CRU", a: "BAL" }, { h: "LIM", a: "CAR" }, { h: "LIN", a: "GLE" }, { h: "POR", a: "DUN" },
+    { h: "BAN", a: "CLI", result: [0, 3] },
+    { h: "COL", a: "LAR", result: [0, 0] }, // champions' first league game of the season
+    { h: "CRU", a: "BAL", result: [2, 1] },
+    { h: "LIM", a: "CAR", result: [1, 2] },
+    { h: "LIN", a: "GLE", result: [2, 1] }, // Glentoran finished with ten
+    { h: "POR", a: "DUN", result: [0, 1] },
   ]},
   { round: 3, date: "Sat 22 Aug", matches: [
     { h: "LIN", a: "CLI", d: "Fri 21 Aug", t: "7.45pm" },
@@ -1138,16 +1143,15 @@ export function goalMinutes() {
 }
 
 export const PREDICTOR_GW = {
-  id: "prem-round-2",
-  name: "Round 2 · BoyleSports Premiership",
-  deadline: "Sat 15 Aug 3pm",
+  id: "prem-round-3",
+  name: "Round 3 · BoyleSports Premiership",
+  deadline: "Linfield v Cliftonville Fri 21 Aug 7.45pm · rest Sat 22 Aug 3pm",
   fixtures: [
-    { id: "f-BAN-CLI", home: { club: "BAN" }, away: { club: "CLI" }, comp: "Round 2 · Clandeboye Park · Sat 15 Aug, 3pm", result: null, odds: { home: 2.81, draw: 4.08, away: 2.5 } },
-    { id: "f-COL-LAR", home: { club: "COL" }, away: { club: "LAR" }, comp: "Round 2 · The Showgrounds · Sat 15 Aug, 3pm", result: null, odds: { home: 2.2, draw: 4.06, away: 3.34 } },
-    { id: "f-CRU-BAL", home: { club: "CRU" }, away: { club: "BAL" }, comp: "Round 2 · Seaview · Sat 15 Aug, 3pm", result: null, odds: { home: 3.32, draw: 4.28, away: 2.15 } },
-    { id: "f-LIM-CAR", home: { club: "LIM" }, away: { club: "CAR" }, comp: "Round 2 · Limavady Showgrounds · Sat 15 Aug, 3pm", result: null, odds: { home: 3.39, draw: 4.02, away: 2.19 } },
-    { id: "f-LIN-GLE", home: { club: "LIN" }, away: { club: "GLE" }, comp: "Round 2 · Windsor Park · Sat 15 Aug, 3pm", result: null, odds: { home: 3.13, draw: 3.82, away: 2.39 } },
-    { id: "f-POR-DUN", home: { club: "POR" }, away: { club: "DUN" }, comp: "Round 2 · Shamrock Park · Sat 15 Aug, 3pm", result: null, odds: { home: 2.7, draw: 4.1, away: 2.6 } },
+    { id: "f-LIN-CLI", home: { club: "LIN" }, away: { club: "CLI" }, comp: "Round 3 · Windsor Park · Fri 21 Aug, 7.45pm", result: null, odds: { home: 2.08, draw: 4.25, away: 3.53 } },
+    { id: "f-BAL-GLE", home: { club: "BAL" }, away: { club: "GLE" }, comp: "Round 3 · The Showgrounds · Fri 21 Aug, 7.45pm", result: null, odds: { home: 3.5, draw: 4, away: 2.16 } },
+    { id: "f-CAR-COL", home: { club: "CAR" }, away: { club: "COL" }, comp: "Round 3 · Loughview Leisure · Sat 22 Aug, 3pm", result: null, odds: { home: 3.97, draw: 4.27, away: 1.95 } },
+    { id: "f-CRU-POR", home: { club: "CRU" }, away: { club: "POR" }, comp: "Round 3 · Seaview · Sat 22 Aug, 3pm", result: null, odds: { home: 2.19, draw: 4.2, away: 3.27 } },
+    { id: "f-DUN-BAN", home: { club: "DUN" }, away: { club: "BAN" }, comp: "Round 3 · Stangmore Park · Sat 22 Aug, 3pm", result: null, odds: { home: 1.78, draw: 4.57, away: 4.53 } },
   ],
 };
 // Larne v Bangor (originally round 1) was rescheduled to Tue 8 Sep — see FIXTURES_2627 —

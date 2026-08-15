@@ -556,16 +556,39 @@ check("a feed table from the wrong season is rejected", (() => {
 // so both halves of that rule are pinned here.
 check("the table header names the round rather than counting fixtures", (() => {
   const bad = [];
+  // Expectations are DERIVED, not pinned. This check used to hardcode "round 1, 5 of 6, after
+  // round 1", which meant every weekly results update failed it — the check would have been
+  // edited every Sunday until somebody stopped reading it. What it is actually protecting is
+  // the rule, so the rule is what gets recomputed here from FIXTURES_2627 directly.
   const stage = D.tableStage();
-  if (!stage) {
+  const played = D.FIXTURES_2627.filter((r) => r.matches.some((m) => Array.isArray(m.result)));
+  const latest = played.length ? played[played.length - 1] : null;
+  if (!latest) {
+    if (stage !== null) bad.push("tableStage() named a round with no results recorded anywhere");
+  } else if (!stage) {
     bad.push("tableStage() returned null with results recorded in FIXTURES_2627");
   } else {
-    if (stage.round !== 1) bad.push(`latest round with results is ${stage.round}, expected 1`);
-    // Round 1 is complete bar Larne v Bangor, which moved to September. A fixture pushed past
-    // the round's own date must not hold the round open, or the header never advances.
-    if (!stage.complete) bad.push("round 1 reads as in progress though its only outstanding tie was moved to September");
-    if (stage.played !== 5 || stage.of !== 6) bad.push(`round 1 counted ${stage.played} of ${stage.of}, expected 5 of 6`);
-    if (D.tableStageLabel() !== "after round 1") bad.push(`label reads "${D.tableStageLabel()}", expected "after round 1"`);
+    if (stage.round !== latest.round) bad.push(`latest round with results is ${latest.round}, tableStage() says ${stage.round}`);
+    const nominal = D.fixtureKickoffMs(latest, {});
+    // Outstanding = still genuinely waiting on this round. A postponed tie, or one pushed past
+    // the round's own date (Larne v Bangor, moved to September), does not hold the round open,
+    // or the header never advances past it.
+    const outstanding = latest.matches.filter((m) => {
+      if (Array.isArray(m.result) || D.fixturePostponed(m)) return false;
+      const ms = D.fixtureKickoffMs(latest, m);
+      return !(ms !== null && nominal !== null && ms > nominal);
+    }).length;
+    const wantPlayed = latest.matches.filter((m) => Array.isArray(m.result)).length;
+    if (stage.complete !== (outstanding === 0)) {
+      bad.push(`round ${stage.round}: complete=${stage.complete} but ${outstanding} tie(s) genuinely outstanding`);
+    }
+    if (stage.played !== wantPlayed || stage.of !== latest.matches.length) {
+      bad.push(`round ${stage.round} counted ${stage.played} of ${stage.of}, expected ${wantPlayed} of ${latest.matches.length}`);
+    }
+    const wantLabel = stage.complete
+      ? `after round ${stage.round}`
+      : `round ${stage.round} · ${stage.played} of ${stage.of} played`;
+    if (D.tableStageLabel() !== wantLabel) bad.push(`label reads "${D.tableStageLabel()}", expected "${wantLabel}"`);
   }
 
   // A round with a match genuinely still to come must NOT read "after round N". Rebuild the
@@ -756,9 +779,21 @@ check("predictor odds are fair — implied probabilities sum to 1", (() => {
 // The model has to still reproduce the odds sitting in data.js. Odds edited by hand, or a
 // dial nudged without regenerating, would leave the file and the model disagreeing — and the
 // file is what ships, so the model would be documentation for something that isn't true.
+//
+// UNPLAYED fixtures only. The model updates from results, so the moment a gameweek's scores
+// are entered its stored prices stop matching — and "fixing" that means rewriting the prices
+// the model published BEFORE the games, to agree with a model that has now seen them. That is
+// retro-fitting predictions to outcomes, and it would have happened every week as part of the
+// Sunday ritual. A played fixture's odds are what we said beforehand; they are history and
+// they are frozen.
+//
+// (scripts/odds-backtest.js recomputes probabilities rather than reading these, so the
+// backtest was never scoring against contaminated prices — but it would have been the moment
+// anything started reading the stored ones.)
 check("the shipped predictor odds match what the odds model produces", (() => {
   const bad = [];
   for (const f of D.PREDICTOR_GW.fixtures) {
+    if (Array.isArray(f.result)) continue;
     const want = fairOdds(f.home.club, f.away.club, D);
     if (!want) { bad.push(`${f.home.club} v ${f.away.club}: model has no rating for one of them`); continue; }
     for (const k of ["home", "draw", "away"]) {
@@ -2602,20 +2637,49 @@ check("no fixture is priced as a certainty", (() => {
   return bad.length === 0;
 })());
 
-// One result must not rewrite a club's season. The in-season update was rebuilt precisely
+// Early results must not rewrite a club's season. The in-season update was rebuilt precisely
 // because blending raw goal rates let Linfield's 0-3 opening defeat swing their next price by
 // a full point of odds.
-check("a single result moves a price by a sane amount, not a full point of odds", (() => {
-  const worst = D.PREDICTOR_GW.fixtures.reduce((mx, f) => {
-    const cold = OM.fairOdds(f.home.club, f.away.club, D, { includeCurrent: false });
-    const warm = OM.fairOdds(f.home.club, f.away.club, D, { includeCurrent: true });
-    if (!cold || !warm) return mx;
-    return Math.max(mx, Math.abs(warm.home - cold.home), Math.abs(warm.away - cold.away));
-  }, 0);
+//
+// MEASURED IN PROBABILITY, NOT IN ODDS. This bounded the absolute change in the decimal price,
+// which is the wrong quantity: odds are a nonlinear transform, so the same shift in belief
+// shows up as a small delta at a short price and a huge one at a long price. After round 2 it
+// flagged Cliftonville's away price moving 4.69 -> 3.53 as an overreaction — a change of 7
+// percentage points, off two wins including 3-0 away, which is not an overreaction at all.
+// The old bound was effectively far tighter on underdogs than on favourites for no reason
+// anyone intended.
+//
+// The cap scales with evidence, because by mid-season the in-season term SHOULD dominate the
+// last-season prior. Roughly four points of probability per game each club has played, on top
+// of a small floor, and never more than 60 points.
+check("early results move prices by a sane amount, not a landslide", (() => {
+  const bad = [];
+  let worstShift = 0, worstOdds = 0, worstTie = "";
+  for (const f of D.PREDICTOR_GW.fixtures) {
+    // A fixture the model has already ingested prices itself: measuring "sensitivity" there
+    // measures circularity. Same reason the odds-match check skips played fixtures.
+    if (Array.isArray(f.result)) continue;
+    const cold = OM.outcomeProbs(f.home.club, f.away.club, D, { includeCurrent: false });
+    const warm = OM.outcomeProbs(f.home.club, f.away.club, D, { includeCurrent: true });
+    if (!cold || !warm) continue;
+    const shift = Math.max(...["home", "draw", "away"].map((k) => Math.abs(warm[k] - cold[k])));
+    if (shift > worstShift) {
+      worstShift = shift;
+      worstTie = `${f.home.club} v ${f.away.club}`;
+      const co = OM.fairOdds(f.home.club, f.away.club, D, { includeCurrent: false });
+      const wo = OM.fairOdds(f.home.club, f.away.club, D, { includeCurrent: true });
+      worstOdds = Math.max(Math.abs(wo.home - co.home), Math.abs(wo.away - co.away));
+    }
+  }
+  const clubs = Object.keys(D.CLUBS).length;
   const played = (D.FIXTURES_2627 || []).flatMap((r) => r.matches).filter((m) => Array.isArray(m.result)).length;
-  // Early in a season the whole in-season term should still be a nudge. The bound loosens as
-  // real evidence accumulates, because by then it SHOULD be moving prices.
-  return played > 24 || worst < 0.75;
+  const perClub = clubs ? (played * 2) / clubs : 0;
+  const cap = Math.min(0.60, 0.05 + 0.04 * perClub);
+  if (worstShift > cap) {
+    bad.push(`${worstTie}: ${(worstShift * 100).toFixed(1)} points of probability (cap ${(cap * 100).toFixed(1)} at ${perClub.toFixed(1)} games each), ${worstOdds.toFixed(2)} of odds`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
 })());
 
 // ---- The mark, wherever it stands for GIBSON ---------------------------------------
