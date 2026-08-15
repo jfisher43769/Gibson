@@ -7,7 +7,7 @@ import { Avatar } from "../components/Avatar.jsx";
 import { CountUp } from "../components/CountUp.jsx";
 import { Crest } from "../components/Crest.jsx";
 import { ReportLink } from "../components/ReportLink.jsx";
-import { SeasonSoFar } from "../components/SeasonSoFar.jsx";
+import { LeadingScorers, SeasonSoFar } from "../components/SeasonSoFar.jsx";
 import { NoSeasonData, SeasonSwitch } from "../components/SeasonSwitch.jsx";
 import { DepartedTag } from "../components/DepartedTag.jsx";
 import { ShotMap } from "../components/ShotMap.jsx";
@@ -408,6 +408,11 @@ export function PlayersView() {
   const [season, setSeason] = useState(status.defaultSeason);
   return (
     <div className="gb-narrow" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr)", gap: 18 }}>
+      {/* This page had nothing from the current season on it at all: the Index, the radar and
+          the discipline leaders are last season's, and PLAYERS stays empty until ratings are
+          compiled. The scoring chart is the one current-season player stat that exists, so it
+          goes above the switch — same reasoning as the Lab. */}
+      <LeadingScorers />
       <SeasonSwitch value={season} onChange={setSeason} status={status} />
       {season === liveSeasonId() && PLAYERS.length > 0
         ? <PlayersBody />

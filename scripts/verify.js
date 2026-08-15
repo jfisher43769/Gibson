@@ -3056,6 +3056,68 @@ check("scorer tables come from the sourced chart, never from our own partial goa
   return /Transfermarkt/.test(src);
 })());
 
+// Every page that can carry a current-season number should carry one. These four could and
+// didn't: the Players page was entirely last season's, the club index was twelve shields with
+// no numbers at all, Home had nothing about players, and the Predictor asked for a scoreline
+// while showing only two names and a price.
+check("the scoring chart is defined once and shared, not copied per page", (() => {
+  const bad = [];
+  let comp = "";
+  try { comp = readFileSync(new URL("../src/components/SeasonSoFar.jsx", import.meta.url), "utf8"); } catch { return false; }
+  if (!/export function LeadingScorers\(/.test(comp)) bad.push("LeadingScorers is not exported from SeasonSoFar.jsx");
+  // Nobody else may build their own list out of the raw export — that is how two pages start
+  // disagreeing about who is top.
+  for (const f of ["src/tabs/StatsTab.jsx"]) {
+    let src = "";
+    try { src = readFileSync(new URL(`../${f}`, import.meta.url), "utf8"); } catch { bad.push(`${f} missing`); continue; }
+    const code = decomment(src);
+    if (!/<LeadingScorers\b/.test(code)) bad.push(`${f}: does not render LeadingScorers`);
+    if (/TOP_SCORERS_2627\.map\(/.test(code)) bad.push(`${f}: builds its own scorer list`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// A club that has not kicked off gets no position anywhere — the club page, the home snapshot
+// and now the club index all follow the same rule, because "12th on nought" derived from an
+// empty row is a fact about the fixture list wearing the costume of a fact about the club.
+check("the club index shows standings without inventing one for a club yet to play", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/MoreTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const code = decomment(src);
+  if (!/currentTable\(\)/.test(code)) { console.log("      ↳ the club index carries no standings"); return false; }
+  if (!/table\[i\]\.p === 0/.test(code)) { console.log("      ↳ nothing stops an unplayed club being ranked"); return false; }
+  return /ordinal\(/.test(code);
+})());
+
+// The Predictor asks for a scoreline. Form is the most relevant thing it can show towards that,
+// and it must come from the same table as everything else rather than a second tally.
+check("the Predictor shows form from the shared table, blank where there is none", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/PredictorTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const code = decomment(src);
+  if (!/currentTable\(\)/.test(code)) return false;
+  // A European opponent has no club code and a club yet to play has no form — both blank.
+  return /row && row\.p > 0 \? row\.form : ""/.test(code);
+})());
+
+// Home names everyone on the joint lead. With four players on two goals apiece, printing one of
+// them as "the leading scorer" would be picking a favourite rather than reporting.
+check("Home's scorer block names every joint leader and sits below the results", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/HomeTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const code = decomment(src);
+  if (!/filter\(\(p\) => p\.goals === best\.goals\)/.test(code)) {
+    console.log("      ↳ Home picks a single top scorer rather than every joint leader"); return false;
+  }
+  // Order matters: the table snapshot and the results own the top of the page, and the
+  // acceptance criterion is that a position and a points total stay above the fold.
+  const results = code.indexOf(">Latest results<");
+  const scorers = code.indexOf("topScorers.length > 0");
+  if (!(results > 0 && scorers > results)) { console.log("      ↳ the scorer block is above the results"); return false; }
+  return true;
+})());
+
 // Every feed call must carry a deadline.
 //
 // None of the four did. `.catch` fires on a network ERROR; a stalled connection — the normal

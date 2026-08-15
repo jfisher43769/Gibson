@@ -54,6 +54,46 @@ function Stat({ value, unit, name }) {
   );
 }
 
+// The league's scoring chart. Exported because the Stats Lab and the Players page both want it
+// and a component defined twice is how the two start disagreeing — the Players page in
+// particular had no current-season content at all while this sat one tab away.
+export function LeadingScorers({ limit }) {
+  const rows = limit ? TOP_SCORERS_2627.slice(0, limit) : TOP_SCORERS_2627;
+  if (rows.length === 0) return null;
+  return (
+    <div data-leading-scorers style={{ marginBottom: 18 }}>
+      <div style={{ ...label, marginTop: 4 }}>Leading scorers · {SEASON.current.display}</div>
+      <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden", marginBottom: 10 }}>
+        {rows.map((p, i) => (
+          <div key={p.player} style={{
+            display: "flex", alignItems: "center", gap: 10, padding: "9px 13px",
+            borderBottom: i < rows.length - 1 ? `1px solid ${faint}` : "none",
+          }}>
+            <span style={{
+              fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 14, color: dim,
+              width: 16, textAlign: "center", fontVariantNumeric: "tabular-nums",
+            }}>{i + 1}</span>
+            <Crest club={p.club} size={20} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: chalk, flex: 1, minWidth: 0,
+              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.player}</span>
+            <span style={{ fontSize: 12, color: dim, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
+              {p.apps} app{p.apps === 1 ? "" : "s"}
+            </span>
+            <span style={{
+              fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, color: "#3DDC84",
+              fontVariantNumeric: "tabular-nums", width: 22, textAlign: "right",
+            }}>{p.goals}</span>
+          </div>
+        ))}
+      </div>
+      {/* Said plainly, because a top ten cut off at ten says nothing about number eleven. */}
+      <div style={{ fontSize: 12, color: dim, lineHeight: 1.5 }}>
+        The top of the chart, not all of it — via Transfermarkt.
+      </div>
+    </div>
+  );
+}
+
 export function SeasonSoFar() {
   const s = currentSeasonStats();
   if (!s.matches) return null;                     // nothing has been played; say nothing
@@ -100,36 +140,7 @@ export function SeasonSoFar() {
         nothing but the scorelines, so they are complete for the {s.matches} match{s.matches === 1 ? "" : "es"} played.
       </div>
 
-      {TOP_SCORERS_2627.length > 0 && (<>
-        <div style={{ ...label, marginTop: 4 }}>Leading scorers</div>
-        <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden", marginBottom: 10 }}>
-          {TOP_SCORERS_2627.map((p, i) => (
-            <div key={p.player} style={{
-              display: "flex", alignItems: "center", gap: 10, padding: "9px 13px",
-              borderBottom: i < TOP_SCORERS_2627.length - 1 ? `1px solid ${faint}` : "none",
-            }}>
-              <span style={{
-                fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 14, color: dim,
-                width: 16, textAlign: "center", fontVariantNumeric: "tabular-nums",
-              }}>{i + 1}</span>
-              <Crest club={p.club} size={20} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: chalk, flex: 1, minWidth: 0,
-                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.player}</span>
-              <span style={{ fontSize: 12, color: dim, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
-                {p.apps} app{p.apps === 1 ? "" : "s"}
-              </span>
-              <span style={{
-                fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, color: "#3DDC84",
-                fontVariantNumeric: "tabular-nums", width: 22, textAlign: "right",
-              }}>{p.goals}</span>
-            </div>
-          ))}
-        </div>
-        {/* Said plainly, because a top-ten cut off at ten says nothing about number eleven. */}
-        <div style={{ fontSize: 12, color: dim, lineHeight: 1.5, marginBottom: 16 }}>
-          The top of the chart, not all of it — via Transfermarkt.
-        </div>
-      </>)}
+      <LeadingScorers />
 
       {teamStats.length > 0 && (<>
         <div style={{ ...label, marginTop: 4 }}>Possession &amp; shooting · per match</div>
