@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {
-  ALL_TIME_TITLES, CLUBS, KOFI_URL, LEAGUE_LORE, RECORDS, ROLL_OF_HONOUR, SEASON_ARCHIVE, STATUS_META, SUPPORT_TIERS, TRANSFERS, WINDOW,
+  ALL_TIME_TITLES, CLUBS, KOFI_URL, LEAGUE_LORE, RECORDS, ROLL_OF_HONOUR, SEASON, SEASON_ARCHIVE, STATUS_META, SUPPORT_TIERS, TRANSFERS, WINDOW, currentTable, ordinal, tableStage,
 } from "../../data.js";
 import { Crest } from "../components/Crest.jsx";
 import { ExternalBadge } from "../components/ExternalBadge.jsx";
@@ -434,11 +434,29 @@ export function SupportView() {
 }
 
 // The twelve current Premiership clubs (excludes archived GLV).
+// Twelve shields and twelve names, on a stats app — the club index was the one page carrying no
+// number at all. Position and points come from the same currentTable() everything else reads,
+// so the grid cannot disagree with the table it links to.
 export function ClubsGrid({ openClub }) {
   const clubs = Object.keys(CLUBS).filter((k) => k !== "GLV");
+  const table = currentTable();
+  const standing = (code) => {
+    const i = table.findIndex((r) => r.club === code);
+    // A club that has not played is left blank rather than shown 12th on nought: that would be
+    // a fact about the fixture list dressed as a fact about the club, same rule the club page
+    // and the home snapshot follow.
+    if (i < 0 || table[i].p === 0) return null;
+    return { pos: ordinal(i + 1), pts: table[i].pts };
+  };
+  const stage = tableStage();
   return (
     <div style={{ animation: "riseIn 0.4s ease-out" }}>
-      <div style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Club pages · tap a shield</div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 8 }}>
+        <span style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>Club pages · tap a shield</span>
+        {stage && <span style={{ fontSize: 11, color: dim, whiteSpace: "nowrap" }}>
+          {SEASON.current.display} · {stage.complete ? "after " : ""}round {stage.round}
+        </span>}
+      </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(92px, 1fr))", gap: 10 }}>
         {clubs.map((k, i) => (
           <button key={k} onClick={() => openClub(k)} aria-label={`Open ${CLUBS[k].name} club page`} style={{
@@ -447,6 +465,15 @@ export function ClubsGrid({ openClub }) {
           }}>
             <Crest club={k} size={34} tappable={false} />
             <span style={{ fontSize: 12, fontWeight: 600, color: chalk, textAlign: "center", lineHeight: 1.2 }}>{CLUBS[k].name}</span>
+            {(() => {
+              const st = standing(k);
+              if (!st) return null;
+              return (
+                <span style={{ fontSize: 11, color: dim, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
+                  {st.pos} · <span style={{ color: chalk, fontWeight: 700 }}>{st.pts}</span> pts
+                </span>
+              );
+            })()}
           </button>
         ))}
       </div>

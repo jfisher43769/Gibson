@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  CLUBS, FULL_TABLE, PREDICTOR_GW, seasonStartDisplay, store,
+  CLUBS, FULL_TABLE, PREDICTOR_GW, currentTable, seasonStartDisplay, store,
 } from "../../data.js";
 import { Crest } from "../components/Crest.jsx";
 import { OddsDisclaimer, OddsStrip } from "../components/Odds.jsx";
@@ -203,6 +203,7 @@ export function PredictorView() {
   };
 
   const sideName = (s) => (s.club ? CLUBS[s.club].name : s.external);
+  const standings = currentTable();
   const scoreFor = (f) => {
     if (!f.result || !picks[f.id]) return null;
     const [ph, pa] = picks[f.id], [rh, ra] = f.result;
@@ -368,14 +369,39 @@ export function PredictorView() {
     </div>
   );
 
-  const TeamCell = ({ s }) => (
+  // Form, from the same currentTable() the table reads. This page asks for a scoreline and
+  // showed only two names and a price — the most relevant fact to the thing it is asking is how
+  // each side has actually been playing. Blank for a club yet to kick off, and for a European
+  // opponent, because neither has form in this league to show.
+  const formOf = (code) => {
+    const row = code ? standings.find((r) => r.club === code) : null;
+    return row && row.p > 0 ? row.form : "";
+  };
+  const FORM_COLOR = { W: "#3DDC84", D: "#FFB627", L: "#E8663C" };
+
+  const TeamCell = ({ s }) => {
+    const form = formOf(s.club);
+    return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 84 }}>
       {s.club
         ? <Crest club={s.club} size={30} />
         : <div style={{ width: 30, height: 34, borderRadius: 6, border: `1px dashed ${dim}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: dim, fontFamily: "'Barlow Condensed'", fontWeight: 700 }}>EUR</div>}
       <span style={{ fontSize: 12, fontWeight: 600, color: chalk, textAlign: "center", lineHeight: 1.25 }}>{sideName(s)}</span>
+      {form && (
+        <span aria-label={`Form: ${form.split("").join(", ")}`} style={{ display: "flex", gap: 3 }}>
+          {form.split("").map((f, i) => (
+            <span key={i} aria-hidden="true" style={{
+              width: 13, height: 13, borderRadius: 4, background: FORM_COLOR[f] || dim, color: "#0B1512",
+              fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 11, lineHeight: 1,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              opacity: i === form.length - 1 ? 1 : 0.62,
+            }}>{f}</span>
+          ))}
+        </span>
+      )}
     </div>
-  );
+    );
+  };
 
   return (
     <div className="gb-narrow" style={{ animation: "riseIn 0.4s ease-out" }}>

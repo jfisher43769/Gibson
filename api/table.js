@@ -21,11 +21,17 @@ const CLUB_MAP = [
   ["glenavon", "GLV"],
 ];
 
+// Upstream calls are given a deadline. Without one a slow TheSportsDB holds the function open
+// until the platform kills it, which reaches the browser as a stalled request rather than as
+// the {ok:false} this endpoint is designed to return — and the app's fallback only works if it
+// gets an answer. AbortSignal.timeout is available on every Node runtime Vercel ships.
+const UPSTREAM_TIMEOUT_MS = 4500;
+
 export default async function handler(req, res) {
   try {
     const r = await fetch(
       `https://www.thesportsdb.com/api/v1/json/123/lookuptable.php?l=${LEAGUE_ID}`,
-      { headers: { "User-Agent": "GIBSON-IrishLeagueStats/1.0" } }
+      { headers: { "User-Agent": "GIBSON-IrishLeagueStats/1.0" }, signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS) }
     );
     if (!r.ok) throw new Error(`upstream ${r.status}`);
     const j = await r.json();

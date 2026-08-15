@@ -1873,16 +1873,19 @@ check("the Home board shows the live score once its fixture kicks off", (() => {
 // Two components each fetching /api/events is how one of them ends up a version behind and
 // the front page contradicts the fixtures list.
 check("live scores are fetched through one shared hook, not per tab", (() => {
+  // Matches the timeout wrapper as well as a bare fetch — both are a call to the endpoint, and
+  // this check is about WHERE that call lives, not what it is named.
+  const callsEvents = /fetch(WithTimeout)?\(\s*["'`]\/api\/events/;
   const files = ["../src/tabs/HomeTab.jsx", "../src/tabs/MatchesTab.jsx"];
   for (const f of files) {
     let src = "";
     try { src = readFileSync(new URL(f, import.meta.url), "utf8"); } catch { return false; }
-    if (/fetch\(\s*["'`]\/api\/events/.test(src)) return false;
+    if (callsEvents.test(src)) return false;
     if (!/useLiveEvents\(\)/.test(src)) return false;
   }
   let hook = "";
   try { hook = readFileSync(new URL("../src/lib/live.js", import.meta.url), "utf8"); } catch { return false; }
-  return /fetch\(\s*["'`]\/api\/events/.test(hook);
+  return callsEvents.test(hook);
 })());
 
 // The match-card scripts picked "the nearest UNPLAYED fixture", so the moment a result was
@@ -2991,6 +2994,181 @@ check("no promo generator names a bookmaker or the league's sponsor", (() => {
   }
   if (bad.length) { console.log("      ↳ " + bad.join(", ")); return false; }
   return files.length > 0;
+})());
+
+// The current-season scoring chart, transcribed off a phone screenshot where the club is a
+// 20px crest. THE CROSS-CHECK IS THE POINT: a club's scorers cannot between them have scored
+// more goals than that club has scored, and those two numbers come from completely independent
+// places — Transfermarkt's chart and our own recorded scorelines. A crest read wrong lands the
+// goals on the wrong club and this fails.
+check("TOP_SCORERS_2627 agrees with the goals each club has actually scored", (() => {
+  const bad = [];
+  const table = D.currentTable();
+  const gf = Object.fromEntries(table.map((r) => [r.club, r.gf]));
+  const byClub = {};
+  for (const p of D.TOP_SCORERS_2627) {
+    if (!D.CLUBS[p.club]) { bad.push(`${p.player}: unknown club ${p.club}`); continue; }
+    byClub[p.club] = (byClub[p.club] || 0) + p.goals;
+  }
+  for (const [club, goals] of Object.entries(byClub)) {
+    if (goals > (gf[club] ?? 0)) bad.push(`${club}: chart credits ${goals} goals, club has scored ${gf[club] ?? 0}`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+check("TOP_SCORERS_2627 is a well-formed, ranked chart", (() => {
+  const bad = [];
+  const seen = new Set();
+  let prev = Infinity;
+  for (const p of D.TOP_SCORERS_2627) {
+    if (!p.player || typeof p.player !== "string") { bad.push("a row has no player name"); continue; }
+    if (seen.has(p.player)) bad.push(`${p.player} appears twice`);
+    seen.add(p.player);
+    if (!Number.isInteger(p.goals) || p.goals < 1) bad.push(`${p.player}: goals ${p.goals}`);
+    if (!Number.isInteger(p.apps) || p.apps < 1) bad.push(`${p.player}: apps ${p.apps}`);
+    // Apps can be fewer than goals (a hat-trick is one appearance), but never more than the
+    // number of games the club has played.
+    const row = D.currentTable().find((r) => r.club === p.club);
+    if (row && p.apps > row.p) bad.push(`${p.player}: ${p.apps} apps, ${p.club} has played ${row.p}`);
+    if (p.age !== undefined && (!Number.isInteger(p.age) || p.age < 15 || p.age > 45)) bad.push(`${p.player}: age ${p.age}`);
+    if (p.goals > prev) bad.push(`${p.player} breaks the ranking — ${p.goals} after ${prev}`);
+    prev = p.goals;
+  }
+  // No nationality field: at screenshot size the Ulster Banner and England's flag are the same
+  // white field with a red cross, and a guess there is a claim about a person.
+  if (D.TOP_SCORERS_2627.some((p) => p.nat || p.nationality)) bad.push("a row records nationality, which cannot be read reliably from the source");
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// The chart is publishable because it is SOURCED. Totals summed from MATCH_EVENTS are not, and
+// the panel must keep saying so — graphics aren't made for every match, so our own goal records
+// are always a subset and any table built from them understates whoever went unrecorded.
+check("scorer tables come from the sourced chart, never from our own partial goal records", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/components/SeasonSoFar.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const code = decomment(src);
+  if (!/TOP_SCORERS_2627/.test(code) || !/clubTopScorers\(/.test(code)) return false;
+  // MATCH_EVENTS must not be totalled here, by any route.
+  if (/MATCH_EVENTS|topScorers\(/.test(code)) { console.log("      ↳ the panel reaches for our own goal records"); return false; }
+  // And the source has to be named on screen, or a partial chart reads as the whole league.
+  return /Transfermarkt/.test(src);
+})());
+
+// Every page that can carry a current-season number should carry one. These four could and
+// didn't: the Players page was entirely last season's, the club index was twelve shields with
+// no numbers at all, Home had nothing about players, and the Predictor asked for a scoreline
+// while showing only two names and a price.
+check("the scoring chart is defined once and shared, not copied per page", (() => {
+  const bad = [];
+  let comp = "";
+  try { comp = readFileSync(new URL("../src/components/SeasonSoFar.jsx", import.meta.url), "utf8"); } catch { return false; }
+  if (!/export function LeadingScorers\(/.test(comp)) bad.push("LeadingScorers is not exported from SeasonSoFar.jsx");
+  // Nobody else may build their own list out of the raw export — that is how two pages start
+  // disagreeing about who is top.
+  for (const f of ["src/tabs/StatsTab.jsx"]) {
+    let src = "";
+    try { src = readFileSync(new URL(`../${f}`, import.meta.url), "utf8"); } catch { bad.push(`${f} missing`); continue; }
+    const code = decomment(src);
+    if (!/<LeadingScorers\b/.test(code)) bad.push(`${f}: does not render LeadingScorers`);
+    if (/TOP_SCORERS_2627\.map\(/.test(code)) bad.push(`${f}: builds its own scorer list`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// A club that has not kicked off gets no position anywhere — the club page, the home snapshot
+// and now the club index all follow the same rule, because "12th on nought" derived from an
+// empty row is a fact about the fixture list wearing the costume of a fact about the club.
+check("the club index shows standings without inventing one for a club yet to play", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/MoreTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const code = decomment(src);
+  if (!/currentTable\(\)/.test(code)) { console.log("      ↳ the club index carries no standings"); return false; }
+  if (!/table\[i\]\.p === 0/.test(code)) { console.log("      ↳ nothing stops an unplayed club being ranked"); return false; }
+  return /ordinal\(/.test(code);
+})());
+
+// The Predictor asks for a scoreline. Form is the most relevant thing it can show towards that,
+// and it must come from the same table as everything else rather than a second tally.
+check("the Predictor shows form from the shared table, blank where there is none", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/PredictorTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const code = decomment(src);
+  if (!/currentTable\(\)/.test(code)) return false;
+  // A European opponent has no club code and a club yet to play has no form — both blank.
+  return /row && row\.p > 0 \? row\.form : ""/.test(code);
+})());
+
+// Home names everyone on the joint lead. With four players on two goals apiece, printing one of
+// them as "the leading scorer" would be picking a favourite rather than reporting.
+check("Home's scorer block names every joint leader and sits below the results", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/HomeTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const code = decomment(src);
+  if (!/filter\(\(p\) => p\.goals === best\.goals\)/.test(code)) {
+    console.log("      ↳ Home picks a single top scorer rather than every joint leader"); return false;
+  }
+  // Order matters: the table snapshot and the results own the top of the page, and the
+  // acceptance criterion is that a position and a points total stay above the fold.
+  const results = code.indexOf(">Latest results<");
+  const scorers = code.indexOf("topScorers.length > 0");
+  if (!(results > 0 && scorers > results)) { console.log("      ↳ the scorer block is above the results"); return false; }
+  return true;
+})());
+
+// Every feed call must carry a deadline.
+//
+// None of the four did. `.catch` fires on a network ERROR; a stalled connection — the normal
+// failure on mobile data — never settles at all. The table view gated its whole block on a
+// `checking` flag cleared in `.finally`, so one hung request left the league table showing a
+// loading skeleton for as long as the page stayed open, with the real numbers sitting in
+// data.js the entire time. That is what the owner saw on 15 Aug 2026.
+check("every feed fetch has a timeout", (() => {
+  const bad = [];
+  const app = ["src/tabs/MatchesTab.jsx", "src/lib/live.js"];
+  for (const f of app) {
+    let src = "";
+    try { src = readFileSync(new URL(`../${f}`, import.meta.url), "utf8"); } catch { bad.push(`${f} missing`); continue; }
+    const code = decomment(src);
+    // A bare fetch( to one of our own endpoints is the bug; fetchWithTimeout is the fix.
+    const bare = code.match(/(?<!WithTimeout)\bfetch\(\s*["'`]\/api\//g) || [];
+    if (bare.length) bad.push(`${f}: ${bare.length} un-timed fetch(/api/...)`);
+    if (!/fetchWithTimeout\(/.test(code)) bad.push(`${f}: never uses fetchWithTimeout`);
+  }
+  // The serverless functions must bound their upstream call too, or they hold the connection
+  // open until the platform kills them and the browser gets a stall instead of {ok:false}.
+  for (const f of ["api/table.js", "api/events.js"]) {
+    let src = "";
+    try { src = readFileSync(new URL(`../${f}`, import.meta.url), "utf8"); } catch { bad.push(`${f} missing`); continue; }
+    const code = decomment(src);
+    const calls = (code.match(/\bfetch\(/g) || []).length;
+    const signals = (code.match(/AbortSignal\.timeout\(/g) || []).length;
+    if (calls !== signals) bad.push(`${f}: ${calls} upstream fetch(es), ${signals} with a timeout`);
+  }
+  // And the helper must actually abort rather than merely look like it does.
+  let net = "";
+  try { net = readFileSync(new URL("../src/lib/net.js", import.meta.url), "utf8"); } catch { bad.push("src/lib/net.js missing"); }
+  if (net) {
+    if (!/new AbortController\(\)/.test(net)) bad.push("net.js: no AbortController");
+    if (!/\.abort\(\)/.test(net)) bad.push("net.js: never calls abort()");
+    if (!/clearTimeout\(/.test(net)) bad.push("net.js: leaks its timer on success");
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// The league table is derived from data.js and is ready before the page paints. Gating it on a
+// network round-trip put a spinner where numbers already existed, and made a hung request the
+// FINAL state rather than a slow one.
+check("the league table renders without waiting for the feed", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/MatchesTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const code = decomment(src);
+  if (/\bchecking\b/.test(code)) { console.log("      ↳ a loading flag still gates the table"); return false; }
+  // The derived table must be what it draws by default, with the feed only able to replace it.
+  return /const derived = currentTable\(\)/.test(code) && /useFeed \? live\.rows : derived/.test(code);
 })());
 
 // Truncating "Dungannon Swifts" to "Dunganno…" is not a shorter name, it is a broken one.

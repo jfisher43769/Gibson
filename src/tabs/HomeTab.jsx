@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import {
-  CLUBS, CLUB_FIXTURES, EURO, FIXTURES_2627, LEAGUE_LORE, LIVE_WINDOW_MS, PREDICTOR_GW, STATUS_META, TRANSFERS,
+  CLUBS, CLUB_FIXTURES, EURO, FIXTURES_2627, LEAGUE_LORE, LIVE_WINDOW_MS, PREDICTOR_GW, STATUS_META, TOP_SCORERS_2627, TRANSFERS,
   CLUB_META, clubName,
   dayMonth, leagueFixtureLabel, londonKickoffLabel, matchDetail, nextLeagueFixture, recentResults,
   relativeDay,
@@ -76,6 +76,12 @@ export function HomeView({ goTo }) {
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
   const lore = LEAGUE_LORE[dayOfYear % LEAGUE_LORE.length];
   const label = { fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 };
+  // Everyone on the joint lead, not the first row of the chart — with four players on two goals
+  // apiece, naming one of them "the leading scorer" would be picking a favourite, not reporting.
+  const topScorers = (() => {
+    const best = TOP_SCORERS_2627[0];
+    return best ? TOP_SCORERS_2627.filter((p) => p.goals === best.goals) : [];
+  })();
   // "See all →" appears three times on this tab and was three copies of the same 14px-tall
   // button. One object now, so the 44px hit area can't end up on two of the three. The 6px of
   // horizontal padding preserves the width it already had; tapPad handles the height without
@@ -283,6 +289,38 @@ export function HomeView({ goTo }) {
           </div>
         </div>
       )}
+
+      {/* One player fact on a page that otherwise carries only teams. Deliberately BELOW the
+          results — the position and points above the fold are the front page's job, and this
+          must not push them off it. Ties are all shown rather than one picked arbitrarily. */}
+      {topScorers.length > 0 && (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 8 }}>
+            <span style={{ ...label, marginBottom: 0 }}>
+              {topScorers.length > 1 ? "Leading scorers" : "Leading scorer"}
+            </span>
+            <button onClick={() => goTo("stats", "players")} style={seeAll} aria-label="Open the full scoring chart">Chart →</button>
+          </div>
+          <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden" }}>
+            {topScorers.map((p, i) => (
+              <div key={p.player} style={{
+                display: "flex", alignItems: "center", gap: 10, padding: "9px 13px",
+                borderBottom: i < topScorers.length - 1 ? `1px solid ${faint}` : "none",
+              }}>
+                <Crest club={p.club} size={20} />
+                <span style={{ fontSize: 13, fontWeight: 600, color: chalk, flex: 1, minWidth: 0,
+                  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.player}</span>
+                <span style={{ fontSize: 12, color: dim, whiteSpace: "nowrap" }}>{clubName(p.club, { short: true })}</span>
+                <span style={{
+                  fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, color: "#3DDC84",
+                  fontVariantNumeric: "tabular-nums", width: 22, textAlign: "right",
+                }}>{p.goals}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {openClub && (<>
         {/* Two states, one row of crests.
             Unpicked: a full-width prompt, because the choice is what makes the rest of the

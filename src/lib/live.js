@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { fetchWithTimeout } from "./net.js";
 
 // Shared access to /api/events, so the Home board and the Fixtures list can never disagree
 // about whether a match is on. Two components each rolling their own fetch is how one of them
@@ -29,7 +30,7 @@ export function useLiveEvents() {
     function load() {
       if (!on) return;
       if (hidden()) { schedule(IDLE_POLL_MS); return; }   // check back, but don't fetch
-      fetch("/api/events")
+      fetchWithTimeout("/api/events")
         .then((r) => r.json())
         .then((j) => {
           if (!on) return;

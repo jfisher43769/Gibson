@@ -10,7 +10,8 @@ import { OfflineNote } from "../components/OfflineNote.jsx";
 import { MatchDetail, StatsAffordance } from "../components/MatchDetail.jsx";
 import { LiveNow } from "../components/LiveNow.jsx";
 import { LiveTick, ScoreRow } from "../components/ScoreRow.jsx";
-import { Skel, SkelRows } from "../components/Skeleton.jsx";
+import { SkelRows } from "../components/Skeleton.jsx";
+import { fetchWithTimeout } from "../lib/net.js";
 import { findLive, useLiveEvents } from "../lib/live.js";
 import { OVERLAY, SURFACE, chalk, dim, faint, formColor, rise } from "../lib/theme.js";
 
@@ -18,17 +19,17 @@ export function TableView() {
   const noteLabel = { C: "Champions · Gibson Cup", IC: "Irish Cup winners · Europe", E: "Europe (automatic)", EPO: "Europe (via play-off)", PO: "Relegation play-off", R: "Relegated" };
   const noteColor = { C: "#3DDC84", IC: "#5EC8F2", E: "#FFB627", EPO: "#5EC8F2", PO: "#E8663C", R: "#E8663C" };
   const [live, setLive] = useState(null);
-  const [checking, setChecking] = useState(true);
   const [offline, setOffline] = useState(false);
   useEffect(() => {
     let on = true;
-    fetch("/api/table")
+    // Timed out, because a stalled request never rejects and this used to hold the table on a
+    // loading skeleton indefinitely. See src/lib/net.js.
+    fetchWithTimeout("/api/table")
       .then((r) => r.json())
       .then((j) => {
         if (on && j && j.ok && Array.isArray(j.rows) && j.rows.some((r) => r.p > 0)) setLive(j);
       })
-      .catch(() => { if (on) setOffline(true); })
-      .finally(() => { if (on) setChecking(false); });
+      .catch(() => { if (on) setOffline(true); });
     return () => { on = false; };
   }, []);
   // The table goes live off our own recorded results the moment there is one, rather than
@@ -47,16 +48,11 @@ export function TableView() {
   const showTable = useFeed || derivedPlayed > 0;
   const stageLabel = tableStageLabel();
 
+  // No loading state. The table is derived from data.js and is ready before the page paints, so
+  // a skeleton here was showing a spinner in place of numbers we already had — and if the feed
+  // never answered, that spinner was the final state. The feed can only ever REPLACE what is
+  // drawn, once it proves it is describing this season and is further ahead than we are.
   const LiveBlock = () => {
-    if (checking) return (
-      <div style={{ marginBottom: 22 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-          <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#3DDC84", display: "inline-block", animation: "livePulse 1.2s infinite" }} />
-          <Skel w={130} h={10} />
-        </div>
-        <SkelRows n={3} />
-      </div>
-    );
     return showTable && (
     <div style={{ marginBottom: 22, animation: "riseIn 0.4s ease-out" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
@@ -72,8 +68,11 @@ export function TableView() {
         </span>
       </div>
       <div style={{ display: "grid", gap: 6 }}>
+        {/* data-table-row is the browser harness's handle: it counts real rows rather than
+            looking for club names, which appear elsewhere on the page and made the check pass
+            against a screen showing nothing but a loading skeleton. */}
         {tableRows.map((row, i) => (
-          <div key={row.club} style={{
+          <div key={row.club} data-table-row style={{
             display: "flex", alignItems: "center", gap: 12,
             ...SURFACE.card,
             borderRadius: 12, padding: "10px 14px 10px 11px",
