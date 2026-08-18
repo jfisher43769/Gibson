@@ -208,11 +208,11 @@ LOCATION:The Showgrounds\, Limavady
 URL:https://gibsonstats.com/club/carrick-rangers
 END:VEVENT
 BEGIN:VEVENT
-UID:gibson-LAR-20260820180000@gibsonstats.com
+UID:gibson-LAR-20260820160000@gibsonstats.com
 DTSTAMP:20270327T150000Z
-DTSTART:20260820T180000Z
-DTEND:20260820T200000Z
-SUMMARY:Larne v Lincoln Red Imps (a) — UECL play-off · 1st leg · kick-off TBC
+DTSTART:20260820T160000Z
+DTEND:20260820T180000Z
+SUMMARY:Larne v Lincoln Red Imps (a) — UECL play-off · 1st leg
 LOCATION:Gibraltar
 URL:https://gibsonstats.com/club/larne
 END:VEVENT
