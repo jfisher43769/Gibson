@@ -1588,8 +1588,11 @@ export const CLUB_FIXTURES = {
     { date: "11 Aug", dt: "2026-08-11T16:00:00Z", res: "2–1 L", opp: "FC Iberia 1999 (a) — Bedoshvili 74', Simpson 76', Sikharulashvili 102'", comp: "UEL Q3 · 2nd leg · Mikheil Meskhi Stadium · aet · 1–2 agg · into UECL play-off" },
     // Drawn 13 Aug 2026. No kick-off times published yet — see the EURO entry for why `dt`
     // holds a placeholder slot and the display date deliberately carries no time.
-    { date: "20 Aug", dt: "2026-08-20T18:00:00Z", opp: "Lincoln Red Imps (a)", comp: "UECL play-off · 1st leg · kick-off TBC" },
-    { date: "27 Aug", dt: "2026-08-27T18:00:00Z", opp: "Lincoln Red Imps (h)", comp: "UECL play-off · 2nd leg · Inver Park · kick-off TBC" },
+    // timeTbc mirrors EURO. The dt is a PLACEHOLDER standing in for an unconfirmed kick-off,
+    // and without this flag the front page rendered it as "THURSDAY · 7PM" in the largest
+    // gold type on the screen while this row's own comp line said "kick-off TBC".
+    { date: "20 Aug", dt: "2026-08-20T18:00:00Z", timeTbc: true, opp: "Lincoln Red Imps (a)", comp: "UECL play-off · 1st leg · kick-off TBC" },
+    { date: "27 Aug", dt: "2026-08-27T18:00:00Z", timeTbc: true, opp: "Lincoln Red Imps (h)", comp: "UECL play-off · 2nd leg · Inver Park · kick-off TBC" },
   ],
   GLE: [
     { date: "9 Jul", dt: "2026-07-09T19:30:00Z", res: "1–2 L", opp: "RFS (h) — Ibsen Rossi 38'", comp: "UECL Q1 · 1st leg" },

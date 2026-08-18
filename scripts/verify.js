@@ -1789,7 +1789,10 @@ check("the Home board renders the kick-off time it carries", (() => {
   try { src = readFileSync(new URL("../src/tabs/HomeTab.jsx", import.meta.url), "utf8"); } catch { return false; }
   // Both branches of the board have to set it, and the JSX has to actually print it.
   const setForLeague = /time:\s*leagueFix\./.test(src);
-  const setForEuro = /time:\s*londonKickoffLabel\(/.test(src);
+  // Allows a guard between the key and the call: the European branch now only formats a time
+  // when the kick-off is confirmed, and this check is about WHERE the time comes from, not
+  // about it being unconditional.
+  const setForEuro = /time:[^,\n]*londonKickoffLabel\(/.test(src);
   // Printed, not merely guarded on — `{board.time && ...}` alone would satisfy a looser test
   // while rendering nothing. Allows a formatting call on the way out.
   const rendered = /\{\s*board\.time(?:\.[A-Za-z]+\(\))?\s*\}/.test(src);
@@ -3116,6 +3119,50 @@ check("Home's scorer block names every joint leader and sits below the results",
   const scorers = code.indexOf("topScorers.length > 0");
   if (!(results > 0 && scorers > results)) { console.log("      ↳ the scorer block is above the results"); return false; }
   return true;
+})());
+
+// An unconfirmed kick-off must not be printed as a time.
+//
+// EURO marks Larne's play-off legs timeTbc with a PLACEHOLDER dt standing in for a time UEFA
+// has not published. CLUB_FIXTURES — which is what the front page's board actually reads —
+// carried the same placeholder with no flag, only the words "kick-off TBC" buried in a comp
+// string nothing parses. So the board rendered "THURSDAY · 7PM" in the largest gold type on the
+// screen, directly above its own sub-line saying the kick-off was TBC. Golden rule 1, on the
+// most prominent number in the app.
+check("a fixture with an unconfirmed kick-off is flagged in both places that describe it", (() => {
+  const bad = [];
+  // Any EURO leg marked timeTbc must have its CLUB_FIXTURES twin marked too, matched on the
+  // kick-off instant, which is the only field both sides agree on verbatim.
+  for (const tie of D.EURO) {
+    for (const leg of tie.legs || []) {
+      if (!leg.timeTbc) continue;
+      const rows = (D.CLUB_FIXTURES[tie.club] || []).filter((f) => f.dt === leg.dt);
+      if (rows.length === 0) { bad.push(`${tie.club} ${leg.label}: no CLUB_FIXTURES row at ${leg.dt}`); continue; }
+      for (const r of rows) if (!r.timeTbc) bad.push(`${tie.club} ${r.date}: EURO says the time is TBC, CLUB_FIXTURES does not`);
+    }
+  }
+  // And the reverse, so a row cannot be silently un-flagged on one side only.
+  for (const [club, rows] of Object.entries(D.CLUB_FIXTURES)) {
+    for (const r of rows) {
+      if (!r.timeTbc) continue;
+      const legs = D.EURO.filter((t) => t.club === club).flatMap((t) => t.legs || []).filter((l) => l.dt === r.dt);
+      if (legs.length && !legs.every((l) => l.timeTbc)) bad.push(`${club} ${r.date}: CLUB_FIXTURES says TBC, EURO does not`);
+    }
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// The board has to ACT on the flag, not merely have it available.
+check("the front-page board prints no kick-off time it cannot stand behind", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/HomeTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const code = decomment(src);
+  if (!/heroFix\.timeTbc \? null : londonKickoffLabel\(heroFix\.dt\)/.test(code)) {
+    console.log("      ↳ the board formats a time without checking whether it is confirmed"); return false;
+  }
+  // And says so, rather than leaving a silent gap where a time was.
+  return /board\.timeTbc \? " · TIME TBC" : ""/.test(code);
 })());
 
 // Every feed call must carry a deadline.
