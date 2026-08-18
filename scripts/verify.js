@@ -2964,8 +2964,8 @@ check("ordinal() handles the teens, which is the only part anyone gets wrong", (
 //
 // The data-level invariant (a postponed fixture has no kick-off time) is checked further up.
 // This checks that both generators actually USE it, and exclude finished games too.
-check("both matchday generators exclude moved and finished fixtures", (() => {
-  const files = ["cards.mjs", "matchday.mjs"];
+check("every fixture-listing generator excludes moved and finished fixtures", (() => {
+  const files = ["cards.mjs", "matchday.mjs", "week.mjs"];
   for (const f of files) {
     let src = "";
     try { src = readFileSync(new URL(`../scripts/promo/${f}`, import.meta.url), "utf8"); } catch {
