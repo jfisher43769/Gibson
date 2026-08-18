@@ -319,6 +319,118 @@ export function roundMovers() {
     .sort((x, y) => y.delta - x.delta);
 }
 
+// ===== Runs =====
+//
+// "Larne haven't lost since March" is the most quoted kind of football stat and one of the
+// cheapest to derive: it needs nothing but results in order. Every run here is computed from
+// the same recorded scorelines as the table, so a run can never disagree with the results
+// list it was built from.
+//
+// A run is CURRENT if it reaches the club's most recent match. Anything shorter is history and
+// is reported separately as the club's longest of the season.
+//
+// Ordered by kick-off time, not by round: a game moved to September is the club's most recent
+// match when it is played, whatever number the round carries.
+
+// Below this, a run is not a run. Two of anything happens constantly in a league where every
+// club plays every week, and "unbeaten in 2" dressed up as a statistic is the kind of padding
+// that makes a stats site untrustworthy. Three is the point at which it is worth saying.
+export const SEQUENCE_MIN = 3;
+
+// Each club's results in the order they were played.
+export function clubResultLine(club) {
+  const out = [];
+  for (const round of FIXTURES_2627) {
+    for (const m of round.matches) {
+      if (!Array.isArray(m.result) || m.result.length !== 2) continue;
+      const [hg, ag] = m.result;
+      if (!Number.isFinite(hg) || !Number.isFinite(ag)) continue;
+      if (m.h !== club && m.a !== club) continue;
+      const home = m.h === club;
+      const gf = home ? hg : ag, ga = home ? ag : hg;
+      out.push({
+        round: round.round, ms: fixtureKickoffMs(round, m) ?? 0, home,
+        opp: home ? m.a : m.h, gf, ga,
+        res: gf > ga ? "W" : gf < ga ? "L" : "D",
+      });
+    }
+  }
+  return out.sort((x, y) => x.ms - y.ms || x.round - y.round);
+}
+
+// The tests a run is built from. Each takes one match and says whether it continues the run.
+const RUN_TESTS = {
+  unbeaten: (m) => m.res !== "L",
+  winning: (m) => m.res === "W",
+  losing: (m) => m.res === "L",
+  winless: (m) => m.res !== "W",
+  scoring: (m) => m.gf > 0,
+  cleanSheets: (m) => m.ga === 0,
+  failedToScore: (m) => m.gf === 0,
+};
+
+export const RUN_LABELS = {
+  unbeaten: ["unbeaten", "unbeaten"],
+  winning: ["win in a row", "wins in a row"],
+  losing: ["defeat in a row", "defeats in a row"],
+  winless: ["game without a win", "games without a win"],
+  scoring: ["game scoring", "games scoring"],
+  cleanSheets: ["clean sheet in a row", "clean sheets in a row"],
+  failedToScore: ["game without scoring", "games without scoring"],
+};
+
+// Current and longest run per club, per kind. A club with no recorded matches gets zeroes
+// rather than being omitted, so callers can index by club without checking.
+export function sequences() {
+  const clubs = [...new Set(FIXTURES_2627.flatMap((r) => r.matches.flatMap((m) => [m.h, m.a])))];
+  return clubs.map((club) => {
+    const line = clubResultLine(club);
+    const current = {}, longest = {};
+    for (const [kind, test] of Object.entries(RUN_TESTS)) {
+      let best = 0, run = 0;
+      for (const m of line) {
+        run = test(m) ? run + 1 : 0;
+        if (run > best) best = run;
+      }
+      // Current = the run still standing at the most recent match, which is what `run` holds
+      // once the loop has walked the whole line.
+      current[kind] = run;
+      longest[kind] = best;
+    }
+    return { club, played: line.length, current, longest, line };
+  });
+}
+
+// The runs worth putting on a page: current, at or above SEQUENCE_MIN, longest first.
+// Returns [] early in a season rather than padding the screen with twos — the caller says
+// when they will appear instead of showing something that is not yet true.
+export function notableRuns(min = SEQUENCE_MIN) {
+  const out = [];
+  for (const s of sequences()) {
+    for (const kind of Object.keys(RUN_TESTS)) {
+      if (s.current[kind] >= min) out.push({ club: s.club, kind, n: s.current[kind] });
+    }
+  }
+  const ORDER = Object.keys(RUN_TESTS);
+  return out.sort((a, b) => b.n - a.n || ORDER.indexOf(a.kind) - ORDER.indexOf(b.kind) || a.club.localeCompare(b.club));
+}
+
+// One club's current runs, for its own page. Same threshold, same ordering.
+export function clubRuns(club, min = SEQUENCE_MIN) {
+  const s = sequences().find((x) => x.club === club);
+  if (!s) return [];
+  const ORDER = Object.keys(RUN_TESTS);
+  return ORDER.filter((k) => s.current[k] >= min).map((kind) => ({ kind, n: s.current[kind] }))
+    .sort((a, b) => b.n - a.n || ORDER.indexOf(a.kind) - ORDER.indexOf(b.kind));
+}
+
+// "3 wins in a row", with the singular where it belongs.
+export function runLabel(kind, n) {
+  const pair = RUN_LABELS[kind];
+  if (!pair) return "";
+  return `${n} ${n === 1 ? pair[0] : pair[1]}`;
+}
+
 // Everything a scoreline can tell you, derived from the same results that build the table.
 //
 // This exists because there is no free feed carrying possession or shots for this league —
