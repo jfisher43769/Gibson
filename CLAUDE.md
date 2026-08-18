@@ -63,6 +63,20 @@ their own work. Follow it strictly.
 3. Add any confirmed transfers/injuries the owner supplies.
 4. Run verification steps above, commit with message "Weekly update: round N".
 
+## Graphics always ship with a caption
+
+Every graphic or video — match card, MOTM, round-up, matchday cut, European tie, poster,
+anything from `scripts/promo/` — is delivered **with a caption, including hashtags**, without
+being asked. The owner posts these to X, TikTok and Instagram; an image with no words is half
+a deliverable. Owner's instruction, 18 Aug 2026.
+
+- Write for the platform: a short one for X, a longer one with more hashtags for TikTok/IG.
+- Every claim in a caption obeys golden rule 1 exactly as the app does. It is published to more
+  people than the site is, so an unverified number in a caption is worse, not better.
+- Never name a bookmaker or add odds to a caption (golden rule 2), even when the graphic is
+  about the Predictor.
+- Hashtags: the league and the clubs involved, not a wall of generic filler.
+
 ## Merge policy
 
 Work on a branch, then: routine updates (data.js edits, small fixes, copy tweaks) merge
