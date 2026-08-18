@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import {
-  CLUBS, CLUB_FIXTURES, CLUB_META, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, SEASON, currentTable, dayMonth, feedMatchesCurrentSeason, fixturePostponed, matchDetail, seasonLabel, seasonStartDisplay, seasonStatus, tableStageLabel,
+  CLUBS, CLUB_FIXTURES, CLUB_META, EURO, EURO_COEFFICIENT, FINAL_PLACINGS, FIXTURES_2627, FORM_GAMES, FULL_TABLE, LEAGUE_FACTS, MARKET_VALUES, MID_TABLE, POST_SPLIT_DATES, SEASON, SPLIT_TABLES, currentTable, splitTable, dayMonth, feedMatchesCurrentSeason, fixturePostponed, matchDetail, seasonLabel, seasonStartDisplay, seasonStatus, tableStageLabel,
 } from "../../data.js";
 import { Crest } from "../components/Crest.jsx";
+import { useMyClub } from "../lib/myclub.js";
+import { BiggestMovers, PositionChart } from "../components/PositionChart.jsx";
 import { TvBadge } from "../components/TvBadge.jsx";
 import { SeasonStrip } from "../components/SeasonSwitch.jsx";
 import { OddsDisclaimer, OddsStrip } from "../components/Odds.jsx";
@@ -20,6 +22,14 @@ export function TableView() {
   const noteColor = { C: "#3DDC84", IC: "#5EC8F2", E: "#FFB627", EPO: "#5EC8F2", PO: "#E8663C", R: "#E8663C" };
   const [live, setLive] = useState(null);
   const [offline, setOffline] = useState(false);
+  // Overall, home, away or last five. Only "overall" can come from the feed — TheSportsDB
+  // publishes a league table, not a split of it — so choosing any other view drops to our own
+  // recorded results, and the footnote below says which is on screen.
+  const [split, setSplit] = useState("overall");
+  // The visitor's own club, if they have picked one — the position chart picks their line out
+  // of the twelve. Same hook the home snapshot uses, so one choice serves both.
+  const { club: myClub } = useMyClub();
+  const splitName = split === "overall" ? "" : split === "form" ? `last ${FORM_GAMES}` : split;
   useEffect(() => {
     let on = true;
     // Timed out, because a stalled request never rejects and this used to hold the table on a
@@ -36,14 +46,15 @@ export function TableView() {
   // waiting for TheSportsDB to publish 26/27 standings — that feed is community-edited and can
   // sit hours behind. The feed still wins once it is ahead of us, because it covers matches
   // nobody has written into data.js yet.
-  const derived = currentTable();
+  const derived = split === "overall" ? currentTable() : splitTable(split);
   const derivedPlayed = derived.reduce((n, r) => n + r.p, 0) / 2;
   const livePlayed = live ? live.rows.reduce((n, r) => n + r.p, 0) / 2 : -1;
   // The feed must be describing THIS season before its games-played count means anything.
   // Without this, last season's final table (38 played per club) beat our 5 and took over the
   // page — last season's standings, under a heading that says "Live".
   const feedIsCurrent = Boolean(live) && feedMatchesCurrentSeason(live.season);
-  const useFeed = feedIsCurrent && livePlayed >= derivedPlayed;
+  // A split view is ours by definition, whatever the feed is doing.
+  const useFeed = split === "overall" && feedIsCurrent && livePlayed >= derivedPlayed;
   const tableRows = useFeed ? live.rows : derived;
   const showTable = useFeed || derivedPlayed > 0;
   const stageLabel = tableStageLabel();
@@ -62,10 +73,25 @@ export function TableView() {
             counted games played BY A CLUB, so the same screen showed 5 here and 1 there, and it
             read as though five clubs had played and seven hadn't. tableStage() owns the rule. */}
         <span style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>
+          {/* The heading names the table on screen. It read "2026/27 table · after round 2"
+              over the AWAY table, which is the same class of mislabelling as printing a time
+              nobody confirmed — the numbers were right and the words on top of them were not. */}
           {useFeed
             ? `Live table · ${live.season} · updated ${live.updated}`
-            : `${SEASON.current.display} table${stageLabel ? ` · ${stageLabel}` : ""}`}
+            : `${SEASON.current.display} ${splitName} table${stageLabel ? ` · ${stageLabel}` : ""}`}
         </span>
+      </div>
+      <div role="group" aria-label="Table view" style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+        {SPLIT_TABLES.map(([id, label]) => (
+          <button key={id} onClick={() => setSplit(id)} aria-pressed={split === id} style={{
+            flex: 1, padding: "7px 6px", borderRadius: 999, cursor: "pointer", whiteSpace: "nowrap",
+            fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 13,
+            letterSpacing: "0.06em", textTransform: "uppercase",
+            background: split === id ? "#FFB627" : OVERLAY.fill,
+            color: split === id ? "#0B1512" : dim,
+            border: `1px solid ${split === id ? "#FFB627" : faint}`,
+          }}>{label}{id === "form" ? ` ${FORM_GAMES}` : ""}</button>
+        ))}
       </div>
       <div style={{ display: "grid", gap: 6 }}>
         {/* data-table-row is the browser harness's handle: it counts real rows rather than
@@ -106,10 +132,17 @@ export function TableView() {
         ))}
       </div>
       <div style={{ fontSize: 12, color: dim, marginTop: 8 }}>
-        {useFeed
-          ? "Auto-updated via TheSportsDB (community data) — cross-check big calls against official sources."
-          : "Built from results recorded on GIBSON. Switches to the live feed once it is ahead of us."}
+        {split === "home" ? "Every club's home record only — away results are not counted here."
+          : split === "away" ? "Every club's away record only — home results are not counted here."
+          : split === "form" ? `Each club's most recent ${FORM_GAMES} matches by kick-off time, so a side with games in hand is judged on its latest football rather than on the calendar.`
+          : useFeed
+            ? "Auto-updated via TheSportsDB (community data) — cross-check big calls against official sources."
+            : "Built from results recorded on GIBSON. Switches to the live feed once it is ahead of us."}
       </div>
+      {/* Both draw from our own recorded results, so they stay put whichever table is selected
+          above — the shape of the season does not change because you asked for the away table. */}
+      <PositionChart myClub={myClub} />
+      <BiggestMovers />
     </div>
   );
   };

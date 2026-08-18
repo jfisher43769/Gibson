@@ -189,26 +189,134 @@ export function tableStageLabel() {
 // behind, and on opening night "no table yet" is the wrong answer when a game has been played.
 // Every club appears from the start, on zero, which is what a league table looks like in
 // August. Sorted the way the league sorts: points, then goal difference, then goals scored.
-export function currentTable() {
+// ONE TALLY, SEVERAL QUESTIONS.
+//
+// The league table, the home table, the away table, the form table and the table as it stood
+// after any given round are the same arithmetic over different subsets of the same results.
+// Written separately they would drift — five accumulators, five chances for one of them to
+// disagree with the league table everything else reads. So there is one, and each published
+// view is a filter on it.
+//
+//   side    "both" | "home" | "away"   which venue's results count
+//   upTo    round number               ignore anything after this round
+//   lastN   n                          only each club's most recent n matches
+//
+// Matches are ordered by real kick-off time, not by round, because lastN means "recent" and a
+// game moved to September is not part of a club's last five just because its round number is
+// low. Sorted the way the league sorts: points, goal difference, goals scored.
+function tallyTable({ side = "both", upTo = Infinity, lastN = null } = {}) {
   const clubs = [...new Set(FIXTURES_2627.flatMap((r) => r.matches.flatMap((m) => [m.h, m.a])))];
   // `form` matches the shape /api/table returns so one component renders either source.
   const rows = new Map(clubs.map((c) => [c, { club: c, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0, form: "" }]));
+
+  const played = [];
   for (const round of FIXTURES_2627) {
+    if (round.round > upTo) continue;
     for (const m of round.matches) {
       if (!Array.isArray(m.result) || m.result.length !== 2) continue;
       const [hg, ag] = m.result;
       if (!Number.isFinite(hg) || !Number.isFinite(ag)) continue;
-      const H = rows.get(m.h), A = rows.get(m.a);
-      if (!H || !A) continue;
-      H.p += 1; A.p += 1;
-      H.gf += hg; H.ga += ag; A.gf += ag; A.ga += hg;
-      if (hg > ag) { H.w += 1; H.pts += 3; A.l += 1; H.form += "W"; A.form += "L"; }
-      else if (hg < ag) { A.w += 1; A.pts += 3; H.l += 1; A.form += "W"; H.form += "L"; }
-      else { H.d += 1; A.d += 1; H.pts += 1; A.pts += 1; H.form += "D"; A.form += "D"; }
+      if (!rows.has(m.h) || !rows.has(m.a)) continue;
+      played.push({ h: m.h, a: m.a, hg, ag, ms: fixtureKickoffMs(round, m) ?? 0, round: round.round });
     }
   }
+  played.sort((x, y) => x.ms - y.ms || x.round - y.round);
+
+  // lastN is per CLUB, and the two clubs in a match need not both be inside their own window:
+  // Larne having played once while Cliftonville have played twice is the normal state of an
+  // Irish League August. So the decision is recorded PER SIDE, walking backwards from the most
+  // recent match. Counting the game for both clubs because it fell inside one club's last five
+  // is the bug this shape exists to avoid.
+  if (lastN === null) {
+    for (const m of played) { m.useH = true; m.useA = true; }
+  } else {
+    const count = {};
+    for (let i = played.length - 1; i >= 0; i--) {
+      const m = played[i];
+      m.useH = (count[m.h] || 0) < lastN;
+      m.useA = (count[m.a] || 0) < lastN;
+      if (m.useH) count[m.h] = (count[m.h] || 0) + 1;
+      if (m.useA) count[m.a] = (count[m.a] || 0) + 1;
+    }
+  }
+
+  played.forEach((m) => {
+    const H = rows.get(m.h), A = rows.get(m.a);
+    // A venue filter counts the match for ONE side only. The home table is every club's home
+    // record, not the results of home wins.
+    const countH = side !== "away" && m.useH, countA = side !== "home" && m.useA;
+    if (countH) {
+      H.p += 1; H.gf += m.hg; H.ga += m.ag;
+      if (m.hg > m.ag) { H.w += 1; H.pts += 3; H.form += "W"; }
+      else if (m.hg < m.ag) { H.l += 1; H.form += "L"; }
+      else { H.d += 1; H.pts += 1; H.form += "D"; }
+    }
+    if (countA) {
+      A.p += 1; A.gf += m.ag; A.ga += m.hg;
+      if (m.ag > m.hg) { A.w += 1; A.pts += 3; A.form += "W"; }
+      else if (m.ag < m.hg) { A.l += 1; A.form += "L"; }
+      else { A.d += 1; A.pts += 1; A.form += "D"; }
+    }
+  });
+
   for (const r of rows.values()) { r.gd = r.gf - r.ga; r.form = r.form.slice(-5); }
   return [...rows.values()].sort((x, y) => y.pts - x.pts || y.gd - x.gd || y.gf - x.gf || x.club.localeCompare(y.club));
+}
+
+export function currentTable() { return tallyTable(); }
+
+// The same table, restricted. `form` is the last five by kick-off time, so a club with games
+// in hand is compared on its most recent football rather than on the calendar.
+export const SPLIT_TABLES = [
+  ["overall", "Overall"],
+  ["home", "Home"],
+  ["away", "Away"],
+  ["form", "Form"],
+];
+export const FORM_GAMES = 5;
+export function splitTable(kind) {
+  if (kind === "home") return tallyTable({ side: "home" });
+  if (kind === "away") return tallyTable({ side: "away" });
+  if (kind === "form") return tallyTable({ lastN: FORM_GAMES });
+  return tallyTable();
+}
+
+// The table as it stood after round n — the raw material for the position chart.
+export function tableAfterRound(n) { return tallyTable({ upTo: n }); }
+
+// Every club's league position after each completed round, oldest first. Returns null before
+// a ball is kicked, and only covers rounds that actually have results, so a chart drawn from
+// it can never invent a week that has not happened.
+export function positionHistory() {
+  const stage = tableStage();
+  if (!stage) return null;
+  const rounds = [];
+  for (let r = 1; r <= stage.round; r++) {
+    const t = tableAfterRound(r);
+    // A round nobody has played yet contributes nothing — the fixture list can carry a round
+    // whose games were all postponed.
+    if (t.every((row) => row.p === 0)) continue;
+    rounds.push({ round: r, order: t.map((row) => row.club) });
+  }
+  if (!rounds.length) return null;
+  const clubs = rounds[rounds.length - 1].order;
+  return {
+    rounds: rounds.map((x) => x.round),
+    // club -> position per round, in the same order as `rounds`
+    positions: Object.fromEntries(clubs.map((c) => [c, rounds.map((x) => x.order.indexOf(c) + 1)])),
+  };
+}
+
+// Who moved, and by how much, between the last two recorded rounds. Positive is upward.
+// Empty when there is only one round to compare, rather than pretending everyone moved zero.
+export function roundMovers() {
+  const h = positionHistory();
+  if (!h || h.rounds.length < 2) return [];
+  const last = h.rounds.length - 1;
+  return Object.entries(h.positions)
+    .map(([club, pos]) => ({ club, from: pos[last - 1], to: pos[last], delta: pos[last - 1] - pos[last] }))
+    .filter((m) => m.delta !== 0)
+    .sort((x, y) => y.delta - x.delta);
 }
 
 // Everything a scoreline can tell you, derived from the same results that build the table.

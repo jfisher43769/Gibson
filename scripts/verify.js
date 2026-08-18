@@ -3154,6 +3154,105 @@ check("European odds are a fair book, and every priced tie can name its two side
   return bad.length === 0;
 })());
 
+// The league table, the home table, the away table, the form table and the table after any
+// round are the same arithmetic over different subsets. Five accumulators would be five chances
+// for one of them to disagree with the table everything else reads, so there is one — and these
+// are the arithmetic identities that prove the filters are filtering rather than inventing.
+check("the split tables are the same tally as the league table, filtered", (() => {
+  const bad = [];
+  const overall = D.currentTable();
+  const home = D.splitTable("home"), away = D.splitTable("away");
+  const idx = (t) => Object.fromEntries(t.map((r) => [r.club, r]));
+  const O = idx(overall), Hm = idx(home), Aw = idx(away);
+
+  for (const club of Object.keys(O)) {
+    // Every match a club has played was either at home or away — no third option.
+    if (Hm[club].p + Aw[club].p !== O[club].p) bad.push(`${club}: ${Hm[club].p} home + ${Aw[club].p} away != ${O[club].p} played`);
+    if (Hm[club].pts + Aw[club].pts !== O[club].pts) bad.push(`${club}: home+away points != overall`);
+    if (Hm[club].gf + Aw[club].gf !== O[club].gf) bad.push(`${club}: home+away goals for != overall`);
+    if (Hm[club].ga + Aw[club].ga !== O[club].ga) bad.push(`${club}: home+away goals against != overall`);
+    if (Hm[club].w + Aw[club].w !== O[club].w) bad.push(`${club}: home+away wins != overall`);
+  }
+  // A league-wide identity the per-club one cannot catch: every match contributes exactly one
+  // home appearance and one away appearance, so the two tables must have equal totals.
+  const sum = (t, k) => t.reduce((n, r) => n + r[k], 0);
+  if (sum(home, "p") !== sum(away, "p")) bad.push(`home appearances ${sum(home, "p")} != away appearances ${sum(away, "p")}`);
+  // And goals scored at home must equal goals conceded away, across the league.
+  if (sum(home, "gf") !== sum(away, "ga")) bad.push("goals scored at home != goals conceded away");
+
+  // The form table counts exactly min(window, played) for every club — no more, and no fewer.
+  for (const r of D.splitTable("form")) {
+    const want = Math.min(D.FORM_GAMES, O[r.club].p);
+    if (r.p !== want) bad.push(`${r.club}: form table counts ${r.p}, expected ${want}`);
+  }
+
+  // THE ONE RULE THIS CANNOT TEST YET. The form window is per CLUB, and the two sides of a
+  // match need not both be inside their own — so the decision has to be made per side. Credit
+  // the match to both because it fell inside one club's last five and the form table silently
+  // inflates the other. While every club has played fewer than FORM_GAMES the window trims
+  // nothing, so that bug is invisible to any behavioural test; the identity above starts
+  // catching it the moment somebody passes five games. Until then this guards the shape.
+  let src = "";
+  try { src = readFileSync(new URL("../data.js", import.meta.url), "utf8"); } catch { bad.push("data.js unreadable"); }
+  if (src && !/m\.useH = \(count\[m\.h\] \|\| 0\) < lastN;[\s\S]{0,80}m\.useA = \(count\[m\.a\] \|\| 0\) < lastN;/.test(src)) {
+    bad.push("the form window is no longer decided independently for each side of a match");
+  }
+  if (src && !/const countH = side !== "away" && m\.useH, countA = side !== "home" && m\.useA;/.test(src)) {
+    bad.push("the tally no longer honours the per-side form window");
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// The position chart plots history, so it must not be able to invent a week. Every round it
+// names has to be one with results, and every club has to have a position in every round it
+// covers — a missing point would draw a line through the wrong place rather than break.
+check("positionHistory() covers only rounds that were played, with no gaps", (() => {
+  const h = D.positionHistory();
+  if (h === null) return D.tableStage() === null;      // pre-season: nothing to plot, correctly
+  const bad = [];
+  const stage = D.tableStage();
+  for (const r of h.rounds) {
+    const round = D.FIXTURES_2627.find((x) => x.round === r);
+    if (!round) { bad.push(`round ${r} does not exist`); continue; }
+    if (!round.matches.some((m) => Array.isArray(m.result))) bad.push(`round ${r} has no results but is plotted`);
+    if (r > stage.round) bad.push(`round ${r} is beyond the latest played round ${stage.round}`);
+  }
+  const n = Object.keys(h.positions).length;
+  for (const [club, pos] of Object.entries(h.positions)) {
+    if (pos.length !== h.rounds.length) bad.push(`${club}: ${pos.length} positions for ${h.rounds.length} rounds`);
+    if (pos.some((p) => !Number.isInteger(p) || p < 1 || p > n)) bad.push(`${club}: a position outside 1-${n}`);
+  }
+  // Each round's positions must be a permutation — two clubs cannot share 3rd.
+  h.rounds.forEach((r, i) => {
+    const seen = new Set(Object.values(h.positions).map((p) => p[i]));
+    if (seen.size !== n) bad.push(`round ${r}: ${seen.size} distinct positions for ${n} clubs`);
+  });
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// Movers are the difference between two plotted rounds, so they cannot exist before there are
+// two — and a club that did not move must not appear, because a list of zeroes is noise.
+check("roundMovers() reports real movement between the last two rounds", (() => {
+  const h = D.positionHistory();
+  const movers = D.roundMovers();
+  if (!h || h.rounds.length < 2) return movers.length === 0;
+  const bad = [];
+  const last = h.rounds.length - 1;
+  for (const m of movers) {
+    if (m.delta === 0) bad.push(`${m.club} listed with no movement`);
+    if (m.from !== h.positions[m.club][last - 1]) bad.push(`${m.club}: from ${m.from} does not match the previous round`);
+    if (m.to !== h.positions[m.club][last]) bad.push(`${m.club}: to ${m.to} does not match the latest round`);
+    if (m.delta !== m.from - m.to) bad.push(`${m.club}: delta ${m.delta} != ${m.from} - ${m.to}`);
+  }
+  // Movement is zero-sum: for every club that climbed, one dropped past it.
+  const net = movers.reduce((n, m) => n + m.delta, 0);
+  if (net !== 0) bad.push(`net movement is ${net}, which is impossible in a league table`);
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
 // An unconfirmed kick-off must not be printed as a time.
 //
 // EURO marks Larne's play-off legs timeTbc with a PLACEHOLDER dt standing in for a time UEFA
@@ -3248,7 +3347,10 @@ check("the league table renders without waiting for the feed", (() => {
   const code = decomment(src);
   if (/\bchecking\b/.test(code)) { console.log("      ↳ a loading flag still gates the table"); return false; }
   // The derived table must be what it draws by default, with the feed only able to replace it.
-  return /const derived = currentTable\(\)/.test(code) && /useFeed \? live\.rows : derived/.test(code);
+  // Allows the split selector between the key and the call — the assertion is that `derived`
+  // comes from our own tally and that the feed can only ever REPLACE it, not that the
+  // expression is unconditional.
+  return /const derived = [^;\n]*currentTable\(\)/.test(code) && /useFeed \? live\.rows : derived/.test(code);
 })());
 
 // Truncating "Dungannon Swifts" to "Dunganno…" is not a shorter name, it is a broken one.
