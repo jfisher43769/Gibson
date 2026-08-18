@@ -1281,15 +1281,29 @@ export const MATCH_STATS = [
   { round: 1, h: "CAR", a: "POR", poss: [62, 38], shots: [5, 3], sot: [1, 0], corners: [3, 3], yellows: [2, 4], reds: [0, 1] },
   { round: 1, h: "DUN", a: "COL", poss: [48, 52], shots: [12, 6], sot: [6, 4], corners: [5, 10], yellows: [1, 1] },
   { round: 1, h: "GLE", a: "LIM", poss: [62, 38], shots: [11, 5], sot: [3, 1], corners: [5, 2], yellows: [2, 3] },
-  // Round 2, full time. Owner-supplied screenshots, 15 Aug 2026. Four of the six — Coleraine
-  // v Larne and Limavady v Carrick were not sent, so they are simply absent rather than
-  // guessed, and recordedCoverage() will keep the aggregate blocks hidden until they arrive.
+  // Round 2, full time. Owner-supplied screenshots, 15 Aug 2026.
   { round: 2, h: "BAN", a: "CLI", poss: [48, 52], shots: [7, 9], sot: [3, 6], corners: [1, 3], yellows: [2, 1] },
   // No possession row on the Crusaders card — the source didn't publish it for this match, and
   // an omitted field is the honest record of that.
   { round: 2, h: "CRU", a: "BAL", shots: [10, 10], sot: [5, 3], corners: [5, 7], yellows: [2, 1] },
   { round: 2, h: "LIN", a: "GLE", poss: [46, 54], shots: [7, 7], sot: [4, 4], corners: [6, 1], yellows: [3, 3], reds: [0, 1] },
   { round: 2, h: "POR", a: "DUN", poss: [47, 53], shots: [6, 14], sot: [2, 8], corners: [3, 4], yellows: [4, 3] },
+  // The last two of the round, from Sofascore's match overview (owner screenshots, 18 Aug 2026).
+  // These complete round 2, and with round 1's postponed Larne v Bangor still unplayed that
+  // makes 11 of 11 — so recordedCoverage() flips to complete and the aggregate blocks appear.
+  //
+  // NO ON-TARGET FIGURE FOR EITHER. That overview lists "Goalkeeper saves" where the earlier
+  // cards listed shots on target, and the two are not the same measure: a goal is on target and
+  // not saved, a save can come off a shot heading wide of where the keeper stood, and blocks by
+  // defenders count as neither. Saves + goals would be a plausible reconstruction and that is
+  // exactly what golden rule 1 forbids — so `sot` is omitted and aggregateMatchStats() now
+  // pairs shots with on-target per match so these totals can't distort anyone's accuracy.
+  //
+  // A row below yellow cards read 0 and 0 in both screenshots with its label hidden behind an
+  // advertisement. It is almost certainly red cards, and "almost certainly" is not a source, so
+  // it is left out; nothing is lost, since a red-card row of zeroes tells a reader nothing.
+  { round: 2, h: "COL", a: "LAR", poss: [57, 43], shots: [15, 7], corners: [11, 4], yellows: [3, 3] },
+  { round: 2, h: "LIM", a: "CAR", poss: [59, 41], shots: [13, 11], corners: [6, 2], yellows: [2, 3] },
 ];
 
 // ===== 26/27 leading scorers =====
@@ -1422,12 +1436,21 @@ export function aggregateMatchStats() {
   const FIELDS = ["poss", "shots", "sot", "corners", "yellows", "reds"];
   const by = new Map();
   const add = (club, s, side) => {
-    const r = by.get(club) || { club, m: 0, sum: {}, n: {} };
+    const r = by.get(club) || { club, m: 0, sum: {}, n: {}, pairShots: 0, pairSot: 0 };
     r.m += 1;
     for (const f of FIELDS) {
       if (!Array.isArray(s[f])) continue;              // not recorded for this match
       r.sum[f] = (r.sum[f] || 0) + s[f][side];
       r.n[f] = (r.n[f] || 0) + 1;
+    }
+    // Accuracy needs BOTH halves of the ratio out of the SAME match. Sofascore's overview
+    // publishes total shots with no on-target row, so Coleraine's 15 shots against Larne would
+    // otherwise have been divided into an on-target total that never counted them — a club
+    // punished in the percentages for the fields its source happened to omit. Kept as its own
+    // running pair rather than reusing sum.shots, which is still the honest shots-per-match.
+    if (Array.isArray(s.shots) && Array.isArray(s.sot)) {
+      r.pairShots += s.shots[side];
+      r.pairSot += s.sot[side];
     }
     by.set(club, r);
   };
@@ -1436,14 +1459,14 @@ export function aggregateMatchStats() {
   return [...by.values()]
     .map((r) => {
       const avg = (f) => (r.n[f] ? Number((r.sum[f] / r.n[f]).toFixed(1)) : null);
-      const shots = r.sum.shots || 0, sot = r.sum.sot || 0;
       return {
         club: r.club, matches: r.m,
         poss: avg("poss"), shots: avg("shots"), sot: avg("sot"),
         corners: avg("corners"), yellows: avg("yellows"), reds: avg("reds"),
         // Accuracy is a ratio of totals, not an average of averages — a club with 1 of 2 in
-        // one match and 4 of 12 in another is 5 of 14, not 37%.
-        accuracy: shots ? Math.round((sot / shots) * 100) : 0,
+        // one match and 4 of 12 in another is 5 of 14, not 37%. Null, not 0, when no match
+        // recorded both: "we don't know" and "they never hit the target" are different claims.
+        accuracy: r.pairShots ? Math.round((r.pairSot / r.pairShots) * 100) : null,
       };
     })
     .sort((a, b) => (b.poss ?? 0) - (a.poss ?? 0));

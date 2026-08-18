@@ -2063,6 +2063,45 @@ check("MATCH_STATS entries are internally consistent and map to played fixtures"
   return bad.length === 0;
 })());
 
+// Shooting accuracy pairs its two halves match by match.
+//
+// THE SOFASCORE OVERVIEW PUBLISHES TOTAL SHOTS WITH NO ON-TARGET ROW. Coleraine v Larne and
+// Limavady v Carrick came in that way, and accuracy was a ratio of two independently summed
+// totals: every match's shots over only the matches that recorded on-target. Coleraine's 15
+// shots landed in the denominator with nothing they could contribute to the numerator, taking
+// them from 67% to 19% — and the completeness gate had just flipped, so it would have gone
+// straight onto the club page as a verified-looking number.
+//
+// The rule is that a ratio may only be built from matches that recorded BOTH sides of it, and
+// must be null rather than 0 when no match did — "we don't know" is not "they never hit the
+// target". Recomputed here from MATCH_STATS rather than trusting the implementation.
+check("shooting accuracy is built only from matches recording both shots and on-target", (() => {
+  const bad = [];
+  const paired = new Map(); // club -> { shots, sot, both }
+  const bump = (club, s, side) => {
+    const r = paired.get(club) || { shots: 0, sot: 0, both: 0 };
+    if (Array.isArray(s.shots) && Array.isArray(s.sot)) {
+      r.shots += s.shots[side]; r.sot += s.sot[side]; r.both += 1;
+    }
+    paired.set(club, r);
+  };
+  for (const s of D.MATCH_STATS) { bump(s.h, s, 0); bump(s.a, s, 1); }
+
+  for (const t of D.aggregateMatchStats()) {
+    const p = paired.get(t.club) || { shots: 0, sot: 0, both: 0 };
+    const want = p.shots ? Math.round((p.sot / p.shots) * 100) : null;
+    if (t.accuracy !== want) {
+      bad.push(`${t.club}: accuracy ${t.accuracy} — ${p.sot}/${p.shots} over ${p.both} paired match(es) is ${want}`);
+    }
+    // A percentage above 100 means the two halves came from different match sets.
+    if (t.accuracy !== null && (t.accuracy < 0 || t.accuracy > 100)) bad.push(`${t.club}: accuracy ${t.accuracy} out of range`);
+    // Recorded no pair at all, so there is nothing to state.
+    if (p.both === 0 && t.accuracy !== null) bad.push(`${t.club}: accuracy ${t.accuracy} with no match recording both halves`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
 // The guard that makes partial hand-entered data safe to hold: a total is only ever built
 // when every played match has been written up. Without this, a top-scorer table assembled
 // from half the fixtures reads as authoritative while understating everyone else.
