@@ -155,6 +155,36 @@ async function tableChecks(page) {
   else fail(`${skel} skeleton element(s) still animating after the feed failed`);
 }
 
+// The charts had NO gate of any kind. SkillRadar, Sparkline and ShotMap render only on the
+// Players and Duel sub-views, and neither has a URL, so this harness never loaded them — a
+// recharts or React major bump could pass build, verify and every screen here and still ship
+// blank charts. That is the white-screen class of failure this file exists for.
+//
+// The decisive assertion is that recharts actually PRODUCED something: an <svg> with real
+// geometry inside it and a non-zero box. A library that fails to render leaves an empty
+// container, which looks fine to everything except a measurement.
+function chartChecks(what) {
+  return async (page) => {
+    const svgs = await page.evaluate(() => {
+      const out = [];
+      for (const svg of document.querySelectorAll("svg")) {
+        const r = svg.getBoundingClientRect();
+        // Crest shields are SVGs too, and tiny. Only count something chart-sized.
+        if (r.width < 120 || r.height < 80) continue;
+        const marks = svg.querySelectorAll("path, polygon, polyline, circle, line").length;
+        out.push({ w: Math.round(r.width), h: Math.round(r.height), marks });
+      }
+      return out;
+    });
+    const drawn = svgs.filter((s) => s.marks >= 3);
+    if (drawn.length === 0) {
+      fail(`${what}: no chart rendered — ${svgs.length} chart-sized svg(s), none with geometry`);
+    } else {
+      pass(`${what}: ${drawn.length} chart(s) drawn (${drawn.map((d) => `${d.w}x${d.h}, ${d.marks} marks`).join("; ")})`);
+    }
+  };
+}
+
 async function statsChecks(page) {
   const sofar = await page.evaluate(() => {
     const el = document.querySelector("[data-season-sofar]");
@@ -187,6 +217,9 @@ const PAGES = [
   // never settles, and only a hang reproduces it.
   { name: "table", path: "/table", checks: tableChecks, stall: ["**/api/**"], settle: 7000 },
   { name: "stats", path: "/stats", checks: statsChecks },
+  // No URL reaches these, so the harness taps its way in exactly as a reader would.
+  { name: "players", path: "/stats", click: "Players", checks: chartChecks("Players") },
+  { name: "duel", path: "/stats", click: "Duel", checks: chartChecks("Duel") },
 ];
 console.log(`subjects: ${mostPlayed.club} (${mostPlayed.p} played)`
   + (unplayed ? `, ${unplayed.club} (none played)` : ", no unplayed club left to test"));
@@ -205,7 +238,13 @@ for (const width of [360, 430]) {
     await page.goto(`http://localhost:4177${spec.path}`, { waitUntil: spec.stall ? "load" : "networkidle" });
     await page.waitForTimeout(spec.settle || 500);
 
-    console.log(`\n${spec.path}  @${width}px`);
+    if (spec.click) {
+      const btn = page.locator(`button:text-is("${spec.click}")`).first();
+      await btn.click();
+      await page.waitForTimeout(900);   // recharts mounts its svg asynchronously
+    }
+
+    console.log(`\n${spec.path}${spec.click ? ` → ${spec.click}` : ""}  @${width}px`);
     if (errors.length) fail(`page errors: ${errors.slice(0, 2).join(" | ")}`);
 
     // Did anything actually render? The white-screen case looked fine to build and verify.
