@@ -312,6 +312,39 @@ for (const vp of VIEWPORTS) {
     if (stranded.length === 0) pass("no stat tile is stranded on its own row");
     else fail(`stranded tiles: ${stranded.join("; ")}`);
 
+    // A stat tile must never show a unit with no number in front of it.
+    //
+    // Every "unknown" in this app is null by design — an omitted stat, a club with no match
+    // recording both shots and on-target — and each one is a `?? "—"` away from rendering
+    // wrong. REACT MAKES THIS INVISIBLE TO THE OBVIOUS CHECK: `{null}` is not the string
+    // "null", it is nothing at all, so a tile grepped for "null" passes clean while painting a
+    // lone "%" in 28px Barlow Condensed under the word ACCURACY. Nothing else catches it —
+    // the build is green, the unit test agrees null is the correct value, and only the paint
+    // is wrong. So the assertion is about the tile being legible, not about a magic word.
+    const blanks = await page.evaluate(() =>
+      [...document.querySelectorAll(".gb-stat-row")].flatMap((row) =>
+        [...row.children].flatMap((tile) => {
+          const line = tile.firstElementChild;                    // value + unit
+          const name = tile.lastElementChild;                     // the caption
+          if (!line || line === name) return [];
+          const unit = line.querySelector("span");
+          const whole = (line.textContent || "").trim();
+          const value = whole.slice(0, whole.length - ((unit && unit.textContent) || "").length).trim();
+          return value === "" ? [`"${name.textContent}" shows "${whole || "(empty)"}"`] : [];
+        })));
+    if (blanks.length === 0) pass("every stat tile shows a value, not a bare unit");
+    else fail(`tiles with no number: ${blanks.slice(0, 3).join("; ")}`);
+
+    // Kept alongside it, because the sibling failure — a null reaching the screen through a
+    // template literal rather than a JSX child, where it DOES stringify — prints the word.
+    const nulls = await page.evaluate(() => {
+      const t = document.body.innerText;
+      return [...t.matchAll(/\b(null|undefined|NaN|\[object Object\])\b/g)]
+        .map((m) => t.slice(Math.max(0, m.index - 30), m.index + 20).replace(/\n+/g, " "));
+    });
+    if (nulls.length === 0) pass("no tile prints null, undefined or NaN");
+    else fail(`absent values rendered as text: ${nulls.slice(0, 3).join(" | ")}`);
+
     if (spec.checks) await spec.checks(page, vp.height);
 
     const file = `gibson-${spec.name}-${width}.png`;
