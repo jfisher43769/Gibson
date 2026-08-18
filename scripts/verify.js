@@ -809,6 +809,38 @@ check("the shipped predictor odds match what the odds model produces", (() => {
 
 // The Home board falls back to an abbreviation when the opponent has no crest, and that
 // abbreviation was the first word of the name — so FC Iberia 1999 appeared on the front page
+// The error-report route has to actually work.
+//
+// "Spot an error? Tell GIBSON" pointed only at X, which asks a fan to hold an account on one
+// social network before they can report a wrong scoreline — and the people who notice a bad
+// stat are the readers most worth hearing from. An email route sits beside it now.
+//
+// A CONTACT ADDRESS IS PUBLISHED ON EVERY PAGE, so a typo in it is a silent, permanent loss:
+// nothing errors, reports simply stop arriving and nobody finds out. Checked for shape here,
+// and checked that ReportLink still gates on it — null must mean X alone, never a mailto: with
+// an empty address, which looks like a working link and opens a blank draft.
+check("the error-report route is reachable, and the contact address is well-formed", (() => {
+  const bad = [];
+  let src = "";
+  try { src = readFileSync(new URL("../src/components/ReportLink.jsx", import.meta.url), "utf8"); } catch { return false; }
+  if (!/CONTACT_EMAIL\s*&&/.test(src)) bad.push("ReportLink no longer gates the mailto on CONTACT_EMAIL being set");
+  if (!/x\.com\/GibsonStats/.test(src)) bad.push("the X route has gone — that was the one that always worked");
+
+  const e = D.CONTACT_EMAIL;
+  if (e !== null) {
+    if (typeof e !== "string") bad.push(`CONTACT_EMAIL is ${typeof e}, expected a string or null`);
+    else {
+      // Deliberately strict rather than RFC-complete: this is one hand-typed address, and the
+      // failure being guarded against is a typo, not an exotic-but-legal mailbox.
+      if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(e)) bad.push(`CONTACT_EMAIL "${e}" is not a plausible address`);
+      if (/\s/.test(e)) bad.push("CONTACT_EMAIL contains whitespace");
+      if (e !== e.trim().toLowerCase()) bad.push(`CONTACT_EMAIL "${e}" is not trimmed and lower-case`);
+    }
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
 // The Home board's scoreboard reads HOME v AWAY, and must agree with where the tie is played.
 //
 // It put the Irish League club on the left every time, so Larne's away leg in Gibraltar

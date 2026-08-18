@@ -1541,10 +1541,9 @@ export const KOFI_URL = "https://ko-fi.com/gibson575";
 // particular social network before they can report that a scoreline is wrong. Most people
 // don't, and the ones who notice a bad stat are exactly the ones worth hearing from.
 //
-// NULL UNTIL THE OWNER NAMES AN ADDRESS. A contact route that bounces is worse than one
-// route that works, and their personal address is not mine to publish — so ReportLink shows
-// the email only when this is set, and falls back to X alone until then.
-export const CONTACT_EMAIL = null;
+// A dedicated project address, supplied by the owner 18 Aug 2026 — not their personal one,
+// which is the right call for an address printed on a public page and left there.
+export const CONTACT_EMAIL = "gibsonapp575@gmail.com";
 
 // GIBSON social accounts — linked from the app header
 export const SOCIALS = {
