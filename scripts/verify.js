@@ -3328,6 +3328,116 @@ check("no run below the threshold is published, and every published one is curre
   return bad.length === 0;
 })());
 
+// The opponent-strength split is the league table cut a different way, so it must add back up
+// to it. Every match a club has played was against either the top half or the rest — there is
+// no third bucket — and the two halves together must reproduce the club's league record exactly.
+check("the opponent-strength split adds back up to the league table", (() => {
+  const bad = [];
+  const ordered = D.currentTable();
+  const table = Object.fromEntries(ordered.map((r) => [r.club, r]));
+  const rank = Object.fromEntries(ordered.map((r, i) => [r.club, i + 1]));
+  const half = D.topHalfSize();
+  if (half !== Math.floor(Object.keys(table).length / 2)) bad.push(`topHalfSize ${half} is not half of ${Object.keys(table).length}`);
+
+  for (const r of D.opponentStrengthSplit()) {
+    const t = table[r.club];
+    if (!t) { bad.push(`${r.club}: not in the table`); continue; }
+    const p = r.top.p + r.bottom.p, pts = r.top.pts + r.bottom.pts;
+    if (p !== t.p) bad.push(`${r.club}: ${r.top.p} top + ${r.bottom.p} rest != ${t.p} played`);
+    if (pts !== t.pts) bad.push(`${r.club}: split points ${pts} != table points ${t.pts}`);
+    if (r.top.w + r.bottom.w !== t.w) bad.push(`${r.club}: split wins != table wins`);
+    if (r.top.gf + r.bottom.gf !== t.gf) bad.push(`${r.club}: split goals for != table goals for`);
+    if (r.top.ga + r.bottom.ga !== t.ga) bad.push(`${r.club}: split goals against != table goals against`);
+
+    // THE BUCKETING RULE ITSELF, which the identities above cannot see: splitting by the club
+    // rather than by its OPPONENT still yields a valid partition that adds back up perfectly.
+    // So count, straight from the fixture list, how many of this club's played opponents are
+    // currently in the top half, and demand the same number.
+    let wantTop = 0;
+    for (const round of D.FIXTURES_2627) {
+      for (const m of round.matches) {
+        if (!Array.isArray(m.result) || (m.h !== r.club && m.a !== r.club)) continue;
+        const opp = m.h === r.club ? m.a : m.h;
+        if (rank[opp] <= half) wantTop += 1;
+      }
+    }
+    if (r.top.p !== wantTop) bad.push(`${r.club}: ${r.top.p} matches bucketed against the top ${half}, but ${wantTop} of their opponents are in it`);
+    // Points per game must be the arithmetic it claims, and absent rather than zero when a club
+    // has not played that half — "0.00 against the top six" and "hasn't played them" are very
+    // different statements about a club.
+    for (const [side, ppg] of [[r.top, r.topPpg], [r.bottom, r.bottomPpg]]) {
+      if (side.p === 0 && ppg !== null) bad.push(`${r.club}: ppg given for a half they have not played`);
+      if (side.p > 0 && Math.abs(ppg - side.pts / side.p) > 0.005) bad.push(`${r.club}: ppg ${ppg} != ${side.pts}/${side.p}`);
+      if (side.pts > side.p * 3) bad.push(`${r.club}: more points than matches allow`);
+    }
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// The valuation chart is transcribed off a phone screenshot, like the scoring chart, and gets
+// the same treatment: well-formed, ranked, no duplicates, no nationality guessed from a flag
+// that is a white field with a red cross at that size.
+check("PLAYER_VALUES_2627 is a well-formed, ranked chart", (() => {
+  const bad = [];
+  const seen = new Set();
+  let prev = Infinity;
+  for (const p of D.PLAYER_VALUES_2627) {
+    if (!p.player) { bad.push("a row has no player"); continue; }
+    if (seen.has(p.player)) bad.push(`${p.player} appears twice`);
+    seen.add(p.player);
+    if (!D.CLUBS[p.club]) bad.push(`${p.player}: unknown club ${p.club}`);
+    if (!Number.isFinite(p.value) || p.value <= 0) bad.push(`${p.player}: value ${p.value}`);
+    if (p.age !== undefined && (!Number.isInteger(p.age) || p.age < 15 || p.age > 45)) bad.push(`${p.player}: age ${p.age}`);
+    if (p.value > prev) bad.push(`${p.player} breaks the ranking — ${p.value} after ${prev}`);
+    prev = p.value;
+    if (p.nat || p.nationality) bad.push(`${p.player}: nationality recorded, which cannot be read reliably from the source`);
+  }
+  // Stored in thousands, so the label has to turn 1000 into millions rather than print €1000k.
+  if (D.valueLabel(275) !== "€275k") bad.push(`valueLabel(275) = ${D.valueLabel(275)}`);
+  if (D.valueLabel(1250) !== "€1.25m") bad.push(`valueLabel(1250) = ${D.valueLabel(1250)}`);
+  if (D.valueLabel(2000) !== "€2m") bad.push(`valueLabel(2000) = ${D.valueLabel(2000)}`);
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// A player named in two places must be at the same club in both.
+//
+// THIS IS THE CREST-MISREAD CHECK. Four valuations were transcribed off a screenshot as
+// Cliftonville when they were Larne — both play in red, and at chart size Larne's ship and
+// Cliftonville's shamrock are the same smudge inside the same circle. The file already knew:
+// Chris Gallagher sits in last season's discipline table at LAR. That disagreement was there to
+// be seen and was written up as "four unrecorded transfers" instead, which is a story invented
+// to protect a bad reading. A machine does not talk itself round, so it gets the job.
+//
+// A move between the two blocks is legitimate, so a TRANSFERS row naming the player excuses the
+// disagreement — it is unexplained ones this catches.
+check("no player is filed at two different clubs without a transfer to explain it", (() => {
+  const bad = [];
+  const moved = new Set(D.TRANSFERS.map((t) => t.player));
+  const at = new Map(); // player -> [{ club, where }]
+  const note = (rows, where) => {
+    for (const r of rows) {
+      if (!r || !r.player || !r.club) continue;
+      if (!at.has(r.player)) at.set(r.player, []);
+      at.get(r.player).push({ club: r.club, where });
+    }
+  };
+  note(D.PLAYER_VALUES_2627, "PLAYER_VALUES_2627");
+  note(D.TOP_SCORERS_2627, "TOP_SCORERS_2627");
+  note(D.DISCIPLINE.yellows, "DISCIPLINE.yellows");
+  note(D.DISCIPLINE.reds, "DISCIPLINE.reds");
+
+  for (const [player, rows] of at) {
+    const clubs = [...new Set(rows.map((r) => r.club))];
+    if (clubs.length < 2) continue;
+    if (moved.has(player)) continue; // a recorded transfer explains it
+    bad.push(`${player}: ${rows.map((r) => `${r.club} in ${r.where}`).join(", ")} — no TRANSFERS row explains the move`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
 // An unconfirmed kick-off must not be printed as a time.
 //
 // EURO marks Larne's play-off legs timeTbc with a PLACEHOLDER dt standing in for a time UEFA
