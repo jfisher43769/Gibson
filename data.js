@@ -1477,6 +1477,21 @@ export // Odds are informational only — plain numbers, no bookmaker branding, 
 const EURO = [
   {
     club: "LAR", comp: "Conference League", round: "Play-off round",
+    // GIBSON estimate for the FIRST LEG, 90 minutes. home/away follow legs[0], which is
+    // away for Larne — so 2.41 is Lincoln Red Imps and 3.26 is Larne, and the app derives
+    // those labels from the leg rather than from this object.
+    //
+    // DERIVATION, AND ITS WEAKNESS. Larne's attack and defence come from scripts/odds-model.js,
+    // the same model that prices the Predictor. Lincoln Red Imps have NO rating there — it
+    // holds twelve NIFL clubs and nothing else — so their strength is an ASSUMPTION: parity
+    // with Larne, on the grounds that the two countries' coefficients are near-level
+    // (Gibraltar 6.874, NI 6.375) and each country's points are earned by this very club.
+    // Larne then lose the venue.
+    //
+    // That assumption dominates the answer: Larne price 2.56 if Lincoln are a shade weaker,
+    // 5.99 if clearly stronger. A Predictor estimate rests on 38 games; this rests on one
+    // country-level number. Added on the owner's explicit instruction, 18 Aug 2026, after
+    // that was put to them. Replace it the moment Lincoln's own record is to hand.
     // Drawn 13 Aug 2026. oppColor: Lincoln Red Imps play in red — same basis as the Iberia
     // entry below, a representative accent for the Home board, not a verified brand hex.
     opp: "Lincoln Red Imps", oppCountry: "Gibraltar", oppColor: "#D42027", odds: null,
@@ -1490,6 +1505,7 @@ const EURO = [
       { label: "1st leg · away", date: "Thu 20 Aug · 17:00", dt: "2026-08-20T16:00:00Z", venue: "Gibraltar" },
       { label: "2nd leg · home", date: "Thu 27 Aug", dt: "2026-08-27T18:00:00Z", venue: "Inver Park", timeTbc: true },
     ],
+    odds: { home: 2.41, draw: 3.59, away: 3.26 },
     prize: "Winner reaches the Conference League league phase — the stage Larne became the first Irish League club to reach in 24/25",
     note: "THE LAST ONE STANDING: beaten by Iberia 1999 in the Europa League third round, Larne drop into the Conference League play-off and one tie now separates them from a second league-phase campaign. Lincoln Red Imps stand in the way — Gibraltar's European entrant, from a country sitting two places above Northern Ireland in the coefficient on 6.874. First leg kicks off at 5pm Belfast time; the second leg's time is still to be confirmed.",
   },

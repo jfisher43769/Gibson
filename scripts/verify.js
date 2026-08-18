@@ -3121,6 +3121,39 @@ check("Home's scorer block names every joint leader and sits below the results",
   return true;
 })());
 
+// European odds are hand-entered, unlike the Predictor's, which the model regenerates. Two
+// things can go wrong that nothing else would catch: a book that does not sum to one (a
+// mistyped digit), and a tie carrying odds with no leg to hang them on — OddsStrip takes its
+// home/away LABELS from legs[0], so a tie with no legs would price two sides it cannot name.
+check("European odds are a fair book, and every priced tie can name its two sides", (() => {
+  //
+  // SCOPED TO TIES STILL TO BE PLAYED, and the reason is a finding rather than a convenience.
+  // The three sets already in the file — Glentoran v RFS, Linfield v Nõmme Kalju, Coleraine v
+  // HJK — carry overrounds of 7.6%, 8.8% and 8.3%. A fair estimate sums to 1; a book with an
+  // 8% margin is a PRICE, which is what a bookmaker sells, and all three are labelled "GIBSON
+  // estimate" on screen exactly as the Predictor's fair books are. All three ties are long
+  // settled, so the numbers are now a record of what was shown at the time rather than a claim
+  // about anything upcoming, and rewriting owner-entered history to satisfy a check would be
+  // worse than leaving it and saying so. Raised with the owner 18 Aug 2026.
+  const settled = (tie) => (tie.legs || []).some((l) => l.res) || /ELIMINATED/i.test(tie.note || "");
+  const bad = [];
+  for (const tie of D.EURO) {
+    if (!tie.odds || settled(tie)) continue;
+    const label = `${tie.club} v ${tie.opp}`;
+    for (const k of ["home", "draw", "away"]) {
+      const v = tie.odds[k];
+      if (!(v > 1.01 && v < 100)) bad.push(`${label}: ${k} price ${v} outside 1.01-100`);
+    }
+    const implied = 1 / tie.odds.home + 1 / tie.odds.draw + 1 / tie.odds.away;
+    if (Math.abs(implied - 1) > 0.01) bad.push(`${label}: implied probabilities sum to ${implied.toFixed(3)}, not 1`);
+    // The app reads legs[0].label to decide which side "home" refers to. No legs, no labels.
+    if (!Array.isArray(tie.legs) || tie.legs.length === 0) bad.push(`${label}: priced but has no legs, so neither side can be named`);
+    else if (typeof tie.legs[0].label !== "string") bad.push(`${label}: first leg has no label to orient the price`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
 // An unconfirmed kick-off must not be printed as a time.
 //
 // EURO marks Larne's play-off legs timeTbc with a PLACEHOLDER dt standing in for a time UEFA
