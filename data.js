@@ -1487,11 +1487,11 @@ const EURO = [
       // by it and decides from it whether a match is on — so it holds UEFA's usual 20:00 CET
       // play-off slot as a PLACEHOLDER FOR ORDERING ONLY. It is never displayed. When UEFA
       // confirm the times, set the real dt, put the kick-off in `date`, and drop timeTbc.
-      { label: "1st leg · away", date: "Thu 20 Aug", dt: "2026-08-20T18:00:00Z", venue: "Gibraltar", timeTbc: true },
+      { label: "1st leg · away", date: "Thu 20 Aug · 17:00", dt: "2026-08-20T16:00:00Z", venue: "Gibraltar" },
       { label: "2nd leg · home", date: "Thu 27 Aug", dt: "2026-08-27T18:00:00Z", venue: "Inver Park", timeTbc: true },
     ],
     prize: "Winner reaches the Conference League league phase — the stage Larne became the first Irish League club to reach in 24/25",
-    note: "THE LAST ONE STANDING: beaten by Iberia 1999 in the Europa League third round, Larne drop into the Conference League play-off and one tie now separates them from a second league-phase campaign. Lincoln Red Imps stand in the way — Gibraltar's European entrant, from a country sitting two places above Northern Ireland in the coefficient on 6.874. Kick-off times to be confirmed.",
+    note: "THE LAST ONE STANDING: beaten by Iberia 1999 in the Europa League third round, Larne drop into the Conference League play-off and one tie now separates them from a second league-phase campaign. Lincoln Red Imps stand in the way — Gibraltar's European entrant, from a country sitting two places above Northern Ireland in the coefficient on 6.874. First leg kicks off at 5pm Belfast time; the second leg's time is still to be confirmed.",
   },
   {
     club: "LAR", comp: "Europa League", round: "Third qualifying round",
@@ -1588,10 +1588,10 @@ export const CLUB_FIXTURES = {
     { date: "11 Aug", dt: "2026-08-11T16:00:00Z", res: "2–1 L", opp: "FC Iberia 1999 (a) — Bedoshvili 74', Simpson 76', Sikharulashvili 102'", comp: "UEL Q3 · 2nd leg · Mikheil Meskhi Stadium · aet · 1–2 agg · into UECL play-off" },
     // Drawn 13 Aug 2026. No kick-off times published yet — see the EURO entry for why `dt`
     // holds a placeholder slot and the display date deliberately carries no time.
-    // timeTbc mirrors EURO. The dt is a PLACEHOLDER standing in for an unconfirmed kick-off,
-    // and without this flag the front page rendered it as "THURSDAY · 7PM" in the largest
-    // gold type on the screen while this row's own comp line said "kick-off TBC".
-    { date: "20 Aug", dt: "2026-08-20T18:00:00Z", timeTbc: true, opp: "Lincoln Red Imps (a)", comp: "UECL play-off · 1st leg · kick-off TBC" },
+    // 5pm Belfast time, confirmed by the owner 18 Aug 2026 — so 6pm local in Gibraltar, which
+    // is CEST in August. The second leg is still unconfirmed and keeps its timeTbc flag and
+    // placeholder dt; see the note in EURO.
+    { date: "20 Aug", dt: "2026-08-20T16:00:00Z", opp: "Lincoln Red Imps (a)", comp: "UECL play-off · 1st leg" },
     { date: "27 Aug", dt: "2026-08-27T18:00:00Z", timeTbc: true, opp: "Lincoln Red Imps (h)", comp: "UECL play-off · 2nd leg · Inver Park · kick-off TBC" },
   ],
   GLE: [
