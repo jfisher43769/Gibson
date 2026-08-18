@@ -58,7 +58,7 @@ const note = (m) => console.log(`   – ${m}`);
 
 // Home's own acceptance criteria, from the v2 brief: the chrome must not eat the screen and a
 // real number must be reachable without scrolling.
-async function homeChecks(page) {
+async function homeChecks(page, vh) {
   const chromeH = await page.evaluate(() => {
     const h = document.querySelector(".gb-header"), n = document.querySelector(".gb-navwrap");
     if (!h || !n) return null;
@@ -77,7 +77,7 @@ async function homeChecks(page) {
       return null;
     };
     return { pos: inView("[data-snap-pos]"), pts: inView("[data-snap-pts]") };
-  }, 800);
+  }, vh);
   if (fold.pos && fold.pts) pass(`above the fold: position "${fold.pos}", points "${fold.pts}"`);
   else fail(`above the fold: position ${fold.pos || "MISSING"}, points ${fold.pts || "MISSING"}`);
 
@@ -226,9 +226,20 @@ console.log(`subjects: ${mostPlayed.club} (${mostPlayed.p} played)`
 
 // ===== the walk =====
 
-for (const width of [360, 430]) {
+// Phone first, because that is what the owner and most readers use — but the desktop layout
+// (.gb-narrow, .gb-desk-2col, the header that becomes one row at 1100) had never been measured
+// at all. Every block added to a page was checked at 360 and 430 and simply assumed at 1440.
+const VIEWPORTS = [
+  { width: 360, height: 800, kind: "phone" },
+  { width: 430, height: 800, kind: "phone" },
+  { width: 1024, height: 900, kind: "desktop" },
+  { width: 1440, height: 900, kind: "desktop" },
+];
+
+for (const vp of VIEWPORTS) {
+  const width = vp.width;
   for (const spec of PAGES) {
-    const page = await browser.newPage({ viewport: { width, height: 800 }, deviceScaleFactor: 2 });
+    const page = await browser.newPage({ viewport: { width, height: vp.height }, deviceScaleFactor: vp.kind === "desktop" ? 1 : 2 });
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
     // A stalled route never reaches networkidle, which is the point — wait on load instead and
@@ -244,7 +255,7 @@ for (const width of [360, 430]) {
       await page.waitForTimeout(900);   // recharts mounts its svg asynchronously
     }
 
-    console.log(`\n${spec.path}${spec.click ? ` → ${spec.click}` : ""}  @${width}px`);
+    console.log(`\n${spec.path}${spec.click ? ` → ${spec.click}` : ""}  @${width}px ${vp.kind}`);
     if (errors.length) fail(`page errors: ${errors.slice(0, 2).join(" | ")}`);
 
     // Did anything actually render? The white-screen case looked fine to build and verify.
@@ -301,7 +312,7 @@ for (const width of [360, 430]) {
     if (stranded.length === 0) pass("no stat tile is stranded on its own row");
     else fail(`stranded tiles: ${stranded.join("; ")}`);
 
-    if (spec.checks) await spec.checks(page);
+    if (spec.checks) await spec.checks(page, vp.height);
 
     const file = `gibson-${spec.name}-${width}.png`;
     writeFileSync(join(OUT, file), await page.screenshot({ fullPage: spec.name !== "home" }));

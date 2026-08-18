@@ -119,8 +119,12 @@ export function HomeView({ goTo }) {
         homeName: CLUBS[heroFix.club].name, awayName: stripVenueTag(heroFix.opp),
         homeColor: CLUBS[heroFix.club].colors[0],
         awayColor: EURO.find((e) => e.club === heroFix.club)?.oppColor || null,
-        // Rendered from the tie's UTC dt, so it stays right either side of the clocks going back.
-        time: londonKickoffLabel(heroFix.dt),
+        // Rendered from the tie's UTC dt, so it stays right either side of the clocks going back
+        // — but ONLY when the kick-off is actually known. An unconfirmed tie carries a
+        // placeholder dt, and printing that as "7PM" in the biggest type on the front page
+        // states a time nobody has confirmed (golden rule 1).
+        time: heroFix.timeTbc ? null : londonKickoffLabel(heroFix.dt),
+        timeTbc: Boolean(heroFix.timeTbc),
         when: relativeDay(new Date(heroFix.dt).getTime(), now),
         venue: heroFix.venue || null,
         sub: `${CLUBS[heroFix.club].name} v ${heroFix.opp} · ${heroFix.comp}`,
@@ -216,7 +220,7 @@ export function HomeView({ goTo }) {
               fontSize: "clamp(26px, 8vw, 38px)", letterSpacing: "0.03em", textTransform: "uppercase",
               textShadow: "0 0 18px rgba(255,182,39,0.35)",
             }}>
-              {board.when || board.date}{board.time ? ` · ${board.time.toUpperCase()}` : ""}
+              {board.when || board.date}{board.time ? ` · ${board.time.toUpperCase()}` : ""}{board.timeTbc ? " · TIME TBC" : ""}
             </div>
             {board.when && (
               <div style={{ fontSize: 12, color: dim, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 4 }}>
