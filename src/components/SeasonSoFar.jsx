@@ -1,9 +1,10 @@
 import React from "react";
 import {
-  SEASON, TOP_SCORERS_2627, aggregateMatchStats, clubName, clubTopScorers, currentSeasonStats,
-  ordinal, recordedCoverage, tableStage,
+  PLAYER_VALUES_2627, SEASON, TOP_SCORERS_2627, aggregateMatchStats, clubName, clubTopScorers,
+  currentSeasonStats, ordinal, recordedCoverage, tableStage, valueLabel,
 } from "../../data.js";
 import { ClubRuns, LeagueRuns } from "./Runs.jsx";
+import { OpponentSplit } from "./OpponentSplit.jsx";
 import { Crest } from "./Crest.jsx";
 import { SURFACE, chalk, dim, faint } from "../lib/theme.js";
 
@@ -95,6 +96,43 @@ export function LeadingScorers({ limit }) {
   );
 }
 
+// The league's most valuable players, from Transfermarkt's current chart. Sits beside the
+// scoring chart on the Players page: one says who is scoring, the other who is worth most, and
+// they rarely agree — which is the interesting part.
+export function MostValuable({ limit }) {
+  const rows = limit ? PLAYER_VALUES_2627.slice(0, limit) : PLAYER_VALUES_2627;
+  if (rows.length === 0) return null;
+  return (
+    <div data-most-valuable style={{ marginBottom: 18 }}>
+      <div style={{ ...label, marginTop: 4 }}>Most valuable · {SEASON.current.display}</div>
+      <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden", marginBottom: 10 }}>
+        {rows.map((p, i) => (
+          <div key={p.player} style={{
+            display: "flex", alignItems: "center", gap: 10, padding: "9px 13px",
+            borderBottom: i < rows.length - 1 ? `1px solid ${faint}` : "none",
+          }}>
+            <span style={{
+              fontFamily: "'Barlow Condensed'", fontWeight: 700, fontSize: 14, color: dim,
+              width: 16, textAlign: "center", fontVariantNumeric: "tabular-nums",
+            }}>{i + 1}</span>
+            <Crest club={p.club} size={20} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: chalk, flex: 1, minWidth: 0,
+              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.player}</span>
+            <span style={{ fontSize: 12, color: dim, whiteSpace: "nowrap" }}>{p.pos}</span>
+            <span style={{
+              fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 16, color: "#FFB627",
+              fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap",
+            }}>{valueLabel(p.value)}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{ fontSize: 12, color: dim, lineHeight: 1.5 }}>
+        The top of the list, not all of it — via Transfermarkt.
+      </div>
+    </div>
+  );
+}
+
 export function SeasonSoFar() {
   const s = currentSeasonStats();
   if (!s.matches) return null;                     // nothing has been played; say nothing
@@ -142,6 +180,8 @@ export function SeasonSoFar() {
       </div>
 
       <LeagueRuns />
+
+      <OpponentSplit />
 
       <LeadingScorers />
 

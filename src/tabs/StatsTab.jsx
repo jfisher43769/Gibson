@@ -7,7 +7,7 @@ import { Avatar } from "../components/Avatar.jsx";
 import { CountUp } from "../components/CountUp.jsx";
 import { Crest } from "../components/Crest.jsx";
 import { ReportLink } from "../components/ReportLink.jsx";
-import { LeadingScorers, SeasonSoFar } from "../components/SeasonSoFar.jsx";
+import { LeadingScorers, MostValuable, SeasonSoFar } from "../components/SeasonSoFar.jsx";
 import { NoSeasonData, SeasonSwitch } from "../components/SeasonSwitch.jsx";
 import { DepartedTag } from "../components/DepartedTag.jsx";
 import { ShotMap } from "../components/ShotMap.jsx";
@@ -413,6 +413,7 @@ export function PlayersView() {
           compiled. The scoring chart is the one current-season player stat that exists, so it
           goes above the switch — same reasoning as the Lab. */}
       <LeadingScorers />
+      <MostValuable />
       <SeasonSwitch value={season} onChange={setSeason} status={status} />
       {season === liveSeasonId() && PLAYERS.length > 0
         ? <PlayersBody />

@@ -319,6 +319,64 @@ export function roundMovers() {
     .sort((x, y) => y.delta - x.delta);
 }
 
+// ===== Who you have actually played =====
+//
+// Two clubs on the same points have not necessarily had the same season. A side second having
+// played only the bottom half is a different second from one that has taken points off the
+// top. This splits every club's record by the CURRENT standing of the opponent, which is the
+// only honest way to do it midway through a season — final positions do not exist yet, and
+// using last season's would be answering a different question.
+//
+// It says so on the page, because the split moves as the table moves: beat a club and drag
+// them down the table, and a result of yours quietly becomes a bottom-half result. That is a
+// property of the measure, not a fault, but a reader deserves to know it.
+//
+// The top half is the first half of the CURRENT table, rounded down for an odd number of
+// clubs — twelve clubs, top six.
+export function opponentStrengthSplit() {
+  const table = currentTable();
+  const half = Math.floor(table.length / 2);
+  const rank = Object.fromEntries(table.map((r, i) => [r.club, i + 1]));
+  const rows = new Map(table.map((r) => [r.club, {
+    club: r.club,
+    top: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 },
+    bottom: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 },
+  }]));
+
+  for (const round of FIXTURES_2627) {
+    for (const m of round.matches) {
+      if (!Array.isArray(m.result) || m.result.length !== 2) continue;
+      const [hg, ag] = m.result;
+      if (!Number.isFinite(hg) || !Number.isFinite(ag)) continue;
+      const H = rows.get(m.h), A = rows.get(m.a);
+      if (!H || !A) continue;
+      const add = (row, opp, gf, ga) => {
+        // A club is never its own opponent, so which bucket a match lands in is decided purely
+        // by where the OTHER side currently sits.
+        const side = rank[opp] <= half ? row.top : row.bottom;
+        side.p += 1; side.gf += gf; side.ga += ga;
+        if (gf > ga) { side.w += 1; side.pts += 3; }
+        else if (gf < ga) { side.l += 1; }
+        else { side.d += 1; side.pts += 1; }
+      };
+      add(H, m.a, hg, ag);
+      add(A, m.h, ag, hg);
+    }
+  }
+
+  return [...rows.values()].map((r) => ({
+    ...r,
+    // Points per game against each half, which is what makes two clubs comparable when they
+    // have played a different number of each.
+    topPpg: r.top.p ? Number((r.top.pts / r.top.p).toFixed(2)) : null,
+    bottomPpg: r.bottom.p ? Number((r.bottom.pts / r.bottom.p).toFixed(2)) : null,
+  })).sort((x, y) => (y.topPpg ?? -1) - (x.topPpg ?? -1) || y.top.pts - x.top.pts || x.club.localeCompare(y.club));
+}
+
+// How many clubs count as the top half — exported so a page can say "top six" rather than
+// hardcoding a number that changes if the league ever does.
+export function topHalfSize() { return Math.floor(currentTable().length / 2); }
+
 // ===== Runs =====
 //
 // "Larne haven't lost since March" is the most quoted kind of football stat and one of the
@@ -1491,9 +1549,46 @@ export const INJURIES = [
   { player: "Seanan Clucas", club: "CAR", injury: "Knee surgery" },
   { player: "Steven McCullough", club: "BAN", injury: "Foot injury" },
   { player: "Patrick Solis Grogan", club: "BAN", injury: "Knock" },
-  { player: "Graham Kelly", club: "CRU", injury: "Achilles tendon" },
+  // Refreshed against the source on 18 Aug 2026. The eight above were unchanged — the list was
+  // far less stale than a July date suggested — and Graham Kelly (Crusaders, Achilles) has
+  // dropped off it, so he is removed rather than left listed as injured.
 ];
 
+
+// ===== 26/27 most valuable players =====
+// Transfermarkt's valuation chart for the current season (owner screenshot, 18 Aug 2026). The
+// TOP of a longer list, so it ranks the most valuable and says nothing about anyone absent.
+//
+// Distinct from MARKET_VALUES, which is 25/26 SQUAD totals per club. This is per player and
+// current, and the two must not be added together or compared.
+//
+// Nationality is not recorded, for the same reason as the scoring chart: at screenshot size the
+// Ulster Banner and the flag of England are one white field with a red cross.
+//
+// FOUR OF THESE IMPLY TRANSFERS THIS FILE DOES NOT HOLD. Rohan Ferguson, Matt Ridley, Chris
+// Gallagher and Sean Graham are shown at Cliftonville, and none appears in Cliftonville's
+// recorded window; Gallagher is in last season's discipline table at Larne. The valuations are
+// recorded as the source gives them, because that is what the source says — but no transfer
+// entry has been invented to explain them. Raised with the owner 18 Aug 2026.
+export const PLAYER_VALUES_2627 = [
+  { player: "Rohan Ferguson", club: "CLI", pos: "Goalkeeper", age: 28, value: 300 },
+  { player: "Matt Ridley", club: "CLI", pos: "Centre-Back", age: 26, value: 300 },
+  { player: "Aaron McEneff", club: "GLE", pos: "Central Midfield", age: 31, value: 300 },
+  { player: "Will Patching", club: "COL", pos: "Central Midfield", age: 27, value: 300 },
+  { player: "Matthew Shevlin", club: "COL", pos: "Centre-Forward", age: 27, value: 300 },
+  { player: "Adam Glenny", club: "LIN", pos: "Left-Back", age: 24, value: 275 },
+  { player: "Declan Dunne", club: "LIN", pos: "Goalkeeper", age: 26, value: 275 },
+  { player: "Chris Gallagher", club: "CLI", pos: "Defensive Midfield", age: 27, value: 275 },
+  { player: "Sean Graham", club: "CLI", pos: "Left-Back", age: 25, value: 275 },
+  { player: "Ryan Cooney", club: "GLE", pos: "Defender", age: 26, value: 275 },
+];
+
+// "€300k". Values are stored in thousands of euros, which is the unit the source publishes at
+// this level and avoids a float for every entry.
+export function valueLabel(v) {
+  if (!Number.isFinite(v)) return "";
+  return v >= 1000 ? `\u20ac${(v / 1000).toFixed(2).replace(/\.00$/, "")}m` : `\u20ac${v}k`;
+}
 
 // 25/26 team numbers — AiScore (verified via screenshots, Jul 2026)
 export const TEAM_STATS_2526 = [
