@@ -3253,6 +3253,81 @@ check("roundMovers() reports real movement between the last two rounds", (() => 
   return bad.length === 0;
 })());
 
+// Runs are derived from results in order, so they can be checked against those same results
+// rather than against a remembered number — recompute the run independently from the club's
+// result line and demand the same answer.
+check("every run agrees with the results it was built from", (() => {
+  const bad = [];
+  const TESTS = {
+    unbeaten: (m) => m.res !== "L",
+    winning: (m) => m.res === "W",
+    losing: (m) => m.res === "L",
+    winless: (m) => m.res !== "W",
+    scoring: (m) => m.gf > 0,
+    cleanSheets: (m) => m.ga === 0,
+    failedToScore: (m) => m.gf === 0,
+  };
+  const table = Object.fromEntries(D.currentTable().map((r) => [r.club, r]));
+
+  for (const s of D.sequences()) {
+    const line = D.clubResultLine(s.club);
+    // The result line must be the same matches the table counted, in kick-off order.
+    if (line.length !== (table[s.club]?.p ?? 0)) bad.push(`${s.club}: ${line.length} results in line, table says ${table[s.club]?.p}`);
+    if (line.length !== s.played) bad.push(`${s.club}: played ${s.played} but line has ${line.length}`);
+    for (let i = 1; i < line.length; i++) if (line[i].ms < line[i - 1].ms) bad.push(`${s.club}: result line is out of order`);
+    // Goals in the line must total what the table holds, which catches a home/away flip.
+    const gf = line.reduce((n, m) => n + m.gf, 0), ga = line.reduce((n, m) => n + m.ga, 0);
+    if (table[s.club] && (gf !== table[s.club].gf || ga !== table[s.club].ga)) {
+      bad.push(`${s.club}: line totals ${gf}-${ga}, table says ${table[s.club].gf}-${table[s.club].ga}`);
+    }
+
+    for (const [kind, test] of Object.entries(TESTS)) {
+      // Longest, recomputed.
+      let best = 0, run = 0;
+      for (const m of line) { run = test(m) ? run + 1 : 0; if (run > best) best = run; }
+      if (s.longest[kind] !== best) bad.push(`${s.club} ${kind}: longest ${s.longest[kind]}, recomputed ${best}`);
+      // Current is the tail — count backwards from the most recent match.
+      let tail = 0;
+      for (let i = line.length - 1; i >= 0 && test(line[i]); i--) tail += 1;
+      if (s.current[kind] !== tail) bad.push(`${s.club} ${kind}: current ${s.current[kind]}, recomputed ${tail}`);
+      if (s.current[kind] > s.longest[kind]) bad.push(`${s.club} ${kind}: current run exceeds the longest`);
+      if (s.longest[kind] > line.length) bad.push(`${s.club} ${kind}: run longer than the season`);
+    }
+    // Mutually exclusive by definition: a club cannot currently be both winning and winless.
+    if (s.current.winning > 0 && s.current.winless > 0) bad.push(`${s.club}: winning and winless at once`);
+    if (s.current.losing > 0 && s.current.unbeaten > 0) bad.push(`${s.club}: losing and unbeaten at once`);
+    if (s.current.scoring > 0 && s.current.failedToScore > 0) bad.push(`${s.club}: scoring and not scoring at once`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// Nothing below the threshold reaches a page. Two of anything happens constantly in a league
+// where every club plays every week, and a "run" of two presented as a statistic is the padding
+// that makes a stats site untrustworthy.
+check("no run below the threshold is published, and every published one is current", (() => {
+  const bad = [];
+  const byClub = Object.fromEntries(D.sequences().map((s) => [s.club, s]));
+  for (const r of D.notableRuns()) {
+    if (r.n < D.SEQUENCE_MIN) bad.push(`${r.club} ${r.kind}: ${r.n} is below the ${D.SEQUENCE_MIN} threshold`);
+    if (byClub[r.club].current[r.kind] !== r.n) bad.push(`${r.club} ${r.kind}: published ${r.n}, current run is ${byClub[r.club].current[r.kind]}`);
+  }
+  // Sorted longest first, so the page never leads with the smallest run on it.
+  const ns = D.notableRuns().map((r) => r.n);
+  for (let i = 1; i < ns.length; i++) if (ns[i] > ns[i - 1]) bad.push("notableRuns() is not ordered longest first");
+  // A club's own list must be the same runs, filtered to it.
+  for (const club of Object.keys(byClub)) {
+    const mine = D.clubRuns(club).map((r) => `${r.kind}:${r.n}`).sort().join(",");
+    const fromLeague = D.notableRuns().filter((r) => r.club === club).map((r) => `${r.kind}:${r.n}`).sort().join(",");
+    if (mine !== fromLeague) bad.push(`${club}: club runs (${mine || "none"}) disagree with the league list (${fromLeague || "none"})`);
+  }
+  // Singular where it belongs — "1 wins in a row" is the kind of thing nobody notices in review.
+  if (D.runLabel("winning", 1) !== "1 win in a row") bad.push(`runLabel singular is "${D.runLabel("winning", 1)}"`);
+  if (D.runLabel("winning", 3) !== "3 wins in a row") bad.push(`runLabel plural is "${D.runLabel("winning", 3)}"`);
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
 // An unconfirmed kick-off must not be printed as a time.
 //
 // EURO marks Larne's play-off legs timeTbc with a PLACEHOLDER dt standing in for a time UEFA

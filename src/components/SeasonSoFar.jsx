@@ -3,6 +3,7 @@ import {
   SEASON, TOP_SCORERS_2627, aggregateMatchStats, clubName, clubTopScorers, currentSeasonStats,
   ordinal, recordedCoverage, tableStage,
 } from "../../data.js";
+import { ClubRuns, LeagueRuns } from "./Runs.jsx";
 import { Crest } from "./Crest.jsx";
 import { SURFACE, chalk, dim, faint } from "../lib/theme.js";
 
@@ -140,6 +141,8 @@ export function SeasonSoFar() {
         nothing but the scorelines, so they are complete for the {s.matches} match{s.matches === 1 ? "" : "es"} played.
       </div>
 
+      <LeagueRuns />
+
       <LeadingScorers />
 
       {teamStats.length > 0 && (<>
@@ -257,6 +260,8 @@ export function ClubSeasonSoFar({ club }) {
         kept a clean sheet in {c.csPct}%. Derived from the {c.p} match{c.p === 1 ? "" : "es"} they have
         played — scorelines are all these need, so they are complete rather than sampled.
       </div>
+
+      <ClubRuns club={club} />
 
       {scorers.length > 0 && (<>
         <div style={{ ...label, marginTop: 4 }}>On the scoresheet</div>
