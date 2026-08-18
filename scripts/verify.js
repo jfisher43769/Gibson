@@ -3401,6 +3401,43 @@ check("PLAYER_VALUES_2627 is a well-formed, ranked chart", (() => {
   return bad.length === 0;
 })());
 
+// A player named in two places must be at the same club in both.
+//
+// THIS IS THE CREST-MISREAD CHECK. Four valuations were transcribed off a screenshot as
+// Cliftonville when they were Larne — both play in red, and at chart size Larne's ship and
+// Cliftonville's shamrock are the same smudge inside the same circle. The file already knew:
+// Chris Gallagher sits in last season's discipline table at LAR. That disagreement was there to
+// be seen and was written up as "four unrecorded transfers" instead, which is a story invented
+// to protect a bad reading. A machine does not talk itself round, so it gets the job.
+//
+// A move between the two blocks is legitimate, so a TRANSFERS row naming the player excuses the
+// disagreement — it is unexplained ones this catches.
+check("no player is filed at two different clubs without a transfer to explain it", (() => {
+  const bad = [];
+  const moved = new Set(D.TRANSFERS.map((t) => t.player));
+  const at = new Map(); // player -> [{ club, where }]
+  const note = (rows, where) => {
+    for (const r of rows) {
+      if (!r || !r.player || !r.club) continue;
+      if (!at.has(r.player)) at.set(r.player, []);
+      at.get(r.player).push({ club: r.club, where });
+    }
+  };
+  note(D.PLAYER_VALUES_2627, "PLAYER_VALUES_2627");
+  note(D.TOP_SCORERS_2627, "TOP_SCORERS_2627");
+  note(D.DISCIPLINE.yellows, "DISCIPLINE.yellows");
+  note(D.DISCIPLINE.reds, "DISCIPLINE.reds");
+
+  for (const [player, rows] of at) {
+    const clubs = [...new Set(rows.map((r) => r.club))];
+    if (clubs.length < 2) continue;
+    if (moved.has(player)) continue; // a recorded transfer explains it
+    bad.push(`${player}: ${rows.map((r) => `${r.club} in ${r.where}`).join(", ")} — no TRANSFERS row explains the move`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
 // An unconfirmed kick-off must not be printed as a time.
 //
 // EURO marks Larne's play-off legs timeTbc with a PLACEHOLDER dt standing in for a time UEFA

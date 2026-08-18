@@ -679,7 +679,9 @@ export const FIXTURES_2627 = [
     { h: "BAN", a: "POR" }, { h: "CAR", a: "LAR" }, { h: "CLI", a: "GLE" }, { h: "COL", a: "LIM" }, { h: "DUN", a: "BAL" }, { h: "LIN", a: "CRU" },
   ]},
   { round: 9, date: "Sat 26 Sep", matches: [
-    { h: "BAL", a: "POR" }, { h: "COL", a: "LIN" }, { h: "CRU", a: "BAN" }, { h: "GLE", a: "CAR" }, { h: "LAR", a: "DUN" }, { h: "LIM", a: "CLI" },
+    { h: "BAL", a: "POR" },
+    { h: "COL", a: "LIN", d: "Fri 25 Sep", t: "7.45pm" }, // moved from Sat 26 Sep at Coleraine's request (NIFL, 18 Aug 2026)
+    { h: "CRU", a: "BAN" }, { h: "GLE", a: "CAR" }, { h: "LAR", a: "DUN" }, { h: "LIM", a: "CLI" },
   ]},
   { round: 10, date: "Sat 3 Oct", matches: [
     { h: "BAN", a: "COL" }, { h: "CAR", a: "CRU" }, { h: "CLI", a: "BAL" }, { h: "GLE", a: "DUN" }, { h: "LAR", a: "LIN" }, { h: "POR", a: "LIM" },
@@ -1565,21 +1567,26 @@ export const INJURIES = [
 // Nationality is not recorded, for the same reason as the scoring chart: at screenshot size the
 // Ulster Banner and the flag of England are one white field with a red cross.
 //
-// FOUR OF THESE IMPLY TRANSFERS THIS FILE DOES NOT HOLD. Rohan Ferguson, Matt Ridley, Chris
-// Gallagher and Sean Graham are shown at Cliftonville, and none appears in Cliftonville's
-// recorded window; Gallagher is in last season's discipline table at Larne. The valuations are
-// recorded as the source gives them, because that is what the source says — but no transfer
-// entry has been invented to explain them. Raised with the owner 18 Aug 2026.
+// LARNE, NOT CLIFTONVILLE, for Ferguson, Ridley, Gallagher and Graham. First recorded here as
+// Cliftonville off a misread crest — both clubs play in red, and at chart size Larne's ship and
+// Cliftonville's shamrock are a smudge in the middle of the same circle. Corrected by the owner,
+// 18 Aug 2026.
+//
+// The misreading announced itself and I discounted it: those four appeared in no Cliftonville
+// window, and Gallagher sits in last season's discipline table at Larne. That was the data
+// saying the club was wrong, and it was written up as "four unrecorded transfers" instead —
+// a story invented to preserve a reading, when the simpler answer was that the reading was bad.
+// When a source contradicts this file, suspect the source LAST.
 export const PLAYER_VALUES_2627 = [
-  { player: "Rohan Ferguson", club: "CLI", pos: "Goalkeeper", age: 28, value: 300 },
-  { player: "Matt Ridley", club: "CLI", pos: "Centre-Back", age: 26, value: 300 },
+  { player: "Rohan Ferguson", club: "LAR", pos: "Goalkeeper", age: 28, value: 300 },
+  { player: "Matt Ridley", club: "LAR", pos: "Centre-Back", age: 26, value: 300 },
   { player: "Aaron McEneff", club: "GLE", pos: "Central Midfield", age: 31, value: 300 },
   { player: "Will Patching", club: "COL", pos: "Central Midfield", age: 27, value: 300 },
   { player: "Matthew Shevlin", club: "COL", pos: "Centre-Forward", age: 27, value: 300 },
   { player: "Adam Glenny", club: "LIN", pos: "Left-Back", age: 24, value: 275 },
   { player: "Declan Dunne", club: "LIN", pos: "Goalkeeper", age: 26, value: 275 },
-  { player: "Chris Gallagher", club: "CLI", pos: "Defensive Midfield", age: 27, value: 275 },
-  { player: "Sean Graham", club: "CLI", pos: "Left-Back", age: 25, value: 275 },
+  { player: "Chris Gallagher", club: "LAR", pos: "Defensive Midfield", age: 27, value: 275 },
+  { player: "Sean Graham", club: "LAR", pos: "Left-Back", age: 25, value: 275 },
   { player: "Ryan Cooney", club: "GLE", pos: "Defender", age: 26, value: 275 },
 ];
 
