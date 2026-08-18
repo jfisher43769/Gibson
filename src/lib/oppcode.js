@@ -9,6 +9,21 @@
 // "FC", which names nothing.
 export const CLUB_TYPE = /^(fc|afc|ac|sc|cf|fk|sk|nk|cd|ud|us|as|if|bk|sv)$/i;
 
+// Is this European fixture away from home for the Irish League club?
+//
+// CLUB_FIXTURES bakes the venue into the opponent string — "Lincoln Red Imps (a)" — and it is
+// the only machine-readable statement of where a tie is being played. Same module and same
+// reason as oppCode: the Home board's scoreboard reads left-to-right as HOME v AWAY, it put
+// the Irish League club on the left unconditionally, and Larne's away leg in Gibraltar rendered
+// "LARNE v LINCOLN RED IMPS" while the line beneath it said "(a)". Two halves of one card
+// disagreeing about who was at home.
+//
+// Exported so verify.js tests the SHIPPED rule rather than a second copy that agrees with
+// itself — which is exactly how the "I(" bug survived its first check.
+export function fixtureIsAway(opp) {
+  return /\(a\)\s*$/i.test(String(opp).split("—")[0].trim());
+}
+
 export function oppCode(name) {
   // Tokens must START with a letter. CLUB_FIXTURES bakes the venue into the name — "FC
   // Iberia 1999 (a)" — and a looser test counted "(a)" as a word, giving "I(": the I of

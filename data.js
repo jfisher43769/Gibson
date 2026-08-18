@@ -1019,7 +1019,10 @@ export const AXES = ["Shooting", "Creation", "Passing", "Dribbling", "Defending"
 // forty-odd July entries and they never reach the front page, which is exactly what happened
 // to these three on 9 Aug 2026.
 export const TRANSFERS = [
-  { id: 64, date: "Aug", player: "Ben Kennedy", from: "BAL", to: "POR", status: "done", note: "Attacking midfielder swaps the Showgrounds for Shamrock Park. Fee undisclosed." },
+  { id: 64, date: "Aug", player: "Ben Kennedy", from: "BAL", to: "POR", status: "done", // "Swaps the Showgrounds for Shamrock Park" named neither club, and the Showgrounds is two
+  // different grounds in this league — Ballymena's and Coleraine's. A reader had to already
+  // know the answer for the sentence to mean anything.
+  note: "Attacking midfielder leaves Ballymena United for Portadown. Fee undisclosed." },
   { id: 65, date: "Aug", player: "Alex Wilkie", fromExternal: "Queens Park Rangers", to: "LAR", status: "done", note: "Centre-back joins the champions from Queens Park Rangers. Fee undisclosed." },
   { id: 66, date: "Aug", player: "Nathaniel Ferris", from: "GLE", toExternal: "Loughgall (loan)", status: "departure", note: "Centre-forward heads to Loughgall on loan for first-team minutes." },
   { id: 67, date: "Aug", player: "MacKenzie Strachan", fromExternal: "Cove Rangers", to: "BAN", status: "done", note: "Defensive midfielder joins Bangor on a free from Cove Rangers." },
@@ -1216,8 +1219,14 @@ export const LEAGUE_LORE = [
   },
   {
     id: "away-goals-first",
-    title: "First out on away goals",
-    fact: "Glentoran became the first club in football history eliminated by the away-goals rule, after drawing 1-1 at home and 0-0 away against Benfica in the 1967 European Cup. Benfica went all the way to the final.",
+    title: "First out of the European Cup on away goals",
+    // CORRECTED 18 Aug 2026. This read "the first club in football history eliminated by the
+    // away-goals rule", which is wrong and was wrong on a site whose first rule is never to
+    // invent a fact. The rule was already in use in the Cup Winners' Cup and the Fairs Cup
+    // before the European Cup adopted it for 1967/68 — so Glentoran's distinction is real but
+    // specific to that competition, and the claim now says which. The bigger claim was more
+    // flattering, which is exactly why it should have been checked.
+    fact: "Glentoran were the first club knocked out of the European Cup on away goals, in 1967/68 — the rule's first season in that competition, though it was already in use in the Cup Winners' Cup and the Fairs Cup. The Glens drew 1-1 with Benfica at the Oval and 0-0 in Lisbon. Benfica went all the way to the final.",
     source: "European Cup records, 1967/68",
   },
   {
@@ -1525,6 +1534,17 @@ export const store = {
 
 // Josh's live Ko-fi page
 export const KOFI_URL = "https://ko-fi.com/gibson575";
+
+// Where a reader who has spotted a wrong number can reach the owner.
+//
+// "Spot an error? Tell GIBSON" pointed only at X, which asks a fan to hold an account on one
+// particular social network before they can report that a scoreline is wrong. Most people
+// don't, and the ones who notice a bad stat are exactly the ones worth hearing from.
+//
+// NULL UNTIL THE OWNER NAMES AN ADDRESS. A contact route that bounces is worse than one
+// route that works, and their personal address is not mine to publish — so ReportLink shows
+// the email only when this is set, and falls back to X alone until then.
+export const CONTACT_EMAIL = null;
 
 // GIBSON social accounts — linked from the app header
 export const SOCIALS = {

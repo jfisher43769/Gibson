@@ -4,6 +4,7 @@ import {
 } from "../../data.js";
 import { Crest } from "../components/Crest.jsx";
 import { OddsDisclaimer, OddsStrip } from "../components/Odds.jsx";
+import { SupportCard } from "../components/SupportCta.jsx";
 import { drawFooterLockup, roundRect } from "../lib/canvas.js";
 import { SITE_ORIGIN } from "../lib/routes.js";
 import { OVERLAY, SURFACE, chalk, dim, faint, rise } from "../lib/theme.js";
@@ -514,10 +515,15 @@ export function PredictorView() {
         </div>
       )}
 
-      <div style={{ fontSize: 12, color: dim, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: dim, lineHeight: 1.5, marginBottom: 18 }}>
         Picks are saved on this device. Points appear here automatically once results are in.
         Global leaderboards arrive with accounts in v2.0 — for now, screenshot your score and settle it in the group chat.
       </div>
+
+      {/* Under the Predictor and nowhere else on this tab: someone who has just locked in a
+          gameweek is a regular, and a regular is who you ask. Below the picks, never above
+          them — the ask does not get between anyone and the thing they came for. */}
+      <SupportCard />
     </div>
   );
 }

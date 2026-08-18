@@ -12,7 +12,7 @@ import { ScoreRow } from "../components/ScoreRow.jsx";
 import { TableSnapshot } from "../components/TableSnapshot.jsx";
 import { TvBadge } from "../components/TvBadge.jsx";
 import { findLive, useLiveEvents } from "../lib/live.js";
-import { oppCode } from "../lib/oppcode.js";
+import { fixtureIsAway, oppCode } from "../lib/oppcode.js";
 import { OVERLAY, SURFACE, chalk, dim, faint, tapPad } from "../lib/theme.js";
 import { useMyClub } from "../lib/myclub.js";
 
@@ -111,14 +111,28 @@ export function HomeView({ goTo }) {
   // reads fine in the prose sub-line but is redundant clutter under a name already paired
   // with its own club — strip it for the compact label only.
   const stripVenueTag = (name) => name.replace(/\s*\((?:h|a)\)\s*$/i, "");
+  // A scoreboard reads left-to-right as HOME v AWAY. That is not a style choice — it is the
+  // only thing the layout says about where a game is being played, and the board used to put
+  // the Irish League club on the left every time. So Larne's away leg in Gibraltar rendered
+  // "LARNE v LINCOLN RED IMPS" while the sub-line underneath carried "(a)", and the two halves
+  // of the same card contradicted each other. The tag in CLUB_FIXTURES is the source of truth;
+  // when it says away, the sides swap and the board tells the truth without needing the tag.
+  const heroAway = heroFix ? fixtureIsAway(heroFix.opp) : false;
+  const heroOppCode = heroFix ? oppCode(heroFix.opp) : null;
+  const heroOppName = heroFix ? stripVenueTag(heroFix.opp) : null;
+  const heroOppColor = heroFix ? (EURO.find((e) => e.club === heroFix.club)?.oppColor || null) : null;
   const board = heroFix
     ? {
-        home: heroFix.club, away: oppCode(heroFix.opp), date: heroFix.date,
+        home: heroAway ? heroOppCode : heroFix.club,
+        away: heroAway ? heroFix.club : heroOppCode,
+        date: heroFix.date,
         // Only the Premiership club has a crest; a European opponent falls back to its code.
-        homeCrest: heroFix.club, awayCrest: null,
-        homeName: CLUBS[heroFix.club].name, awayName: stripVenueTag(heroFix.opp),
-        homeColor: CLUBS[heroFix.club].colors[0],
-        awayColor: EURO.find((e) => e.club === heroFix.club)?.oppColor || null,
+        homeCrest: heroAway ? null : heroFix.club,
+        awayCrest: heroAway ? heroFix.club : null,
+        homeName: heroAway ? heroOppName : CLUBS[heroFix.club].name,
+        awayName: heroAway ? CLUBS[heroFix.club].name : heroOppName,
+        homeColor: heroAway ? heroOppColor : CLUBS[heroFix.club].colors[0],
+        awayColor: heroAway ? CLUBS[heroFix.club].colors[0] : heroOppColor,
         // Rendered from the tie's UTC dt, so it stays right either side of the clocks going back
         // — but ONLY when the kick-off is actually known. An unconfirmed tie carries a
         // placeholder dt, and printing that as "7PM" in the biggest type on the front page
@@ -127,7 +141,12 @@ export function HomeView({ goTo }) {
         timeTbc: Boolean(heroFix.timeTbc),
         when: relativeDay(new Date(heroFix.dt).getTime(), now),
         venue: heroFix.venue || null,
-        sub: `${CLUBS[heroFix.club].name} v ${heroFix.opp} · ${heroFix.comp}`,
+        // Reads in the same order as the crests above it, so the two can't disagree. The raw
+        // opp string keeps its (h)/(a) tag here: in a prose line it is useful confirmation
+        // rather than the clutter it would be under a name paired with its own crest.
+        sub: heroAway
+          ? `${heroOppName} v ${CLUBS[heroFix.club].name} · ${heroFix.comp}`
+          : `${CLUBS[heroFix.club].name} v ${heroOppName} · ${heroFix.comp}`,
       }
     : {
         home: leagueFix.h, away: leagueFix.a, date: leagueFix.date.replace(/^\w+\s+/, ""),
@@ -303,7 +322,9 @@ export function HomeView({ goTo }) {
             <span style={{ ...label, marginBottom: 0 }}>
               {topScorers.length > 1 ? "Leading scorers" : "Leading scorer"}
             </span>
-            <button onClick={() => goTo("stats", "players")} style={seeAll} aria-label="Open the full scoring chart">Chart →</button>
+            {/* "Chart →" named the format, not the destination — a reader had to guess which
+                chart. Every other link on this tab says where it goes. */}
+            <button onClick={() => goTo("stats", "players")} style={seeAll} aria-label="Open the full scoring chart">Top scorers →</button>
           </div>
           <div style={{ ...SURFACE.flat, borderRadius: 14, overflow: "hidden" }}>
             {topScorers.map((p, i) => (

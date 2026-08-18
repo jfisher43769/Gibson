@@ -9,6 +9,8 @@ import { ClubNavContext } from "./src/components/Crest.jsx";
 import { GlobalStyle } from "./src/components/GlobalStyle.jsx";
 import { LogoMark } from "./src/components/LogoMark.jsx";
 import { ReportLink } from "./src/components/ReportLink.jsx";
+import { SupportLine } from "./src/components/SupportCta.jsx";
+import { InstallPrompt } from "./src/components/InstallPrompt.jsx";
 import { SubNav } from "./src/components/SubNav.jsx";
 import { applyMeta, initialPath, pathForState, stateFromPath } from "./src/lib/routes.js";
 import { OVERLAY, chalk, dim, faint, tapPad } from "./src/lib/theme.js";
@@ -203,6 +205,9 @@ function AppShell() {
       </div>
 
       <main className="gb-main" style={{ maxWidth: 760, margin: "0 auto", padding: "0 18px" }}>
+        {/* Renders nothing unless the browser has said the app is actually installable, and
+            never again once dismissed — see the component. */}
+        <InstallPrompt />
         {clubPage ? (
           <GibsonBoundary key={`club-${clubPage}`}>
             <ClubPage club={clubPage} onBack={closeClub} />
@@ -232,6 +237,9 @@ function AppShell() {
         </>)}
         </GibsonBoundary>
         )}
+        {/* The ask, once, quietly, above the small print — the answer to "who pays for this?"
+            is one tap away on every page instead of three taps deep under More. */}
+        <SupportLine style={{ padding: "22px 0 0" }} />
         <BuildStamp />
         <div style={{ textAlign: "center", padding: "0 0 14px" }}>
           <ReportLink />
