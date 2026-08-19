@@ -196,7 +196,7 @@ export function SeasonSoFar() {
               <Crest club={t.club} size={20} />
               <ClubName club={t.club} />
               <span style={{ fontSize: 12, color: dim, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
-                {t.shots ?? "—"} shots · {t.accuracy}% on target
+                {t.shots ?? "—"} shots{t.accuracy === null ? "" : ` · ${t.accuracy}% on target`}
               </span>
               <span style={{ fontFamily: "'Barlow Condensed'", fontWeight: 800, fontSize: 17, color: "#FFB627", fontVariantNumeric: "tabular-nums" }}>
                 {t.poss === null ? "—" : `${t.poss}%`}
@@ -334,7 +334,7 @@ export function ClubSeasonSoFar({ club }) {
           <Stat value={mine.poss === null ? "—" : mine.poss} unit={mine.poss === null ? "" : "%"} name="Possession" />
           <Stat value={mine.shots ?? "—"} name="Shots" />
           <Stat value={mine.sot ?? "—"} name="On target" />
-          <Stat value={mine.accuracy} unit="%" name="Accuracy" />
+          <Stat value={mine.accuracy === null ? "—" : mine.accuracy} unit={mine.accuracy === null ? "" : "%"} name="Accuracy" />
         </div>
       </>)}
 

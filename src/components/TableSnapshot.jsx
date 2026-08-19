@@ -77,9 +77,20 @@ export function TableSnapshot({ myClub, onOpenTable }) {
 
   return (
     <div style={{ marginBottom: 14 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6, gap: 8 }}>
+      {/* The strip itself has always been one big button, but nothing SAID so — every other
+          block on this tab carries a "See all →" and this one carried only a season label, so
+          the four rows read as the whole of it. The affordance now matches the behaviour.
+          The season label drops below on a narrow screen rather than fighting the link for
+          the same line, which is what pushed this row sideways at 360px before. */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6, gap: 8, flexWrap: "wrap" }}>
         <span style={{ fontSize: 12, color: dim, letterSpacing: "0.14em", textTransform: "uppercase" }}>Table</span>
-        <span style={{ fontSize: 11, color: dim, whiteSpace: "nowrap" }}>{seasonLabel}</span>
+        <span style={{ display: "inline-flex", alignItems: "baseline", gap: 8, minWidth: 0 }}>
+          <span style={{ fontSize: 11, color: dim, whiteSpace: "nowrap" }}>{seasonLabel}</span>
+          <button onClick={onOpenTable} aria-label="Open the full league table" style={{
+            background: "none", border: "none", padding: 0, cursor: "pointer",
+            fontSize: 12, color: "#FFB627", fontWeight: 600, whiteSpace: "nowrap",
+          }}>Full table →</button>
+        </span>
       </div>
       {/* The whole strip is one target — a five-row summary exists to be tapped through. */}
       <button onClick={onOpenTable} aria-label="Open the full league table" className="gb-row" style={{

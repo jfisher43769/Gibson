@@ -7,7 +7,7 @@ import * as D_CUP from "../src/lib/cup.js";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { TAP_MIN, contrastRatio, contrastText, chalk, DARK_TEXT, relativeLuminance, tapPad } from "../src/lib/theme.js";
-import { CLUB_TYPE, oppCode } from "../src/lib/oppcode.js";
+import { CLUB_TYPE, fixtureIsAway, oppCode } from "../src/lib/oppcode.js";
 import { fairOdds } from "./odds-model.js";
 import * as OM from "./odds-model.js";
 import { bucket as bucketEvents } from "../api/events.js";
@@ -809,13 +809,101 @@ check("the shipped predictor odds match what the odds model produces", (() => {
 
 // The Home board falls back to an abbreviation when the opponent has no crest, and that
 // abbreviation was the first word of the name — so FC Iberia 1999 appeared on the front page
+// The error-report route has to actually work.
+//
+// "Spot an error? Tell GIBSON" pointed only at X, which asks a fan to hold an account on one
+// social network before they can report a wrong scoreline — and the people who notice a bad
+// stat are the readers most worth hearing from. An email route sits beside it now.
+//
+// A CONTACT ADDRESS IS PUBLISHED ON EVERY PAGE, so a typo in it is a silent, permanent loss:
+// nothing errors, reports simply stop arriving and nobody finds out. Checked for shape here,
+// and checked that ReportLink still gates on it — null must mean X alone, never a mailto: with
+// an empty address, which looks like a working link and opens a blank draft.
+check("the error-report route is reachable, and the contact address is well-formed", (() => {
+  const bad = [];
+  let src = "";
+  try { src = readFileSync(new URL("../src/components/ReportLink.jsx", import.meta.url), "utf8"); } catch { return false; }
+  if (!/CONTACT_EMAIL\s*&&/.test(src)) bad.push("ReportLink no longer gates the mailto on CONTACT_EMAIL being set");
+  if (!/x\.com\/GibsonStats/.test(src)) bad.push("the X route has gone — that was the one that always worked");
+
+  const e = D.CONTACT_EMAIL;
+  if (e !== null) {
+    if (typeof e !== "string") bad.push(`CONTACT_EMAIL is ${typeof e}, expected a string or null`);
+    else {
+      // Deliberately strict rather than RFC-complete: this is one hand-typed address, and the
+      // failure being guarded against is a typo, not an exotic-but-legal mailbox.
+      if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(e)) bad.push(`CONTACT_EMAIL "${e}" is not a plausible address`);
+      if (/\s/.test(e)) bad.push("CONTACT_EMAIL contains whitespace");
+      if (e !== e.trim().toLowerCase()) bad.push(`CONTACT_EMAIL "${e}" is not trimmed and lower-case`);
+    }
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// The Home board's scoreboard reads HOME v AWAY, and must agree with where the tie is played.
+//
+// It put the Irish League club on the left every time, so Larne's away leg in Gibraltar
+// rendered "LARNE v LINCOLN RED IMPS" — the layout's only statement about venue, saying the
+// opposite of the truth — while the prose line under it carried "(a)". Owner spotted it,
+// 18 Aug 2026.
+//
+// Tests the SHIPPED helper against the SHIPPED data, and asserts the component still routes
+// through it, because a private copy in HomeTab is how this silently comes back.
+check("the Home board puts the home side first, for away legs too", (() => {
+  let src = "";
+  try { src = readFileSync(new URL("../src/tabs/HomeTab.jsx", import.meta.url), "utf8"); } catch { return false; }
+  const bad = [];
+  // The component must derive the side order from the helper, not from its own regex and not
+  // from the club being the Irish League one.
+  if (!/heroAway\s*=\s*heroFix\s*\?\s*fixtureIsAway\(/.test(src)) {
+    bad.push("HomeTab no longer derives heroAway from fixtureIsAway() — this check would be testing nothing");
+  }
+  // Both sides of the board, both names, both colours and the sub-line must all be keyed off
+  // it. Putting the crests in venue order while the sentence beneath stays club-first is the
+  // same bug in a smaller box.
+  for (const field of ["home:", "away:", "homeCrest:", "awayCrest:", "homeName:", "awayName:", "homeColor:", "awayColor:"]) {
+    const line = src.split("\n").find((l) => l.trim().startsWith(field) && l.includes("heroAway"));
+    if (!line) bad.push(`board.${field.replace(":", "")} does not depend on heroAway`);
+  }
+  if (!/sub:\s*heroAway/.test(src)) bad.push("board.sub does not depend on heroAway");
+
+  // And the helper itself has to read the tag the data actually carries.
+  const cases = [
+    ["Lincoln Red Imps (a)", true], ["Lincoln Red Imps (h)", false],
+    ["FC Iberia 1999 (a)", true], ["FC Iberia 1999 (h)", false],
+    // Played fixtures append a scorer list after an em dash; the tag still governs.
+    ["Red Star Belgrade (a) — Katai 3', Arnautović 45'", true],
+    ["RFS (h) — Ibsen Rossi 38'", false],
+    // No tag at all: an Inver Park tie recorded without one is not away.
+    ["Red Star Belgrade", false],
+  ];
+  for (const [opp, want] of cases) {
+    if (fixtureIsAway(opp) !== want) bad.push(`fixtureIsAway("${opp}") = ${!want}, expected ${want}`);
+  }
+  // Every European fixture in the data must be readable one way or the other — a tag this
+  // helper cannot parse would silently default the board back to club-first.
+  for (const [club, rows] of Object.entries(D.CLUB_FIXTURES || {})) {
+    for (const f of rows) {
+      if (!f || !f.opp || !/UCL|UEL|UECL/i.test(String(f.comp || ""))) continue;
+      const tagged = /\((h|a)\)/i.test(String(f.opp).split("—")[0]);
+      const venueSaysHome = /Inver Park|The Oval|Windsor Park|The Showgrounds|Seaview|Solitude/i.test(String(f.comp || ""));
+      // A fixture with no tag AND a home ground named in the comp string is fine; one with
+      // neither is a fixture whose venue nothing in the data states.
+      if (!tagged && !venueSaysHome) bad.push(`${club} v ${f.opp}: no (h)/(a) tag and no ground named — venue unstated`);
+    }
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
 // as a side called "F C". Every European opponent in the data has to abbreviate to something
 // that is actually about that club. Found reviewing the UI, 9 Aug 2026.
 check("every European opponent abbreviates to something meaningful on the Home board", (() => {
   // HomeTab must be using the shared helper, not a private copy that could drift from it.
   let src = "";
   try { src = readFileSync(new URL("../src/tabs/HomeTab.jsx", import.meta.url), "utf8"); } catch { return false; }
-  if (!/import \{ oppCode \} from "\.\.\/lib\/oppcode\.js"/.test(src)) {
+  if (!/import \{ fixtureIsAway, oppCode \} from "\.\.\/lib\/oppcode\.js"/.test(src)) {
     console.log("      ↳ HomeTab no longer imports oppCode from src/lib — this check would be testing a copy");
     return false;
   }
@@ -2058,6 +2146,45 @@ check("MATCH_STATS entries are internally consistent and map to played fixtures"
     if (s.reds && s.reds.some((n) => n > 5)) bad.push(`${tie}: implausible red count`);
     // Can't hit the target more than you shoot — only checkable when both were recorded.
     if (s.sot && s.shots && [0, 1].some((i) => s.sot[i] > s.shots[i])) bad.push(`${tie}: on-target exceeds total shots`);
+  }
+  if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
+  return bad.length === 0;
+})());
+
+// Shooting accuracy pairs its two halves match by match.
+//
+// THE SOFASCORE OVERVIEW PUBLISHES TOTAL SHOTS WITH NO ON-TARGET ROW. Coleraine v Larne and
+// Limavady v Carrick came in that way, and accuracy was a ratio of two independently summed
+// totals: every match's shots over only the matches that recorded on-target. Coleraine's 15
+// shots landed in the denominator with nothing they could contribute to the numerator, taking
+// them from 67% to 19% — and the completeness gate had just flipped, so it would have gone
+// straight onto the club page as a verified-looking number.
+//
+// The rule is that a ratio may only be built from matches that recorded BOTH sides of it, and
+// must be null rather than 0 when no match did — "we don't know" is not "they never hit the
+// target". Recomputed here from MATCH_STATS rather than trusting the implementation.
+check("shooting accuracy is built only from matches recording both shots and on-target", (() => {
+  const bad = [];
+  const paired = new Map(); // club -> { shots, sot, both }
+  const bump = (club, s, side) => {
+    const r = paired.get(club) || { shots: 0, sot: 0, both: 0 };
+    if (Array.isArray(s.shots) && Array.isArray(s.sot)) {
+      r.shots += s.shots[side]; r.sot += s.sot[side]; r.both += 1;
+    }
+    paired.set(club, r);
+  };
+  for (const s of D.MATCH_STATS) { bump(s.h, s, 0); bump(s.a, s, 1); }
+
+  for (const t of D.aggregateMatchStats()) {
+    const p = paired.get(t.club) || { shots: 0, sot: 0, both: 0 };
+    const want = p.shots ? Math.round((p.sot / p.shots) * 100) : null;
+    if (t.accuracy !== want) {
+      bad.push(`${t.club}: accuracy ${t.accuracy} — ${p.sot}/${p.shots} over ${p.both} paired match(es) is ${want}`);
+    }
+    // A percentage above 100 means the two halves came from different match sets.
+    if (t.accuracy !== null && (t.accuracy < 0 || t.accuracy > 100)) bad.push(`${t.club}: accuracy ${t.accuracy} out of range`);
+    // Recorded no pair at all, so there is nothing to state.
+    if (p.both === 0 && t.accuracy !== null) bad.push(`${t.club}: accuracy ${t.accuracy} with no match recording both halves`);
   }
   if (bad.length) console.log("      ↳ " + bad.join("\n      ↳ "));
   return bad.length === 0;
